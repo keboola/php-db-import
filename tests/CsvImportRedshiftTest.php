@@ -259,7 +259,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 	public function testInvalidManifestImport()
 	{
 		$initialFile =  new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv');
-		$importFile = new Keboola\Csv\CsvFile('s3://keboola-tests/02_tw_accounts.csv.invalid.manifest');
+		$importFile = new \Keboola\Csv\CsvFile('s3://keboola-tests/02_tw_accounts.csv.invalid.manifest');
 
 		$import = $this->getImport('manifest');
 		$import->setIgnoreLines(1);
