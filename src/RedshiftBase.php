@@ -364,7 +364,6 @@ abstract class RedshiftBase implements ImportInterface
 	protected function query($sql, $bind = array())
 	{
 		try {
-            echo $sql . "\n";
 			$this->connection->prepare($sql)->execute($bind);
 		} catch (\PDOException $e) {
 			if (strpos($e->getMessage(), 'Mandatory url is not present in manifest file') !== false) {
