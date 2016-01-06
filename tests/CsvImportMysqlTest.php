@@ -112,7 +112,10 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
 		$this->assertEquals(7, $result->getImportedRowsCount());
 	}
 
-	public function _testImportWithWarnings()
+    /**
+     * @TODO fix this, exception should not be thrown
+     */
+    public function _testImportWithWarnings()
 	{
 		$importFiles = array(
 			new CsvFile(__DIR__ . '/_data/csv-import/escaping/raw-warnings.csv', "\t", "", "\\"),

@@ -2,4 +2,4 @@
 
 composer install -n
 
-./vendor/bin/phpunit --verbose --debug
+./vendor/bin/phpunit
