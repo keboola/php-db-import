@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<mysqldump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<database name="martin_bi_twitter_test">
+	<table_data name="csv_accounts">
+	  <row>
+			  <field name="id">15</field>
+			  <field name="idTwitter">448810375</field>
+			  <field name="name">KeboolaDev " with ščř</field>
+			  <field name="import">0</field>
+			  <field name="isImported">1</field>
+			  <field name="apiLimitExceededDatetime" xsi:nil="true" />
+			  <field name="analyzeSentiment">1</field>
+			  <field name="importKloutScore">0</field>
+			  <field name="timestamp">2012-02-20 09:34:22</field>
+		  <field name="oauthToken">ddd</field>
+				  <field name="oauthSecret">ddd</field>
+				  <field name="idApp">1</field>
+	  </row>
+	  <row>
+			  <field name="id">18</field>
+			  <field name="idTwitter">512024829</field>
+			  <field name="name">adcczok</field>
+			  <field name="import">1</field>
+			  <field name="isImported">1</field>
+			  <field name="apiLimitExceededDatetime">2012-03-19 16:05:32</field>
+			  <field name="analyzeSentiment">1</field>
+			  <field name="importKloutScore">1</field>
+			  <field name="timestamp">2012-03-19 16:05:32</field>
+		  <field name="oauthToken">ddd</field>
+				  <field name="oauthSecret">ddd</field>
+				  <field name="idApp">1</field>
+	  </row>
+	  <row>
+			  <field name="id">60</field>
+			  <field name="idTwitter">22184682988</field>
+			  <field name="name">mr_hashos</field>
+			  <field name="import">1</field>
+			  <field name="isImported">1</field>
+			  <field name="apiLimitExceededDatetime" xsi:nil="true" />
+			  <field name="analyzeSentiment">1</field>
+			  <field name="importKloutScore">0</field>
+			  <field name="timestamp">2012-03-28 09:27:24</field>
+		  <field name="oauthToken">ddd</field>
+				  <field name="oauthSecret">ddd</field>
+				  <field name="idApp">1</field>
+	  </row>
+	  </table_data>
+
+	<table_data name="csv_breaks">
+		  <row>
+				  <field name="id">15</field>
+				  <field name="name">KeboolaDev " with</field>
+
+		  </row>
+		  <row>
+				  <field name="id">18</field>
+				  <field name="name">adcczok</field>
+		  </row>
+		  <row>
+				  <field name="id">60</field>
+				  <field name="name">rum</field>
+		  </row>
+  </table_data>
+</database>
+</mysqldump>

@@ -1,0 +1,7 @@
+.project
+*.swp
+nbproject
+.idea
+composer.phar
+vendor
+set-env.sh

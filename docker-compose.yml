@@ -1,0 +1,16 @@
+tests:
+  build: .
+  volumes:
+    - .:/code
+  working_dir: /code
+  entrypoint: "./phpunit.sh"
+  tty: true
+  stdin_open: true
+  links:
+    - mysql
+
+mysql:
+  image: mysql:5.5
+  environment:
+    MYSQL_DATABASE: tests
+    MYSQL_ROOT_PASSWORD: password

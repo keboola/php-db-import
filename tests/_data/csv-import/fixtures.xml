@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<mysqldump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<database name="test_martin_bi_twitter">
+	<table_structure name="csv_accounts">
+		<field Field="id" Type="int(10) unsigned" Null="NO" Key="PRI" Extra="auto_increment" Comment="" />
+		<field Field="idTwitter" Type="bigint(20) unsigned" Null="NO" Key="UNI" Extra="" Comment="" />
+		<field Field="name" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="import" Type="tinyint(1) unsigned" Null="NO" Key="" Default="1" Extra="" Comment="" />
+		<field Field="isImported" Type="tinyint(1) unsigned" Null="NO" Key="" Default="0" Extra="" Comment="" />
+		<field Field="apiLimitExceededDatetime" Type="datetime" Null="YES" Key="" Extra="" Comment="" />
+		<field Field="analyzeSentiment" Type="tinyint(1)" Null="YES" Key="" Default="1" Extra="" Comment="" />
+		<field Field="importKloutScore" Type="tinyint(1)" Null="YES" Key="" Default="0" Extra="" Comment="" />
+		<field Field="timestamp" Type="timestamp" Null="NO" Key="" Default="CURRENT_TIMESTAMP" Extra="on update CURRENT_TIMESTAMP" Comment="" />
+		<field Field="oauthToken" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="oauthSecret" Type="varchar(50)" Null="NO" Key="" Extra="" Comment="" />
+		<field Field="idApp" Type="smallint(5) unsigned" Null="NO" Key="" Extra="" Comment="" />
+		<key Table="csv_accounts" Non_unique="0" Key_name="PRIMARY" Seq_in_index="1" Column_name="id" Collation="A" Cardinality="3" Null="" Index_type="BTREE" Comment="" />
+		<key Table="csv_accounts" Non_unique="0" Key_name="idTwitter" Seq_in_index="1" Column_name="idTwitter" Collation="A" Cardinality="3" Null="" Index_type="BTREE" Comment="" />
+		<options Name="csv_accounts" Engine="InnoDB" Version="10" Row_format="Compact" Rows="3" Avg_row_length="5461" Data_length="16384" Max_data_length="0" Index_length="16384" Data_free="652214272" Auto_increment="20" Create_time="2012-03-30 12:14:45" Collation="utf8_general_ci" Create_options="" Comment="" />
+	</table_structure>
+	<table_data name="csv_accounts">
+		<row>
+				<field name="id">15</field>
+				<field name="idTwitter">448810375</field>
+				<field name="name">KeboolaDev</field>
+				<field name="import">0</field>
+				<field name="isImported">1</field>
+				<field name="apiLimitExceededDatetime" xsi:nil="true" />
+				<field name="analyzeSentiment">1</field>
+				<field name="importKloutScore">0</field>
+				<field name="timestamp">2012-02-20 08:34:22</field>
+				<field name="oauthToken">ddd</field>
+				<field name="oauthSecret">ddd</field>
+				<field name="idApp">1</field>
+			</row>
+			<row>
+				<field name="id">18</field>
+				<field name="idTwitter">512024829</field>
+				<field name="name">adccz</field>
+				<field name="import">1</field>
+				<field name="isImported">1</field>
+				<field name="apiLimitExceededDatetime" xsi:nil="true" />
+				<field name="analyzeSentiment">1</field>
+				<field name="importKloutScore">1</field>
+				<field name="timestamp">2012-03-19 15:05:32</field>
+				<field name="oauthToken">ddd</field>
+				<field name="oauthSecret">ddd</field>
+				<field name="idApp">1</field>
+			</row>
+			<row>
+				<field name="id">19</field>
+				<field name="idTwitter">221846829</field>
+				<field name="name">mr_hash</field>
+				<field name="import">1</field>
+				<field name="isImported">1</field>
+				<field name="apiLimitExceededDatetime" xsi:nil="true" />
+				<field name="analyzeSentiment">1</field>
+				<field name="importKloutScore">0</field>
+				<field name="timestamp">2012-03-28 07:27:24</field>
+				<field name="oauthToken">ddd</field>
+				<field name="oauthSecret">ddd</field>
+				<field name="idApp">1</field>
+			</row>
+	</table_data>
+	<table_data name="csv_transactional">
+		<row>
+				<field name="storageApiTransaction">10</field>
+				<field name="id">415</field>
+				<field name="name">test</field>
+				<field name="price">50.0000</field>
+				<field name="isDeleted">0</field>
+		</row>
+		<row>
+				<field name="storageApiTransaction">10</field>
+				<field name="id">5500</field>
+				<field name="name">iPhone</field>
+				<field name="price">499.0000</field>
+				<field name="isDeleted">0</field>
+		</row>
+		<row>
+				<field name="storageApiTransaction">10</field>
+				<field name="id">10000</field>
+				<field name="name">Kolo</field>
+				<field name="price">5000.0000</field>
+				<field name="isDeleted">0</field>
+		</row>
+	</table_data>
+	<table_data name="csv_transactional_no_id">
+			<row>
+					<field name="storageApiTransaction">10</field>
+					<field name="id">415</field>
+					<field name="name">test</field>
+					<field name="price">50.0000</field>
+					<field name="isDeleted">0</field>
+			</row>
+			<row>
+					<field name="storageApiTransaction">10</field>
+					<field name="id">5500</field>
+					<field name="name">iPhone</field>
+					<field name="price">499.0000</field>
+					<field name="isDeleted">0</field>
+			</row>
+			<row>
+					<field name="storageApiTransaction">10</field>
+					<field name="id">10000</field>
+					<field name="name">Kolo</field>
+					<field name="price">5000.0000</field>
+					<field name="isDeleted">0</field>
+			</row>
+	</table_data>
+</database>
+</mysqldump>

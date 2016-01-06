@@ -1,0 +1,10 @@
+sudo: required
+
+services:
+  - docker
+
+before_install:
+  - docker-compose -v
+
+script:
+  - docker-compose run -e REDSHIFT_HOST=$REDSHIFT_HOST -e REDSHIFT_USER=$REDSHIFT_USER -e REDSHIFT_PORT=$REDSHIFT_PORT -e REDSHIFT_DATABASE=$REDSHIFT_DATABASE -e REDSHIFT_PASSWORD=$REDSHIFT_PASSWORD -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY -e AWS_SECRET_KEY=$AWS_SECRET_KEY tests

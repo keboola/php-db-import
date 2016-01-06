@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<mysqldump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<database name="martin_bi_twitter_test">
+	<table_data name="csv_2cols">
+		<row>
+			<field name="col1">line without enclosure</field>
+			<field name="col2">second column</field>
+		</row>
+		<row>
+			<field name="col1">enclosure " in column</field>
+			<field name="col2">hello \</field>
+		</row>
+		<row>
+			<field name="col1">line with enclosure</field>
+			<field name="col2">second column</field>
+		</row>
+		<row>
+			<field name="col1">column with enclosure ", and comma inside text</field>
+			<field name="col2">second column enclosure in text "</field>
+		</row>
+		<row>
+			<field name="col1">columns with
+new line</field>
+			<field name="col2">columns with	tab</field>
+		</row>
+		<row>
+			<field name="col1">column with \n \t \\</field>
+			<field name="col2">"enclosed"</field>
+		</row>
+		<row>
+			<field name="col1">first with
+
+double rainbow</field>
+			<field name="col2">second with\
+
+
+triple rainbow</field>
+		</row>
+	</table_data>
+</database>
+</mysqldump>
