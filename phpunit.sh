@@ -2,4 +2,4 @@
 
 composer install -n
 
-./vendor/bin/phpunit --verbose --debug tests/CsvImportRedshiftTest.php
+./vendor/bin/phpunit --verbose --debug

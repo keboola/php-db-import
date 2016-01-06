@@ -223,7 +223,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 		sort($rowsShouldBeUpdated);
 		$this->assertEquals($rowsShouldBeUpdated, $updatedRows);
 
-		$importedData = $this->connection->query("SELECT $columnsSql FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll();
+		$importedData = $this->connection->query("SELECT $columnsSql FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll(\PDO::FETCH_NUM);
 		$this->assertArrayEqualsSorted($expected, $importedData, 0);
 	}
 
