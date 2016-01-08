@@ -55,16 +55,16 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
         $result = $this->import
             ->setIncremental($incremental)
             ->setIgnoreLines(1)
-            ->import($tableName, $csvFile->getHeader(), array($csvFile));
+            ->import($tableName, $csvFile->getHeader(), [$csvFile]);
 
         $expectedDataset = $this->createMySQLXMLDataSet(__DIR__ . "/_data/csv-import/$expectationsFile");
         $currentDataset = $this->getConnection()->createDataSet();
 
-        $expectedDataset = new \PHPUnit_Extensions_Database_DataSet_DataSetFilter($expectedDataset, array($tableName));
-        $expectedDataset->setExcludeColumnsForTable($tableName, array('timestamp'));
+        $expectedDataset = new \PHPUnit_Extensions_Database_DataSet_DataSetFilter($expectedDataset, [$tableName]);
+        $expectedDataset->setExcludeColumnsForTable($tableName, ['timestamp']);
 
-        $currentDataset = new \PHPUnit_Extensions_Database_DataSet_DataSetFilter($currentDataset, array($tableName));
-        $currentDataset->setExcludeColumnsForTable($tableName, array('timestamp'));
+        $currentDataset = new \PHPUnit_Extensions_Database_DataSet_DataSetFilter($currentDataset, [$tableName]);
+        $currentDataset->setExcludeColumnsForTable($tableName, ['timestamp']);
 
         $this->assertTablesEqual($expectedDataset->getTable($tableName), $currentDataset->getTable($tableName));
         $this->assertEmpty($result->getWarnings());
@@ -75,16 +75,16 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
         $tableName = 'csv_2cols';
         $result = $this->import
             ->setIgnoreLines(0)
-            ->import($tableName, array('col1', 'col2'), array(new CsvFile(__DIR__ . '/_data/csv-import/escaping/raw-without-headers.csv', "\t", "", "\\")));
+            ->import($tableName, ['col1', 'col2'], [new CsvFile(__DIR__ . '/_data/csv-import/escaping/raw-without-headers.csv', "\t", "", "\\")]);
 
         $expectedDataset = $this->createMySQLXMLDataSet(__DIR__ . "/_data/csv-import/escaping/expectation.standard.xml");
         $currentDataset = $this->getConnection()->createDataSet();
 
-        $expectedDataset = new \PHPUnit_Extensions_Database_DataSet_DataSetFilter($expectedDataset, array($tableName));
-        $expectedDataset->setExcludeColumnsForTable($tableName, array('timestamp'));
+        $expectedDataset = new \PHPUnit_Extensions_Database_DataSet_DataSetFilter($expectedDataset, [$tableName]);
+        $expectedDataset->setExcludeColumnsForTable($tableName, ['timestamp']);
 
-        $currentDataset = new \PHPUnit_Extensions_Database_DataSet_DataSetFilter($currentDataset, array($tableName));
-        $currentDataset->setExcludeColumnsForTable($tableName, array('timestamp'));
+        $currentDataset = new \PHPUnit_Extensions_Database_DataSet_DataSetFilter($currentDataset, [$tableName]);
+        $currentDataset->setExcludeColumnsForTable($tableName, ['timestamp']);
 
         $this->assertTablesEqual($expectedDataset->getTable($tableName), $currentDataset->getTable($tableName));
         $this->assertEmpty($result->getWarnings());
@@ -93,14 +93,14 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
     public function testMultipleFilesImport()
     {
         $csvFile = new CsvFile(__DIR__ . '/_data/csv-import/escaping/raw.csv', "\t", "", "\\");
-        $importFiles = array(
+        $importFiles = [
             $csvFile,
             $csvFile,
-        );
+        ];
         $tableName = 'csv_2cols';
         $result = $this->import
             ->setIgnoreLines(1)
-            ->import($tableName, array('col1', 'col2'), $importFiles);
+            ->import($tableName, ['col1', 'col2'], $importFiles);
 
         $this->assertEquals(7, $result->getImportedRowsCount());
     }
@@ -110,14 +110,14 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
      */
     public function _testImportWithWarnings()
     {
-        $importFiles = array(
+        $importFiles = [
             new CsvFile(__DIR__ . '/_data/csv-import/escaping/raw-warnings.csv', "\t", "", "\\"),
             new CsvFile(__DIR__ . '/_data/csv-import/escaping/standard.csv'),
-        );
+        ];
         $tableName = 'csv_2cols';
         $result = $this->import
             ->setIgnoreLines(1)
-            ->import($tableName, array('col1', 'col2'), $importFiles);
+            ->import($tableName, ['col1', 'col2'], $importFiles);
 
         $this->assertEquals(7, $result->getImportedRowsCount());
         $this->assertCount(1, $result->getWarnings());
@@ -126,10 +126,10 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
 
     public function duplicateColumnsData()
     {
-        return array(
-            array('tw_accounts.duplicateColumnsAdded.csv'),
-            array('tw_accounts.duplicateColumnsAdded2.csv'),
-        );
+        return [
+            ['tw_accounts.duplicateColumnsAdded.csv'],
+            ['tw_accounts.duplicateColumnsAdded2.csv'],
+        ];
     }
 
 
@@ -140,7 +140,7 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
         $this->import
             ->setIncremental(true)
             ->setIgnoreLines(1)
-            ->import('tw_something', $csvFile->getHeader(), array($csvFile));
+            ->import('tw_something', $csvFile->getHeader(), [$csvFile]);
     }
 
     public function testEmptyFileShouldThrowsException()
@@ -149,7 +149,7 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
         $this->setExpectedException("Keboola\Db\Import\Exception", '', \Keboola\Db\Import\Exception::NO_COLUMNS);
         $this->import
             ->setIgnoreLines(1)
-            ->import('csv_accounts', $csvFile->getHeader(), array($csvFile));
+            ->import('csv_accounts', $csvFile->getHeader(), [$csvFile]);
     }
 
     public function testEmptyFilePartialShouldThrowsException()
@@ -157,42 +157,42 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
         $csvFile = new CsvFile(__DIR__ . "/_data/csv-import/empty.csv");
         $this->setExpectedException("Keboola\Db\Import\Exception", '', \Keboola\Db\Import\Exception::NO_COLUMNS);
         $this->import
-            ->import('csv_accounts', $csvFile->getHeader(), array($csvFile));
+            ->import('csv_accounts', $csvFile->getHeader(), [$csvFile]);
     }
 
     public function tables()
     {
-        return array(
+        return [
 
             // full imports
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv'), 'expectation.fullImport.xml', 'csv_accounts', false, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.nl-last-row.csv'), 'expectation.fullImport.xml', 'csv_accounts', false, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.tabs.csv', "\t"), 'expectation.fullImport.xml', 'csv_accounts', false, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.tabs.csv', "	"), 'expectation.fullImport.xml', 'csv_accounts', false, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.extraColumns.csv'), 'expectation.fullImport.xml', 'csv_accounts', false, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.changedColumnsOrder.csv'), 'expectation.fullImport.xml', 'csv_accounts', false, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/escaping/standard.csv'), 'escaping/expectation.standard.xml', 'csv_2cols', false, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/escaping/raw.csv', "\t", "", "\\"), 'escaping/expectation.standard.xml', 'csv_2cols', false, array()),
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv'), 'expectation.fullImport.xml', 'csv_accounts', false, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.nl-last-row.csv'), 'expectation.fullImport.xml', 'csv_accounts', false, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.tabs.csv', "\t"), 'expectation.fullImport.xml', 'csv_accounts', false, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.tabs.csv', "	"), 'expectation.fullImport.xml', 'csv_accounts', false, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.extraColumns.csv'), 'expectation.fullImport.xml', 'csv_accounts', false, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.changedColumnsOrder.csv'), 'expectation.fullImport.xml', 'csv_accounts', false, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/escaping/standard.csv'), 'escaping/expectation.standard.xml', 'csv_2cols', false, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/escaping/raw.csv', "\t", "", "\\"), 'escaping/expectation.standard.xml', 'csv_2cols', false, []],
 
             // line breaks
-            array(new CsvFile(__DIR__ . '/_data/csv-import/csv_breaks.win.csv'), 'expectation.fullImport.xml', 'csv_breaks', false, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/csv_breaks.unix.csv'), 'expectation.fullImport.xml', 'csv_breaks', false, array()),
+            [new CsvFile(__DIR__ . '/_data/csv-import/csv_breaks.win.csv'), 'expectation.fullImport.xml', 'csv_breaks', false, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/csv_breaks.unix.csv'), 'expectation.fullImport.xml', 'csv_breaks', false, []],
 
             // incremental imports
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv'), 'expectation.incrementalImport.xml', 'csv_accounts', true, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.tabs.csv', "\t"), 'expectation.incrementalImport.xml', 'csv_accounts', true, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.tabs.csv', "	"), 'expectation.incrementalImport.xml', 'csv_accounts', true, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.extraColumns.csv'), 'expectation.incrementalImport.xml', 'csv_accounts', true, array()),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.changedColumnsOrder.csv'), 'expectation.incrementalImport.xml', 'csv_accounts', true, array()),
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv'), 'expectation.incrementalImport.xml', 'csv_accounts', true, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.tabs.csv', "\t"), 'expectation.incrementalImport.xml', 'csv_accounts', true, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.tabs.csv', "	"), 'expectation.incrementalImport.xml', 'csv_accounts', true, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.extraColumns.csv'), 'expectation.incrementalImport.xml', 'csv_accounts', true, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.changedColumnsOrder.csv'), 'expectation.incrementalImport.xml', 'csv_accounts', true, []],
 
             // specified columns import
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.columnImport.csv'), 'expectation.incrementalImportColumnsList.xml', 'csv_accounts',
-                true, array(), true
-            ),
-            array(new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.columnImportIsImported.csv'), 'expectation.incrementalImportColumnsListIsImported.xml',
-                'csv_accounts', true, array(), true
-            ),
-        );
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.columnImport.csv'), 'expectation.incrementalImportColumnsList.xml', 'csv_accounts',
+                true, [], true
+            ],
+            [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.columnImportIsImported.csv'), 'expectation.incrementalImportColumnsListIsImported.xml',
+                'csv_accounts', true, [], true
+            ],
+        ];
     }
 
 }

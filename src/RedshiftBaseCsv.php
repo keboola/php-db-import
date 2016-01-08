@@ -37,7 +37,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
                 throw $e;
             }
 
-            $messages = array();
+            $messages = [];
             foreach ($result as $row) {
                 $messages[] = "Line $row[line_number] - $row[err_reason]";
             }
@@ -97,17 +97,17 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 
             $path = parse_url($csvFile->getPathname());
 
-            $response = $s3Client->getObject(array(
+            $response = $s3Client->getObject([
                 'Bucket' => $path['host'],
                 'Key' => ltrim($path['path'], '/'),
-            ));
+            ]);
             $manifest = json_decode((string)$response['Body'], true);
 
             $path = reset($manifest['entries'])['url'];
         } else {
             $path = $csvFile->getPathname();
         }
-        return in_array(pathinfo($path, PATHINFO_EXTENSION), array('gz', 'gzip'));
+        return in_array(pathinfo($path, PATHINFO_EXTENSION), ['gz', 'gzip']);
     }
 
 }

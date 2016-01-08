@@ -14,7 +14,7 @@ class Result
 
     public function getWarnings()
     {
-        return (array) $this->getKeyValue('warnings', array());
+        return (array) $this->getKeyValue('warnings', []);
     }
 
     public function getImportedRowsCount()
@@ -24,12 +24,12 @@ class Result
 
     public function getImportedColumns()
     {
-        return (array) $this->getKeyValue('importedColumns', array());
+        return (array) $this->getKeyValue('importedColumns', []);
     }
 
     public function getTimers()
     {
-        return (array) $this->getKeyValue('timers', array());
+        return (array) $this->getKeyValue('timers', []);
     }
 
 

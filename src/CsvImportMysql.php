@@ -14,13 +14,13 @@ class CsvImportMysql implements ImportInterface
 
     protected $_columnNameFilter;
 
-    protected $_warnings = array();
+    protected $_warnings = [];
 
-    protected $_timers = array();
+    protected $_timers = [];
 
     protected $_importedRowsCount = 0;
 
-    protected $_importedColumns = array();
+    protected $_importedColumns = [];
 
     protected $_incremental = false;
 
@@ -40,8 +40,8 @@ class CsvImportMysql implements ImportInterface
     {
         $this->_importedRowsCount = 0;
         $this->_importedColumns = 0;
-        $this->_warnings = array();
-        $this->_timers = array();
+        $this->_warnings = [];
+        $this->_timers = [];
 
         $this->_validate($tableName, $columns);
 
@@ -58,12 +58,12 @@ class CsvImportMysql implements ImportInterface
         }
         $this->_dropTable($stagingTableName, $this->getIncremental());
 
-        return new Result(array(
+        return new Result([
             'warnings' => $this->_warnings,
             'timers' => $this->_timers,
             'importedRowsCount' => $this->_importedRowsCount,
             'importedColumns' => $this->_importedColumns,
-        ));
+        ]);
     }
 
     protected function _createStagingTable($tableName, $temporary = false)
@@ -90,7 +90,7 @@ class CsvImportMysql implements ImportInterface
     {
         $importColumns = $this->_tableColumns($tableName);
 
-        $loadColumnsOrdered = array();
+        $loadColumnsOrdered = [];
         foreach ($columns as $columnName) {
             if (in_array(strtolower($columnName), array_map('strtolower', $importColumns))) {
                 $loadColumnsOrdered[] = $columnName;
@@ -274,10 +274,10 @@ class CsvImportMysql implements ImportInterface
 
     private function _addTimer($name, $value)
     {
-        $this->_timers[] = array(
+        $this->_timers[] = [
             'name' => $name,
             'durationSeconds' => $value,
-        );
+        ];
     }
 
     private static function duplicates(array $array, $caseSensitive = true)
@@ -309,12 +309,12 @@ class CsvImportMysql implements ImportInterface
         $default = 4;
         $extra = 5;
 
-        $desc = array();
+        $desc = [];
         $i = 1;
         $p = 1;
         foreach ($result as $row) {
             list($length, $scale, $precision, $unsigned, $primary, $primaryPosition, $identity)
-                = array(null, null, null, null, false, null, false);
+                = [null, null, null, null, false, null, false];
             if (preg_match('/unsigned/', $row[$type])) {
                 $unsigned = true;
             }
@@ -344,7 +344,7 @@ class CsvImportMysql implements ImportInterface
                 }
                 ++$p;
             }
-            $desc[$row[$field]] = array(
+            $desc[$row[$field]] = [
                 'SCHEMA_NAME' => null, // @todo
                 'TABLE_NAME' => $tableName,
                 'COLUMN_NAME' => $row[$field],
@@ -359,7 +359,7 @@ class CsvImportMysql implements ImportInterface
                 'PRIMARY' => $primary,
                 'PRIMARY_POSITION' => $primaryPosition,
                 'IDENTITY' => $identity
-            );
+            ];
             ++$i;
         }
         return $desc;

@@ -33,9 +33,9 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
     private function initData()
     {
-        $commands = array();
+        $commands = [];
 
-        $schemas = array($this->sourceSchemaName, $this->destSchemaName);
+        $schemas = [$this->sourceSchemaName, $this->destSchemaName];
 
         $currentDate = new \DateTime('now', new \DateTimeZone('UTC'));
         $now = $currentDate->format('Ymd H:i:s');
@@ -43,12 +43,12 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         foreach ($schemas as $schema) {
 
 
-            $tablesToDelete = array('out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts');
+            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts'];
             foreach ($tablesToDelete as $tableToDelete) {
                 $stmt = $this->connection
                     ->prepare("SELECT table_name FROM information_schema.tables WHERE table_name = ? AND table_schema = ?");
 
-                if ($stmt->execute(array(strtolower($tableToDelete), strtolower($schema))) && $stmt->fetch()) {
+                if ($stmt->execute([strtolower($tableToDelete), strtolower($schema)]) && $stmt->fetch()) {
                     $commands[] = "DROP TABLE \"$schema\".\"$tableToDelete\"";
                 }
             }
@@ -184,7 +184,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $import
             ->setIgnoreLines(1)
             ->setIncremental(false)
-            ->import($tableName, $columns, array($initialImportFile));
+            ->import($tableName, $columns, [$initialImportFile]);
 
         $timestampsByIdsAfterFullLoad = [];
 
@@ -195,7 +195,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         sleep(2);
         $import
             ->setIncremental(true)
-            ->import($tableName, $columns, array($incrementFile));
+            ->import($tableName, $columns, [$incrementFile]);
 
         $tableColumns = $this->describeTable($tableName, strtolower($this->destSchemaName));
         unset($tableColumns['_timestamp']);
@@ -226,7 +226,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $import = $this->getImport('copy');
 
         try {
-            $import->import('out.csv_2Cols', array('col1', 'col2'), array());
+            $import->import('out.csv_2Cols', ['col1', 'col2'], []);
             $this->fail('exception should be thrown');
         } catch (\Keboola\Db\Import\Exception $e) {
             $this->assertEquals(\Keboola\Db\Import\Exception::INVALID_SOURCE_DATA, $e->getCode());
@@ -239,9 +239,9 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $import = $this->getImport('copy');
 
         try {
-            $import->import('out.csv_2Cols', array('c1', 'c2'), array(
+            $import->import('out.csv_2Cols', ['c1', 'c2'], [
                     'schemaName' => $this->sourceSchemaName,
-                    'tableName' => 'names')
+                    'tableName' => 'names']
             );
             $this->fail('exception should be thrown');
         } catch (\Keboola\Db\Import\Exception $e) {
@@ -260,7 +260,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $import->setIgnoreLines(1);
 
         try {
-            $import->import('accounts', $initialFile->getHeader(), array($importFile));
+            $import->import('accounts', $initialFile->getHeader(), [$importFile]);
         } catch (\Keboola\Db\Import\Exception $e) {
             $this->assertEquals(\Keboola\Db\Import\Exception::MANDATORY_FILE_NOT_FOUND, $e->getCode());
         }
@@ -270,7 +270,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     public function tables()
     {
 
-        $expectedEscaping = array();
+        $expectedEscaping = [];
         $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/escaping/standard-with-enclosures.csv');
         foreach ($file as $row) {
             $expectedEscaping[] = $row;
@@ -279,7 +279,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $expectedEscaping = array_values($expectedEscaping);
 
 
-        $expectedAccounts = array();
+        $expectedAccounts = [];
         $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv');
         foreach ($file as $row) {
             $expectedAccounts[] = $row;
@@ -293,37 +293,37 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $manifestRegionPart = getenv('AWS_REGION') == 'us-east-1' ? '' : "." . getenv('AWS_REGION');
-        return array(
+        return [
 
             // full imports
-            array(array(new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
-            array(array(new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv.gz")), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
-            array(array(new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
-            array(array(new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
-            array(array(new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")), $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'),
+            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'],
 
-            array(array(new CsvFile("s3://{$s3bucket}/tw_accounts.csv")), $accountsHeader, $expectedAccounts, 'accounts'),
+            [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
 
-            array(array(new CsvFile("s3://{$s3bucket}/01_tw_accounts{$manifestRegionPart}.csv.manifest")), $accountsHeader, $expectedAccounts, 'accounts', 'manifest'),
-            array(array(new CsvFile("s3://{$s3bucket}/03_tw_accounts{$manifestRegionPart}.csv.gzip.manifest")), $accountsHeader, $expectedAccounts, 'accounts', 'manifest'),
+            [[new CsvFile("s3://{$s3bucket}/01_tw_accounts{$manifestRegionPart}.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/03_tw_accounts{$manifestRegionPart}.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
 
-            array(array('schemaName' => $this->sourceSchemaName, 'tableName' => 'out.csv_2Cols'), $escapingHeader, array(array('a', 'b'), array('c', 'd')), 'out.csv_2Cols', 'copy'),
-            array(array('schemaName' => $this->sourceSchemaName, 'tableName' => 'types'), $escapingHeader, array(array('c', '1'), array('d', '0')), 'types', 'copy'),
+            [['schemaName' => $this->sourceSchemaName, 'tableName' => 'out.csv_2Cols'], $escapingHeader, [['a', 'b'], ['c', 'd']], 'out.csv_2Cols', 'copy'],
+            [['schemaName' => $this->sourceSchemaName, 'tableName' => 'types'], $escapingHeader, [['c', '1'], ['d', '0']], 'types', 'copy'],
 
             // increment to empty table
-            array(array(new CsvFile("s3://{$s3bucket}/tw_accounts.csv")), $accountsHeader, $expectedAccounts, 'accounts'),
+            [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
 
             // import table with _timestamp columns - used by snapshots
-            array(
-                array(new CsvFile("s3://{$s3bucket}/with-ts.csv")),
-                array('col1', 'col2', '_timestamp'),
-                array(
-                    array('a', 'b', '2014-11-10 13:12:06'),
-                    array('c', 'd', '2014-11-10 14:12:06'),
-                ),
+            [
+                [new CsvFile("s3://{$s3bucket}/with-ts.csv")],
+                ['col1', 'col2', '_timestamp'],
+                [
+                    ['a', 'b', '2014-11-10 13:12:06'],
+                    ['c', 'd', '2014-11-10 14:12:06'],
+                ],
                 'out.csv_2Cols'
-            ),
-        );
+            ],
+        ];
     }
 
 
@@ -334,16 +334,16 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $incrementFile = new CsvFile("s3://{$s3bucket}/tw_accounts.increment.csv");
 
         $expectationFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.tw_accounts.increment.csv');
-        $expectedRows = array();
+        $expectedRows = [];
         foreach ($expectationFile as $row) {
             $expectedRows[] = $row;
         }
         $columns = array_shift($expectedRows);
         $expectedRows = array_values($expectedRows);
 
-        return array(
-            array($initialFile, $incrementFile, $columns, $expectedRows, 'accounts', array(15, 24)),
-        );
+        return [
+            [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts', [15, 24]],
+        ];
     }
 
     public function assertArrayEqualsSorted($expected, $actual, $sortKey, $message = "")
@@ -442,7 +442,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $contype = 10;
         $conkey = 11;
 
-        $desc = array();
+        $desc = [];
         foreach ($result as $key => $row) {
             $defaultValue = $row[$default_value];
             if ($row[$type] == 'varchar' || $row[$type] == 'bpchar') {
@@ -457,13 +457,13 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                     $defaultValue = $matches[1];
                 }
             }
-            list($primary, $primaryPosition, $identity) = array(false, null, false);
+            list($primary, $primaryPosition, $identity) = [false, null, false];
             if ($row[$contype] == 'p') {
                 $primary = true;
                 $primaryPosition = array_search($row[$attnum], explode(',', $row[$conkey])) + 1;
                 $identity = (bool)(preg_match('/^nextval/', $row[$default_value]));
             }
-            $desc[$row[$colname]] = array(
+            $desc[$row[$colname]] = [
                 'SCHEMA_NAME' => $row[$nspname],
                 'TABLE_NAME' => $row[$relname],
                 'COLUMN_NAME' => $row[$colname],
@@ -478,7 +478,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 'PRIMARY' => $primary,
                 'PRIMARY_POSITION' => $primaryPosition,
                 'IDENTITY' => $identity
-            );
+            ];
         }
         return $desc;
     }

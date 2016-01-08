@@ -10,13 +10,13 @@ abstract class RedshiftBase implements ImportInterface
 
     protected $connection;
 
-    protected $warnings = array();
+    protected $warnings = [];
 
     private $importedRowsCount = 0;
 
-    private $timers = array();
+    private $timers = [];
 
-    private $importedColumns = array();
+    private $importedColumns = [];
 
     private $ignoreLines = 0;
 
@@ -59,12 +59,12 @@ abstract class RedshiftBase implements ImportInterface
             $this->dropTable($stagingTableName);
             $this->importedColumns = $columns;
 
-            return new Result(array(
+            return new Result([
                 'warnings' => $this->warnings,
                 'timers' => $this->timers,
                 'importedRowsCount' => $this->importedRowsCount,
                 'importedColumns' => $this->importedColumns,
-            ));
+            ]);
 
         } catch (\Exception $e) {
             $this->dropTable($stagingTableName);
@@ -338,7 +338,7 @@ abstract class RedshiftBase implements ImportInterface
     }
 
 
-    protected function query($sql, $bind = array())
+    protected function query($sql, $bind = [])
     {
         try {
             $this->connection->prepare($sql)->execute($bind);
@@ -397,10 +397,10 @@ abstract class RedshiftBase implements ImportInterface
 
     protected function addTimer($name, $value)
     {
-        $this->timers[] = array(
+        $this->timers[] = [
             'name' => $name,
             'durationSeconds' => $value,
-        );
+        ];
     }
 
     protected function describeTable($tableName, $schemaName = null)
@@ -449,7 +449,7 @@ abstract class RedshiftBase implements ImportInterface
         $contype = 10;
         $conkey = 11;
 
-        $desc = array();
+        $desc = [];
         foreach ($result as $key => $row) {
             $defaultValue = $row[$default_value];
             if ($row[$type] == 'varchar' || $row[$type] == 'bpchar') {
@@ -464,13 +464,13 @@ abstract class RedshiftBase implements ImportInterface
                     $defaultValue = $matches[1];
                 }
             }
-            list($primary, $primaryPosition, $identity) = array(false, null, false);
+            list($primary, $primaryPosition, $identity) = [false, null, false];
             if ($row[$contype] == 'p') {
                 $primary = true;
                 $primaryPosition = array_search($row[$attnum], explode(',', $row[$conkey])) + 1;
                 $identity = (bool)(preg_match('/^nextval/', $row[$default_value]));
             }
-            $desc[$row[$colname]] = array(
+            $desc[$row[$colname]] = [
                 'SCHEMA_NAME' => $row[$nspname],
                 'TABLE_NAME' => $row[$relname],
                 'COLUMN_NAME' => $row[$colname],
@@ -485,7 +485,7 @@ abstract class RedshiftBase implements ImportInterface
                 'PRIMARY' => $primary,
                 'PRIMARY_POSITION' => $primaryPosition,
                 'IDENTITY' => $identity
-            );
+            ];
         }
         return $desc;
     }
