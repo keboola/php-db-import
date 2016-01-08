@@ -12,15 +12,14 @@ namespace Keboola\Db\Import;
 use Keboola\Csv\CsvFile;
 
 
-
 class CsvManifestImportRedshift extends RedshiftBaseCsv
 {
 
-	protected function importDataToStagingTable($stagingTableName, $columns, $sourceData)
-	{
-		foreach ($sourceData as $csvFile) {
-			$this->importTable($stagingTableName, $columns, $csvFile, true);
-		}
-	}
+    protected function importDataToStagingTable($stagingTableName, $columns, $sourceData)
+    {
+        foreach ($sourceData as $csvFile) {
+            $this->importTable($stagingTableName, $columns, $csvFile, true);
+        }
+    }
 
 }

@@ -10,9 +10,9 @@
  *
  * Static values import:
  *   You can load static values into specified columns for each row
- * 	 Example:
+ *     Example:
  *   $import->setStaticValues(array('storageApiTransaction' => 45646513))
- * 		->import('orders', $csvFile);
+ *        ->import('orders', $csvFile);
  *
  *
  *
@@ -24,34 +24,34 @@
 
 namespace Keboola\Db\Import;
 
-use	Keboola\Csv\CsvFile;
+use    Keboola\Csv\CsvFile;
 
 
 interface ImportInterface
 {
-	/**
-	 * @param $tableName
-	 * @param $columns
-	 * @param array CsvFile $csvFiles
-	 * @return Result
-	 */
-	public function import($tableName, $columns,  array $sourceData);
+    /**
+     * @param $tableName
+     * @param $columns
+     * @param array CsvFile $csvFiles
+     * @return Result
+     */
+    public function import($tableName, $columns, array $sourceData);
 
 
-	public function getIncremental();
+    public function getIncremental();
 
-	/**
-	 * @param $incremental
-	 * @return $this
-	 */
-	public function setIncremental($incremental);
+    /**
+     * @param $incremental
+     * @return $this
+     */
+    public function setIncremental($incremental);
 
-	public function getIgnoreLines();
+    public function getIgnoreLines();
 
-	/**
-	 * @param $linesCount
-	 * @return $this
-	 */
-	public function setIgnoreLines($linesCount);
+    /**
+     * @param $linesCount
+     * @return $this
+     */
+    public function setIgnoreLines($linesCount);
 
 }
