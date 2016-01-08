@@ -18,14 +18,15 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 {
 	private $s3key;
 	private $s3secret;
+    private $s3region;
 
-	public function __construct(\PDO $connection, $s3key, $s3secret, $schemaName)
+	public function __construct(\PDO $connection, $s3key, $s3secret, $s3region, $schemaName)
 	{
 		parent::__construct($connection, $schemaName);
 		$this->s3key = $s3key;
 		$this->s3secret = $s3secret;
+        $this->s3region = $s3region;
 	}
-
 
 	protected function importTable($tableName, $columns, CsvFile $csvFile, $isManifest)
 	{
@@ -99,7 +100,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 					'key' => $this->s3key,
 					'secret' => $this->s3secret,
 				],
-				'region' => 'us-east-1',
+				'region' => $this->s3region,
 				'version' => '2006-03-01',
 			]);
 

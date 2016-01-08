@@ -23,6 +23,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
 	private $sourceSchemaName = 'some.tests';
 
+    const AWS_S3_BUCKET_ENV = 'AWS_S3_BUCKET';
 
 	public function setUp()
 	{
@@ -258,8 +259,10 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
 	public function testInvalidManifestImport()
 	{
-		$initialFile =  new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv');
-		$importFile = new \Keboola\Csv\CsvFile('s3://keboola-tests/02_tw_accounts.csv.invalid.manifest');
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $region = getenv('AWS_REGION');
+		$initialFile =  new \Keboola\Csv\CsvFile(__DIR__ . "/_data/csv-import/tw_accounts.{$region}.csv");
+		$importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/02_tw_accounts.{$region}.csv.invalid.manifest");
 
 		$import = $this->getImport('manifest');
 		$import->setIgnoreLines(1);
@@ -296,28 +299,31 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 		$accountChangedColumnsOrderHeader = $file->getHeader();
 
 
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $manifestRegionPart = getenv('AWS_REGION') == 'us-east-1' ? '' : "." . getenv('AWS_REGION');
 		return array(
 
 			// full imports
-			array(array(new CsvFile('s3://keboola-tests/standard-with-enclosures.csv')), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
-			array(array(new CsvFile('s3://keboola-tests/standard-with-enclosures.csv.gz')), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
-			array(array(new CsvFile('s3://keboola-tests/standard-with-enclosures.tabs.csv', "\t")), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
-			array(array(new CsvFile('s3://keboola-tests/raw.rs.csv', "\t", '', '\\')), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
-			array(array(new CsvFile('s3://keboola-tests/tw_accounts.changedColumnsOrder.csv')), $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'),
+			array(array(new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
+			array(array(new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv.gz")), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
+			array(array(new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
+			array(array(new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')), $escapingHeader, $expectedEscaping, 'out.csv_2Cols'),
+			array(array(new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")), $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'),
 
-			array(array(new CsvFile('s3://keboola-tests/tw_accounts.csv')), $accountsHeader, $expectedAccounts, 'accounts'),
-			array(array(new CsvFile('s3://keboola-tests/01_tw_accounts.csv.manifest')), $accountsHeader, $expectedAccounts, 'accounts', 'manifest'),
-			array(array(new CsvFile('s3://keboola-tests/03_tw_accounts.csv.gzip.manifest')), $accountsHeader, $expectedAccounts, 'accounts', 'manifest'),
+			array(array(new CsvFile("s3://{$s3bucket}/tw_accounts.csv")), $accountsHeader, $expectedAccounts, 'accounts'),
+
+			array(array(new CsvFile("s3://{$s3bucket}/01_tw_accounts{$manifestRegionPart}.csv.manifest")), $accountsHeader, $expectedAccounts, 'accounts', 'manifest'),
+			array(array(new CsvFile("s3://{$s3bucket}/03_tw_accounts{$manifestRegionPart}.csv.gzip.manifest")), $accountsHeader, $expectedAccounts, 'accounts', 'manifest'),
 
 			array(array('schemaName' => $this->sourceSchemaName, 'tableName' => 'out.csv_2Cols'), $escapingHeader, array(array('a', 'b'), array('c', 'd')), 'out.csv_2Cols', 'copy'),
 			array(array('schemaName' => $this->sourceSchemaName, 'tableName' => 'types'), $escapingHeader, array(array('c', '1'), array('d', '0')), 'types', 'copy'),
 
 			// increment to empty table
-			array(array(new CsvFile('s3://keboola-tests/tw_accounts.csv')), $accountsHeader, $expectedAccounts, 'accounts'),
+			array(array(new CsvFile("s3://{$s3bucket}/tw_accounts.csv")), $accountsHeader, $expectedAccounts, 'accounts'),
 
 			// import table with _timestamp columns - used by snapshots
 			array(
-				array(new CsvFile('s3://keboola-tests/with-ts.csv')),
+				array(new CsvFile("s3://{$s3bucket}/with-ts.csv")),
 				array('col1', 'col2', '_timestamp'),
 				array(
 					array('a', 'b', '2014-11-10 13:12:06'),
@@ -331,8 +337,9 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
 	public function tablesIncremental()
 	{
-		$initialFile =  new CsvFile('s3://keboola-tests/tw_accounts.csv');
-		$incrementFile = new CsvFile('s3://keboola-tests/tw_accounts.increment.csv');
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+		$initialFile =  new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+		$incrementFile = new CsvFile("s3://{$s3bucket}/tw_accounts.increment.csv");
 
 		$expectationFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.tw_accounts.increment.csv');
 		$expectedRows = array();
@@ -373,6 +380,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 					$this->connection,
 					getenv('AWS_ACCESS_KEY'),
                     getenv('AWS_SECRET_KEY'),
+                    getenv('AWS_REGION'),
 					$this->destSchemaName
 				);
 				break;
@@ -381,6 +389,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 					$this->connection,
                     getenv('AWS_ACCESS_KEY'),
                     getenv('AWS_SECRET_KEY'),
+                    getenv('AWS_REGION'),
 					$this->destSchemaName
 				);
 			case 'copy';
