@@ -1,11 +1,4 @@
 <?php
-/**
- *
- * User: Martin Halamíček
- * Date: 13.4.12
- * Time: 14:31
- *
- */
 
 namespace Keboola\Db\Import;
 

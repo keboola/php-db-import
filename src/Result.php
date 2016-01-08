@@ -1,11 +1,4 @@
 <?php
-/**
- * Created by JetBrains PhpStorm.
- * User: martinhalamicek
- * Date: 06/06/14
- * Time: 10:18
- * To change this template use File | Settings | File Templates.
- */
 
 namespace Keboola\Db\Import;
 
