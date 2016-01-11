@@ -43,7 +43,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             }
             $message = "Load error: " . implode("\n", $messages);
 
-            throw new Exception($message, Exception::INVALID_SOURCE_DATA, $e, 'invalidData');
+            throw new Exception($message, Exception::INVALID_SOURCE_DATA, $e);
         }
     }
 
