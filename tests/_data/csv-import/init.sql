@@ -47,3 +47,9 @@ CREATE TABLE `csv_transactional_no_id` (
   `price` decimal (16,4)  NULL DEFAULT '0',
   `isDeleted` tinyint(1)  NULL DEFAULT  '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+DROP TABLE IF EXISTS `table`;
+CREATE TABLE `table` (
+  `column`  text NOT NULL,
+  `index` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

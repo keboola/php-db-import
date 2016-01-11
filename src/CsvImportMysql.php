@@ -70,13 +70,13 @@ class CsvImportMysql implements ImportInterface
     {
         $tempName = '__temp_' . $this->uniqueValue();
         if (!$temporary) {
-            $this->query('DROP TABLE IF EXISTS ' . $tempName);
+            $this->query('DROP TABLE IF EXISTS ' . $this->quoteIdentifier($tempName));
         }
         $this->query(sprintf(
             'CREATE %s TABLE %s LIKE %s',
             $temporary ? 'TEMPORARY' : '',
-            $tempName,
-            $tableName
+            $this->quoteIdentifier($tempName),
+            $this->quoteIdentifier($tableName)
         ));
         return $tempName;
     }
@@ -93,7 +93,7 @@ class CsvImportMysql implements ImportInterface
         $loadColumnsOrdered = [];
         foreach ($columns as $columnName) {
             if (in_array(strtolower($columnName), array_map('strtolower', $importColumns))) {
-                $loadColumnsOrdered[] = $columnName;
+                $loadColumnsOrdered[] = $this->quoteIdentifier($columnName);
             } else {
                 $loadColumnsOrdered[] = '@dummy'; // skip column
             }
@@ -101,7 +101,7 @@ class CsvImportMysql implements ImportInterface
 
         $sql = '
 			LOAD DATA LOCAL INFILE ' . $this->connection->quote($csvFile) . '
-			REPLACE INTO TABLE ' . $tableName . '
+			REPLACE INTO TABLE ' . $this->quoteIdentifier($tableName) . '
 			FIELDS TERMINATED BY ' . $this->connection->quote($csvFile->getDelimiter()) . '
 			OPTIONALLY ENCLOSED BY ' . $this->connection->quote($csvFile->getEnclosure()) . '
 			ESCAPED BY ' . $this->connection->quote($csvFile->getEscapedBy()) . '
@@ -135,20 +135,20 @@ class CsvImportMysql implements ImportInterface
 
         $columnsListEscaped = function ($columns, $prefix = null) use ($connection) {
             return implode(', ', array_map(function ($columnName) use ($connection, $prefix) {
-                return ($prefix ? $prefix . '.' : '') . $columnName;
+                return ($prefix ? $prefix . '.' : '') . $this->quoteIdentifier($columnName);
             }, $columns));
         };
 
-        $sql = 'INSERT INTO ' . $targetTable . ' (';
+        $sql = 'INSERT INTO ' . $this->quoteIdentifier($targetTable) . ' (';
         $sql .= $columnsListEscaped($importColumns);
         $sql .= ') ';
 
 
-        $sql .= 'SELECT ' . $columnsListEscaped($importColumns, 't') . ' FROM ' . $sourceTable . ' t ';
+        $sql .= 'SELECT ' . $columnsListEscaped($importColumns, 't') . ' FROM ' . $this->quoteIdentifier($sourceTable) . ' t ';
         $sql .= 'ON DUPLICATE KEY UPDATE ';
 
         $sql .= implode(', ', array_map(function ($columnName) use ($connection) {
-            return $columnName . ' = t.' . $columnName;
+            return $this->quoteIdentifier($columnName) . ' = t.' . $this->quoteIdentifier($columnName);
         }, $importColumns));
 
         $this->query($sql);
@@ -159,19 +159,21 @@ class CsvImportMysql implements ImportInterface
 
     protected function swapTables($table1, $table2)
     {
-        $tmpNameQuoted = $this->uniqueValue();
+        $tmpNameQuoted = $this->quoteIdentifier($this->uniqueValue());
+        $table1Quoted = $this->quoteIdentifier($table1);
+        $table2Quoted = $this->quoteIdentifier($table2);
         $this->query("
-			RENAME TABLE $table1 TO $tmpNameQuoted,
-				$table2 TO $table1,
-				$tmpNameQuoted TO $table2
-		");
+            RENAME TABLE $table1Quoted TO $tmpNameQuoted,
+                $table2Quoted TO $table1Quoted,
+                $tmpNameQuoted TO $table2Quoted
+        ");
     }
 
     protected function dropTable($tableName, $temporary = false)
     {
         $this->query(sprintf('DROP %S TABLE %s',
             $temporary ? 'TEMPORARY' : '',
-            $tableName
+            $this->quoteIdentifier($tableName)
         ));
     }
 
@@ -357,6 +359,12 @@ class CsvImportMysql implements ImportInterface
             ++$i;
         }
         return $desc;
+    }
+
+    private  function quoteIdentifier($value)
+    {
+        $q = '`';
+        return ($q . str_replace("$q", "$q$q", $value) . $q);
     }
 
 }
