@@ -23,7 +23,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
             throw new Exception('Invalid CSV params. Either enclosure or escapedBy must be specified for Redshift backend but not both.', Exception::INVALID_CSV_PARAMS,
-                null, 'csvImport.invalidCsvParams');
+                null);
         }
 
         try {
