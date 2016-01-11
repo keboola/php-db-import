@@ -227,7 +227,7 @@ abstract class RedshiftBase implements ImportInterface
     private function replaceTables($sourceTableName, $targetTableName)
     {
         $this->dropTable($targetTableName);
-        $this->query("ALTER TABLE {$this->nameWithSchemaEscaped($sourceTableName)} RENAME TO {$targetTableName}");
+        $this->query("ALTER TABLE {$this->nameWithSchemaEscaped($sourceTableName)} RENAME TO {$this->quoteIdentifier($targetTableName)}");
     }
 
     private function dropTable($tableName)
@@ -304,7 +304,9 @@ abstract class RedshiftBase implements ImportInterface
                     ADD PRIMARY KEY (%s)
                 ",
                 $tableIdentifier,
-                implode(',', $primaryKey)
+                implode(',', array_map(function($columnName) {
+                    return $this->quoteIdentifier($columnName);
+                }, $primaryKey))
             ));
         }
 

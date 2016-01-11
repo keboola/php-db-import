@@ -50,7 +50,10 @@ abstract class RedshiftBaseCsv extends RedshiftBase
     private function generateCopyCommand($tableName, $columns, CsvFile $csvFile, $isManifest)
     {
         $tableNameWithSchema = $this->nameWithSchemaEscaped($tableName);
-        $columnsSql = implode(', ', $columns);
+        $columnsSql = implode(', ', array_map(function($column) {
+            return $this->quoteIdentifier($column);
+        }, $columns));
+
         $command = "COPY $tableNameWithSchema ($columnsSql) "
             . " FROM {$this->connection->quote($csvFile->getPathname())}"
             . " CREDENTIALS 'aws_access_key_id={$this->s3key};aws_secret_access_key={$this->s3secret}' "

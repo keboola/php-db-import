@@ -43,7 +43,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         foreach ($schemas as $schema) {
 
 
-            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts'];
+            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table'];
             foreach ($tablesToDelete as $tableToDelete) {
                 $stmt = $this->connection
                     ->prepare("SELECT table_name FROM information_schema.tables WHERE table_name = ? AND table_schema = ?");
@@ -72,6 +72,14 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 INSERT INTO \"$schema\".\"out.csv_2Cols\" VALUES
                     ('a', 'b', '{$now}')
                 ;
+            ";
+
+            $commands[] =  "
+                CREATE TABLE \"$schema\".\"table\" (
+                  \"column\"  varchar(65535),
+                  \"table\" varchar(65535),
+                  _timestamp TIMESTAMP
+                );
             ";
 
             $commands[] = "
@@ -309,6 +317,9 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
             [['schemaName' => $this->sourceSchemaName, 'tableName' => 'out.csv_2Cols'], $escapingHeader, [['a', 'b'], ['c', 'd']], 'out.csv_2Cols', 'copy'],
             [['schemaName' => $this->sourceSchemaName, 'tableName' => 'types'], $escapingHeader, [['c', '1'], ['d', '0']], 'types', 'copy'],
+
+            // reserved words
+            [[new CsvFile("s3://{$s3bucket}/reserved-words.csv")], ['column', 'table'], [['table', 'column']], 'table', 'csv'],
 
             // increment to empty table
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
