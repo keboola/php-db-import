@@ -292,7 +292,7 @@ class CsvImportMysql implements ImportInterface
 
     private function describeTable($tableName)
     {
-        $sql = 'DESCRIBE ' . $tableName;
+        $sql = 'DESCRIBE ' . $this->quoteIdentifier($tableName);
         $stmt = $this->connection->query($sql);
 
         // Use FETCH_NUM so we are not dependent on the CASE attribute of the PDO connection

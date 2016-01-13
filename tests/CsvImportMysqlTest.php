@@ -179,7 +179,7 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
             [new CsvFile(__DIR__ . '/_data/csv-import/csv_breaks.unix.csv'), 'expectation.fullImport.xml', 'csv_breaks', false, []],
 
             // reserved words
-            [new CsvFile(__DIR__ . '/_data/csv-import/reserved-words.csv'), 'expectation.reserved-words.xml', 'table', false, []],
+            [new CsvFile(__DIR__ . '/_data/csv-import/reserved-words.csv'), 'expectation.reserved-words.xml', 'table-with-dash', false, []],
 
             // incremental imports
             [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv'), 'expectation.incrementalImport.xml', 'csv_accounts', true, []],
