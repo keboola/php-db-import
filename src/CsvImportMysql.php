@@ -233,8 +233,9 @@ class CsvImportMysql implements ImportInterface
         if (strpos($e->getMessage(), 'SQLSTATE[42S02]') !== FALSE) {
             $code = Exception::TABLE_NOT_EXISTS;
             $message = 'Table not exists';
+        } else if (strpos($e->getMessage(), '1118') !== FALSE) {
+            $code = Exception::ROW_SIZE_TOO_LARGE;
         }
-
         return new Exception($message, $code, $e);
     }
 

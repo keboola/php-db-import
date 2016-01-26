@@ -160,6 +160,14 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
             ->import('csv_accounts', $csvFile->getHeader(), [$csvFile]);
     }
 
+    public function testRowTooLongShouldThrowException()
+    {
+        $csvFile = new CsvFile(__DIR__ . "/_data/csv-import/very-long-row.csv");
+        $this->setExpectedException("Keboola\Db\Import\Exception", '', \Keboola\Db\Import\Exception::ROW_SIZE_TOO_LARGE);
+        $this->import
+            ->import('very-long-row', $csvFile->getHeader(), [$csvFile]);
+    }
+
     public function tables()
     {
         return [
@@ -194,7 +202,7 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
             ],
             [new CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.columnImportIsImported.csv'), 'expectation.incrementalImportColumnsListIsImported.xml',
                 'csv_accounts', true, [], true
-            ],
+            ]
         ];
     }
 
