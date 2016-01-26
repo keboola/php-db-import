@@ -14,12 +14,11 @@ Handling of large bulk data into database tables.
 - Incremental load - data are merged
 - Primary key dedup for all engines
 
-
-### Development
+### Tests
 Run tests with following command.
 
 ```
-docker-compose run
+docker-compose run \
   -e REDSHIFT_HOST=$REDSHIFT_HOST \
   -e REDSHIFT_USER=$REDSHIFT_USER \
   -e REDSHIFT_PORT=$REDSHIFT_PORT \
@@ -27,9 +26,9 @@ docker-compose run
   -e REDSHIFT_PASSWORD=$REDSHIFT_PASSWORD \
   -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
   -e AWS_SECRET_KEY=$AWS_SECRET_KEY \
-  -e AWS_S3_BUCKET=$AWS_S3_BUCKET
+  -e AWS_S3_BUCKET=$AWS_S3_BUCKET \
   -e AWS_REGION=us-east-1 \
   tests
 ```
 
-Tests are executed agains real backends `MySQL` is provisioned and wired by Docker. Redshift and S3 credentials have to be provided.
+Tests are executed against real backends `MySQL` is provisioned and wired by Docker. Redshift and S3 credentials have to be provided.

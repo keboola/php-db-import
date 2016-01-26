@@ -15,4 +15,5 @@ class Exception extends \Exception
     const INVALID_SOURCE_DATA = 8;
     const DATA_TYPE_MISMATCH = 9;
     const INVALID_CSV_PARAMS = 10;
+    const ROW_SIZE_TOO_LARGE = 11;
 }
