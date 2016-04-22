@@ -20,7 +20,15 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->connection = $pdo = new \PDO(
-            sprintf('pgsql:host=%s;dbname=%s;port=%s', getenv('REDSHIFT_HOST'), getenv('REDSHIFT_DATABASE'), getenv('REDSHIFT_PORT')),
+            sprintf(
+                'pgsql:host=%s;dbname=%s;port=%s;sslmode=%s;sslrootcert=%s',
+                'pgsql:host=%s;dbname=%s;port=%s;sslmode=disable',
+                getenv('REDSHIFT_HOST'),
+                getenv('REDSHIFT_DATABASE'),
+                getenv('REDSHIFT_PORT'),
+                'verify-full',
+                __DIR__ . '/_data/redshift/redshift-ssl-ca-cert.pem'
+            ),
             getenv('REDSHIFT_USER'),
             getenv('REDSHIFT_PASSWORD'),
             [
@@ -28,7 +36,25 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
             ]
         );
+
+        $this->validateSSLSecured();
         $this->initData();
+    }
+
+    private function validateSSLSecured()
+    {
+        $stmt = $this->connection->prepare("
+            SELECT sslcipher
+                FROM stl_connection_log
+                    WHERE event = 'initiating session' AND pid = ?
+                        ORDER BY recordtime DESC"
+        );
+
+        $stmt->execute([ $this->connection->pgsqlGetPid() ]);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        $this->assertArrayHasKey('sslcipher', $result);
+        $this->assertNotEmpty(trim($result['sslcipher']));
     }
 
     private function initData()
