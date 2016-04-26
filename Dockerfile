@@ -8,3 +8,11 @@ ADD . /code
 WORKDIR /code
 RUN echo "memory_limit = -1" >> /etc/php.ini
 RUN composer install --no-interaction
+
+## install snowflake drivers
+RUN gunzip snowflake_linux_x8664_odbc.tgz
+RUN tar -xvf snowflake_linux_x8664_odbc.tar
+RUN mv snowflake_odbc /usr/bin/snowflake_odbc
+
+ADD ./docker/snowflake/simba.snowflake.ini /etc/simba.snowflake.ini
+ADD ./docker/snowflake/odbcinst.ini /etc/odbcinst.ini
