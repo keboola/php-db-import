@@ -3,7 +3,7 @@ tests:
   volumes:
     - .:/code
   working_dir: /code
-  entrypoint: "./phpunit.sh"
+  command: sh -c 'composer install -n && php ./vendor/bin/phpunit'
   tty: true
   stdin_open: true
   links:

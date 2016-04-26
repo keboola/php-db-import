@@ -1,0 +1,97 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "S3FilesBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "keboola-db-import-tests"
+          }
+        ]
+      }
+    },
+
+    "User": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "S3Access",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [ "s3:*" ],
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "", [ "arn:aws:s3:::", {
+                          "Ref": "S3FilesBucket"
+                        } , "/*" ]
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Sid": "AllowListingOfUserFolder",
+                  "Action": [
+                    "s3:ListBucket",
+                    "s3:GetBucketLocation"
+                  ],
+                  "Effect": "Allow",
+                  "Resource": [
+                    {
+                      "Fn::Join": [
+                        "",
+                        [
+                          "arn:aws:s3:::",
+                          {
+                            "Ref": "S3FilesBucket"
+                          }
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "AccessKey": {
+      "Type": "AWS::IAM::AccessKey",
+      "Properties": {
+        "UserName": {
+          "Ref": "User"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "region": {
+      "Value": {
+        "Ref": "AWS::Region"
+      }
+    },
+    "filesBucket": {
+      "Value": {
+        "Ref": "S3FilesBucket"
+      }
+    },
+    "awsKey": {
+      "Value": {
+        "Ref": "AccessKey"
+      }
+    },
+    "awsSecret": {
+      "Value": {
+        "Fn::GetAtt": [ "AccessKey", "SecretAccessKey" ]
+      }
+    }
+  }
+}

@@ -260,9 +260,8 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     public function testInvalidManifestImport()
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $region = getenv('AWS_REGION');
-        $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/_data/csv-import/tw_accounts.{$region}.csv");
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/02_tw_accounts.{$region}.csv.invalid.manifest");
+        $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/_data/csv-import/tw_accounts.csv");
+        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/02_tw_accounts.csv.invalid.manifest");
 
         $import = $this->getImport('manifest');
         $import->setIgnoreLines(1);
@@ -300,7 +299,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
 
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $manifestRegionPart = getenv('AWS_REGION') == 'us-east-1' ? '' : "." . getenv('AWS_REGION');
         return [
 
             // full imports
@@ -312,8 +310,8 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
 
-            [[new CsvFile("s3://{$s3bucket}/01_tw_accounts{$manifestRegionPart}.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
-            [[new CsvFile("s3://{$s3bucket}/03_tw_accounts{$manifestRegionPart}.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
 
             [['schemaName' => $this->sourceSchemaName, 'tableName' => 'out.csv_2Cols'], $escapingHeader, [['a', 'b'], ['c', 'd']], 'out.csv_2Cols', 'copy'],
             [['schemaName' => $this->sourceSchemaName, 'tableName' => 'types'], $escapingHeader, [['c', '1'], ['d', '0']], 'types', 'copy'],

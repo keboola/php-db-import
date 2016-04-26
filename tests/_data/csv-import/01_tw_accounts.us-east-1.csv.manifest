@@ -1,8 +1,0 @@
-{
-	"entries" : [
-		{
-			"url": "s3://keboola-tests/tw_accounts.csv",
-			"mandatory": true
-		}
-	]
-}

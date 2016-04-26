@@ -15,6 +15,25 @@ Handling of large bulk data into database tables.
 - Primary key dedup for all engines
 
 ### Tests
+
+#### Preparation
+
+- Create AWS S3 bucket and IAM user using `aws-services.json` cloudformation template.
+- Create Redshift cluster
+- Create `set-env.sh` from `set-env.template.sh`. Use output of `aws-services` cloudfront stack to fill the variables and your Redshift credentials.
+- Set environment `source ./set-env.sh`
+
+Before first run test fixntures have to be uploaded to S3:
+```
+docker-compose run \
+    -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
+    -e AWS_SECRET_KEY=$AWS_SECRET_KEY \
+    -e AWS_S3_BUCKET=$AWS_S3_BUCKET \
+    -e AWS_REGION=$AWS_REGION \
+    tests php ./tests/loadS3.php
+```
+
+#### Tests Execution
 Run tests with following command.
 
 ```
@@ -27,7 +46,7 @@ docker-compose run \
   -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
   -e AWS_SECRET_KEY=$AWS_SECRET_KEY \
   -e AWS_S3_BUCKET=$AWS_S3_BUCKET \
-  -e AWS_REGION=us-east-1 \
+  -e AWS_REGION=$AWS_REGION \
   tests
 ```
 
