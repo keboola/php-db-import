@@ -23,7 +23,7 @@ Handling of large bulk data into database tables.
 - Create `set-env.sh` from `set-env.template.sh`. Use output of `aws-services` cloudfront stack to fill the variables and your Redshift credentials.
 - Set environment `source ./set-env.sh`
 
-Before first run test fixntures have to be uploaded to S3:
+Upload test fixtures to S3:
 ```
 docker-compose run \
     -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
