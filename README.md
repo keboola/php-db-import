@@ -30,7 +30,7 @@ docker-compose run \
     -e AWS_SECRET_KEY=$AWS_SECRET_KEY \
     -e AWS_S3_BUCKET=$AWS_S3_BUCKET \
     -e AWS_REGION=$AWS_REGION \
-    tests php ./tests/loadS3.php
+    php php ./tests/loadS3.php
 ```
 
 #### Tests Execution
