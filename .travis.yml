@@ -6,7 +6,7 @@ services:
 before_install:
   - docker-compose -v
 
-script:
+install:
   >
   docker-compose run
     -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY
@@ -14,6 +14,8 @@ script:
     -e AWS_S3_BUCKET=keboola-tests
     -e AWS_REGION=us-east-1
     tests php ./tests/loadS3.php
+
+script:
   >
   docker-compose run
   -e REDSHIFT_HOST=$REDSHIFT_HOST
