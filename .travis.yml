@@ -7,6 +7,7 @@ before_install:
   - docker-compose -v
 
 install:
+  - docker-compose run tests composer install -n
   - docker-compose run -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY -e AWS_SECRET_KEY=$AWS_SECRET_KEY -e AWS_S3_BUCKET=keboola-tests -e AWS_REGION=us-east-1 tests php ./tests/loadS3.php
 
 script:
