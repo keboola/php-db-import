@@ -90,11 +90,15 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
         return [
             // full imports
-//            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-//            [[new CsvFile("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-//            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-//            [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'],
+            [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
+
+            [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
         ];
     }
 
@@ -158,6 +162,14 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
                     getenv('AWS_REGION'),
                     $this->destSchemaName
                 );
+            case 'manifest':
+                return new \Keboola\Db\Import\Snowflake\CsvManifestImport(
+                    $this->connection,
+                    getenv('AWS_ACCESS_KEY'),
+                    getenv('AWS_SECRET_KEY'),
+                    getenv('AWS_REGION'),
+                    $this->destSchemaName
+                );
             default:
                 throw new \Exception("Import type $type not found");
 
@@ -166,7 +178,6 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
     private function query($sql)
     {
-        echo $sql . "\n";
         return odbc_exec($this->connection, $sql);
     }
 
