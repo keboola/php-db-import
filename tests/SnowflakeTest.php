@@ -32,6 +32,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         }
 
         $this->connection = $connection;
+
         $this->initData();
     }
 
@@ -57,11 +58,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             });
         }
 
-        $columnsSql = implode(", ", array_map(function ($column) {
-            return '"' . $column . '"';
-        }, $tableColumns));
-
-        $importedData = $this->fetchAll("SELECT $columnsSql FROM \"{$this->destSchemaName}\".\"$tableName\"");
+        $importedData = $this->fetchAll($this->destSchemaName, $tableName, $tableColumns);
 
         $this->assertArrayEqualsSorted($expected, $importedData, 0);
 
@@ -173,13 +170,26 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         return odbc_exec($this->connection, $sql);
     }
 
-    private function fetchAll($sql, $bind = [])
+    private function fetchAll($schemaName, $tableName, $columns)
     {
+        // temporary fix of client charset handling
+        $columnsSql = array_map(function($column) {
+            return sprintf('BASE64_ENCODE("%s") AS "%s"', $column, $column);
+        }, $columns);
+
+        $sql = sprintf("SELECT %s FROM \"%s\".\"%s\"",
+            implode(', ', $columnsSql),
+            $schemaName,
+            $tableName
+        );
+
         $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt, $bind);
+        odbc_execute($stmt);
         $rows = [];
         while ($row = odbc_fetch_array($stmt)) {
-            $rows[] = array_values($row);
+            $rows[] = array_map(function($column) {
+                return base64_decode($column);
+            }, array_values($row));
         }
         odbc_free_result($stmt);
         return $rows;
