@@ -67,7 +67,7 @@ abstract class ImportBase implements ImportInterface
                     $columns);
             } else {
                 Debugger::timer('dedup');
-//                $this->dedup($stagingTableName, $columns, $this->getTablePrimaryKey($tableName));
+                $this->dedupe($stagingTableName, $columns, $this->getTablePrimaryKey($tableName));
                 $this->addTimer('dedup', Debugger::timer('dedup'));
                 $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns);
             }
@@ -141,11 +141,13 @@ abstract class ImportBase implements ImportInterface
      */
     private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns)
     {
-        $this->connection->beginTransaction();
+        $this->query('BEGIN TRANSACTION');
         $nowFormatted = $this->getNowFormatted();
 
         $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
         $stagingTableNameWithSchema = $this->nameWithSchemaEscaped($stagingTableName);
+        $targetTableNameEscaped = $this->quoteIdentifier($targetTableName);
+        $stagingTableNameEscaped = $this->quoteIdentifier($stagingTableName);
 
         $primaryKey = $this->getTablePrimaryKey($targetTableName);
 
@@ -159,12 +161,12 @@ abstract class ImportBase implements ImportInterface
                 $columnsSet[] = sprintf(
                     "%s = %s.%s",
                     $this->quoteIdentifier($columnName),
-                    $stagingTableNameWithSchema,
+                    $stagingTableNameEscaped,
                     $this->quoteIdentifier($columnName)
                 );
             }
 
-            $sql .= implode(', ', $columnsSet) . ", _timestamp = '{$nowFormatted}' ";
+            $sql .= implode(', ', $columnsSet) . ", " . $this->quoteIdentifier(self::TIMESTAMP_COLUMN_NAME) . " = '{$nowFormatted}' ";
             $sql .= " FROM " . $stagingTableNameWithSchema . " ";
             $sql .= " WHERE ";
 
@@ -172,9 +174,9 @@ abstract class ImportBase implements ImportInterface
             foreach ($primaryKey as $pkColumn) {
                 $pkWhereSql[] = sprintf(
                     "%s.%s = %s.%s",
-                    $targetTableNameWithSchema,
+                    $targetTableNameEscaped,
                     $this->quoteIdentifier($pkColumn),
-                    $stagingTableNameWithSchema,
+                    $stagingTableNameEscaped,
                     $this->quoteIdentifier($pkColumn)
                 );
             }
@@ -182,12 +184,12 @@ abstract class ImportBase implements ImportInterface
             $sql .= implode(' AND ', $pkWhereSql) . " ";
 
             // update only changed rows - mysql TIMESTAMP ON UPDATE behaviour simulation
-            $columnsComparsionSql = array_map(function ($columnName) use ($targetTableNameWithSchema, $stagingTableNameWithSchema) {
+            $columnsComparsionSql = array_map(function ($columnName) use ($targetTableNameEscaped, $stagingTableNameEscaped) {
                 return sprintf(
                     "%s.%s != %s.%s",
-                    $targetTableNameWithSchema,
+                    $targetTableNameEscaped,
                     $this->quoteIdentifier($columnName),
-                    $stagingTableNameWithSchema,
+                    $stagingTableNameEscaped,
                     $this->quoteIdentifier($columnName)
                 );
             }, $columns);
@@ -208,22 +210,21 @@ abstract class ImportBase implements ImportInterface
 
             // Dedup staging table
             Debugger::timer('dedupStaging');
-            $this->dedup($stagingTableName, $columns, $primaryKey);
+            $this->dedupe($stagingTableName, $columns, $primaryKey);
             $this->addTimer('dedupStaging', Debugger::timer('dedupStaging'));
         }
 
         // Insert from staging to target table
         $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) {
                 return $this->quoteIdentifier($column);
-            }, $columns)) . ", _timestamp) ";
-
+            }, array_merge($columns, [self::TIMESTAMP_COLUMN_NAME]))) . ")";
 
         $columnsSetSql = [];
 
         foreach ($columns as $columnName) {
             $columnsSetSql[] = sprintf(
                 "%s.%s",
-                $stagingTableNameWithSchema,
+                $stagingTableNameEscaped,
                 $this->quoteIdentifier($columnName)
             );
         }
@@ -234,7 +235,7 @@ abstract class ImportBase implements ImportInterface
         $this->query($sql);
         $this->addTimer('insertIntoTargetFromStaging', Debugger::timer('insertIntoTargetFromStaging'));
 
-        $this->connection->commit();
+        $this->query('COMMIT');
     }
 
     private function replaceTables($sourceTableName, $targetTableName)
@@ -262,7 +263,7 @@ abstract class ImportBase implements ImportInterface
         return str_replace('.', '_', uniqid('csvimport', true));
     }
 
-    private function dedup($tableName, $columns, array $primaryKey)
+    private function dedupe($tableName, $columns, array $primaryKey)
     {
         if (empty($primaryKey)) {
             return;
@@ -292,7 +293,7 @@ abstract class ImportBase implements ImportInterface
             return $this->quoteIdentifier($column);
         }, $columns));
 
-        $tempTable = $this->createTableFromSourceTable($tableName);
+        $tempTable = $this->createStagingTable($columns);
 
         $this->query("INSERT INTO {$this->nameWithSchemaEscaped($tempTable)} ($columnsSql) " . $sql);
         $this->replaceTables($tempTable, $tableName);
@@ -321,19 +322,16 @@ abstract class ImportBase implements ImportInterface
      */
     private function getTablePrimaryKey($tableName)
     {
-        $sql = sprintf("
-			SELECT pa.attname FROM pg_catalog.pg_index i
-				JOIN pg_catalog.pg_class ci on ci.oid = i.indexrelid
-				JOIN pg_catalog.pg_class ct on ct.oid = i.indrelid
-				JOIN pg_catalog.pg_attribute pa on pa.attrelid = ci.oid
-				JOIN pg_catalog.pg_namespace pn on pn.oid = ct.relnamespace
-				WHERE ct.relname = %s AND pn.nspname = %s
-				AND i.indisprimary;
-		", $this->connection->quote(strtolower($tableName)), $this->connection->quote(strtolower($this->schemaName)));
+        $cols = $this->queryFetchAll(sprintf("DESC TABLE %s", $this->nameWithSchemaEscaped($tableName)));
+        $pkCols = [];
+        foreach ($cols as $col) {
+            if ($col['primary key'] !== 'Y') {
+                continue;
+            }
+            $pkCols[] = $col['name'];
+        }
 
-        return array_map(function ($row) {
-            return $row['attname'];
-        }, $this->connection->query($sql)->fetchAll());
+        return $pkCols;
     }
 
     private function getTableColumns($tableName)
@@ -346,6 +344,7 @@ abstract class ImportBase implements ImportInterface
 
     protected function query($sql, $bind = [])
     {
+        echo $sql . "\n";
         $stmt = odbc_prepare($this->connection, $sql);
         odbc_execute($stmt, $bind);
         odbc_free_result($stmt);

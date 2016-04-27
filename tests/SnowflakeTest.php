@@ -44,7 +44,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
      * @param string $type
      * @dataProvider  importData
      */
-    public function testImport($sourceData, $columns, $expected, $tableName, $type = 'csv')
+    public function testFullImport($sourceData, $columns, $expected, $tableName, $type = 'csv')
     {
         $import = $this->getImport($type);
         $import->setIgnoreLines(1);
@@ -61,10 +61,76 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $importedData = $this->fetchAll($this->destSchemaName, $tableName, $tableColumns);
 
         $this->assertArrayEqualsSorted($expected, $importedData, 0);
-
     }
 
-    public function importData()
+    /**
+     * @dataProvider incrementalImportData
+     * @param \Keboola\Csv\CsvFile $initialImportFile
+     * @param \Keboola\Csv\CsvFile $incrementFile
+     * @param $columns
+     * @param $expected
+     * @param $tableName
+     */
+    public function testIncrementalImport(\Keboola\Csv\CsvFile $initialImportFile, \Keboola\Csv\CsvFile $incrementFile, $columns, $expected, $tableName, $rowsShouldBeUpdated)
+    {
+        // initial import
+        $import = $this->getImport();
+        $import
+            ->setIgnoreLines(1)
+            ->setIncremental(false)
+            ->import($tableName, $columns, [$initialImportFile]);
+
+        $timestampsByIdsAfterFullLoad = [];
+        foreach ($this->fetchAll($this->destSchemaName, $tableName, ['id', '_timestamp']) as $row) {
+            $timestampsByIdsAfterFullLoad[$row[0]] = $row[1];
+        }
+
+
+        sleep(2);
+        $import
+            ->setIncremental(true)
+            ->import($tableName, $columns, [$incrementFile]);
+
+        $tableColumns = $this->tableColumns($tableName, $this->destSchemaName);
+        $tableColumns = array_filter($tableColumns, function($column) {
+            return $column !== '_timestamp';
+        });
+        
+        $timestampsByIdsAfterIncrement = [];
+        foreach ($this->fetchAll($this->destSchemaName, $tableName, ['id', '_timestamp']) as $row) {
+            $timestampsByIdsAfterIncrement[$row[0]] = $row[1];
+        }
+
+        $changedTimestamps = array_diff($timestampsByIdsAfterIncrement, $timestampsByIdsAfterFullLoad);
+        $updatedRows = array_keys($changedTimestamps);
+        sort($updatedRows);
+        sort($rowsShouldBeUpdated);
+        $this->assertEquals($rowsShouldBeUpdated, $updatedRows);
+
+        $importedData = $this->fetchAll($this->destSchemaName, $tableName, $tableColumns);
+        $this->assertArrayEqualsSorted($expected, $importedData, 0);
+    }
+
+    public function incrementalImportData()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $initialFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+        $incrementFile = new CsvFile("s3://{$s3bucket}/tw_accounts.increment.csv");
+
+        $expectationFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.tw_accounts.increment.csv');
+        $expectedRows = [];
+        foreach ($expectationFile as $row) {
+            $expectedRows[] = $row;
+        }
+        $columns = array_shift($expectedRows);
+        $expectedRows = array_values($expectedRows);
+
+        return [
+            [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts', [15, 24]],
+        ];
+    }
+
+    public function fullImportData()
     {
         $expectedEscaping = [];
         $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/escaping/standard-with-enclosures.csv');
