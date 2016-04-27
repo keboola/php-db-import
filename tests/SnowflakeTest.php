@@ -77,11 +77,27 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $escapingHeader = array_shift($expectedEscaping); // remove header
         $expectedEscaping = array_values($expectedEscaping);
 
+        $expectedAccounts = [];
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv');
+        foreach ($file as $row) {
+            $expectedAccounts[] = $row;
+        }
+        $accountsHeader = array_shift($expectedAccounts); // remove header
+        $expectedAccounts = array_values($expectedAccounts);
+
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.changedColumnsOrder.csv');
+        $accountChangedColumnsOrderHeader = $file->getHeader();
+
+
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
         return [
             // full imports
-            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+//            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+//            [[new CsvFile("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+//            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+//            [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'],
         ];
     }
 
@@ -97,6 +113,24 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
           "col2" VARCHAR,
           "_timestamp" TIMESTAMP_NTZ
         );', $this->destSchemaName));
+
+        $this->query(sprintf(
+           'CREATE TABLE "%s"."accounts" (
+                "id" varchar(65535) NOT NULL,
+                "idTwitter" varchar(65535) NOT NULL,
+                "name" varchar(65535) NOT NULL,
+                "import" varchar(65535) NOT NULL,
+                "isImported" varchar(65535) NOT NULL,
+                "apiLimitExceededDatetime" varchar(65535) NOT NULL,
+                "analyzeSentiment" varchar(65535) NOT NULL,
+                "importKloutScore" varchar(65535) NOT NULL,
+                "timestamp" varchar(65535) NOT NULL,
+                "oauthToken" varchar(65535) NOT NULL,
+                "oauthSecret" varchar(65535) NOT NULL,
+                "idApp" varchar(65535) NOT NULL,
+                "_timestamp" TIMESTAMP_NTZ,
+                PRIMARY KEY("id")
+        )', $this->destSchemaName));
     }
 
     private function tableColumns($tableName, $schemaName)

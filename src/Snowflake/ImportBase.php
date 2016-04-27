@@ -55,7 +55,7 @@ abstract class ImportBase implements ImportInterface
     public function import($tableName, $columns, array $sourceData)
     {
         $this->validateColumns($tableName, $columns);
-        $stagingTableName = $this->createTableFromSourceTable($tableName);
+        $stagingTableName = $this->createStagingTable($columns);
 
         try {
             $this->importDataToStagingTable($stagingTableName, $columns, $sourceData);
@@ -298,19 +298,18 @@ abstract class ImportBase implements ImportInterface
         $this->replaceTables($tempTable, $tableName);
     }
 
-    private function createTableFromSourceTable($sourceTableName)
-    {
+    private function createStagingTable(array $columns) {
+
         $tempName = '__temp_' . $this->uniqueValue();
-        $this->query(sprintf(
-            'CREATE TEMPORARY TABLE %s LIKE %s',
-            $this->nameWithSchemaEscaped($tempName),
-            $this->nameWithSchemaEscaped($sourceTableName)
-        ));
+
+        $columnsSql = array_map(function($column) {
+            return sprintf('%s varchar', $this->quoteIdentifier($column));
+        }, $columns);
 
         $this->query(sprintf(
-            'ALTER TABLE %s DROP COLUMN %s',
+            'CREATE TEMPORARY TABLE %s (%s)',
             $this->nameWithSchemaEscaped($tempName),
-            $this->quoteIdentifier(self::TIMESTAMP_COLUMN_NAME)
+            implode(', ', $columnsSql)
         ));
 
         return $tempName;
