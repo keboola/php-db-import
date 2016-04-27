@@ -3,6 +3,7 @@
 namespace Keboola\DbImportTest;
 
 use Keboola\Csv\CsvFile;
+use Keboola\Db\Import\Exception;
 
 class SnowflakeTest extends \PHPUnit_Framework_TestCase
 {
@@ -31,133 +32,82 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         }
 
         $this->connection = $connection;
-//        $this->initData();
+        $this->initData();
+    }
+
+    /**
+     * @param $sourceData
+     * @param $columns
+     * @param $expected
+     * @param $tableName
+     * @param string $type
+     * @dataProvider  importData
+     */
+    public function testImport($sourceData, $columns, $expected, $tableName, $type = 'csv')
+    {
+        $import = $this->getImport($type);
+        $import->setIgnoreLines(1);
+        $import->import($tableName, $columns, $sourceData);
+
+
+        $tableColumns = $this->tableColumns($tableName, $this->destSchemaName);
+        if (!in_array('_timestamp', $columns)) {
+            $tableColumns = array_filter($tableColumns, function($column) {
+                return $column !== '_timestamp';
+            });
+        }
+
+        $columnsSql = implode(", ", array_map(function ($column) {
+            return '"' . $column . '"';
+        }, $tableColumns));
+
+        $importedData = $this->fetchAll("SELECT $columnsSql FROM \"{$this->destSchemaName}\".\"$tableName\"");
+
+        $this->assertArrayEqualsSorted($expected, $importedData, 0);
+
+    }
+
+    public function importData()
+    {
+        $expectedEscaping = [];
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/escaping/standard-with-enclosures.csv');
+        foreach ($file as $row) {
+            $expectedEscaping[] = $row;
+        }
+        $escapingHeader = array_shift($expectedEscaping); // remove header
+        $expectedEscaping = array_values($expectedEscaping);
+
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+
+        return [
+            // full imports
+            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+        ];
     }
 
     private function initData()
     {
-        $commands = [];
-
-        $schemas = [$this->sourceSchemaName, $this->destSchemaName];
-
-        $currentDate = new \DateTime('now', new \DateTimeZone('UTC'));
-        $now = $currentDate->format('Ymd H:i:s');
-
-        foreach ($schemas as $schema) {
-
-
-            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table'];
-            foreach ($tablesToDelete as $tableToDelete) {
-                $stmt = $this->connection
-                    ->prepare("SELECT table_name FROM information_schema.tables WHERE table_name = ? AND table_schema = ?");
-
-                if ($stmt->execute([strtolower($tableToDelete), strtolower($schema)]) && $stmt->fetch()) {
-                    $commands[] = "DROP TABLE \"$schema\".\"$tableToDelete\"";
-                }
-            }
-
-            $stmt = $this->connection->prepare("SELECT * FROM pg_catalog.pg_namespace where nspname = ?");
-            if ($stmt->execute([$schema]) && !$stmt->fetch()) {
-                $commands[] = "
-                    CREATE SCHEMA \"$schema\";
-                ";
-            }
-
-            $commands[] = "
-                CREATE TABLE \"$schema\".\"out.csv_2Cols\" (
-                  col1  varchar(65535),
-                  col2 varchar(65535),
-                  _timestamp TIMESTAMP
-                );
-            ";
-
-            $commands[] = "
-                INSERT INTO \"$schema\".\"out.csv_2Cols\" VALUES
-                    ('a', 'b', '{$now}')
-                ;
-            ";
-
-            $commands[] =  "
-                CREATE TABLE \"$schema\".\"table\" (
-                  \"column\"  varchar(65535),
-                  \"table\" varchar(65535),
-                  _timestamp TIMESTAMP
-                );
-            ";
-
-            $commands[] = "
-                CREATE TABLE \"$schema\".accounts (
-                    id varchar(65535) NOT NULL,
-                    idTwitter varchar(65535) NOT NULL,
-                    name varchar(65535) NOT NULL,
-                    import varchar(65535) NOT NULL,
-                    isImported varchar(65535) NOT NULL,
-                    apiLimitExceededDatetime varchar(65535) NOT NULL,
-                    analyzeSentiment varchar(65535) NOT NULL,
-                    importKloutScore varchar(65535) NOT NULL,
-                    timestamp varchar(65535) NOT NULL,
-                    oauthToken varchar(65535) NOT NULL,
-                    oauthSecret varchar(65535) NOT NULL,
-                    idApp varchar(65535) NOT NULL,
-                    _timestamp TIMESTAMP,
-                    PRIMARY KEY(id)
-                );
-            ";
+        foreach ([$this->sourceSchemaName, $this->destSchemaName] as $schema) {
+            $this->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schema));
+            $this->query(sprintf('CREATE SCHEMA "%s"', $schema));
         }
 
-        $commands[] = "
-            CREATE TABLE \"{$this->sourceSchemaName}\".types (
-                  col1  varchar(65535) NOT NULL,
-                  col2 boolean NOT NULL
-                );
-        ";
-
-        $commands[] = "
-            CREATE TABLE \"{$this->destSchemaName}\".types (
-                  col1  varchar(65535) NOT NULL,
-                  col2 varchar(65535) NOT NULL,
-                  _timestamp TIMESTAMP
-                );
-        ";
-
-        $commands[] = "
-            INSERT INTO \"{$this->sourceSchemaName}\".\"out.csv_2Cols\" VALUES
-                ('c', 'd')
-            ;
-        ";
-
-        $commands[] = "
-            INSERT INTO \"{$this->sourceSchemaName}\".types VALUES
-                ('c', 'true'),
-                ('d', 'false')
-            ;
-        ";
-
-        $commands[] = "
-            CREATE TABLE \"{$this->sourceSchemaName}\".names (
-                  col1  varchar(65535) NOT NULL,
-                  col2  varchar(65535)
-                );
-        ";
-
-        $commands[] = "
-            INSERT INTO \"{$this->sourceSchemaName}\".names VALUES
-                ('c', 'true'),
-                ('d', NULL)
-            ;
-        ";
-
-        foreach ($commands as $command) {
-            $this->connection->query($command);
-        }
-
+        $this->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
+          "col1" VARCHAR,
+          "col2" VARCHAR,
+          "_timestamp" TIMESTAMP_NTZ
+        );', $this->destSchemaName));
     }
 
-
-    public function testImport()
+    private function tableColumns($tableName, $schemaName)
     {
-
-
+        $res = $this->query(sprintf('SHOW COLUMNS IN "%s"."%s"', $schemaName, $tableName));
+        $columns = [];
+        while ($row = odbc_fetch_array($res)) {
+            $columns[] = $row['column_name'];
+        }
+        odbc_free_result($res);
+        return $columns;
     }
 
 
@@ -169,119 +119,48 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
     private function getImport($type = 'csv')
     {
         switch ($type) {
-            case 'manifest':
-                return new \Keboola\Db\Import\CsvManifestImportRedshift(
-                    $this->connection,
-                    getenv('AWS_ACCESS_KEY'),
-                    getenv('AWS_SECRET_KEY'),
-                    getenv('AWS_REGION'),
-                    $this->destSchemaName
-                );
-                break;
             case 'csv':
-                return new \Keboola\Db\Import\CsvImportRedshift(
+                return new \Keboola\Db\Import\Snowflake\CsvImport(
                     $this->connection,
                     getenv('AWS_ACCESS_KEY'),
                     getenv('AWS_SECRET_KEY'),
                     getenv('AWS_REGION'),
                     $this->destSchemaName
                 );
-            case 'copy';
-                return new \Keboola\Db\Import\CopyImportRedshift(
-                    $this->connection,
-                    $this->destSchemaName
-                );
-                break;
             default:
                 throw new \Exception("Import type $type not found");
 
         }
     }
 
-    private function describeTable($tableName, $schemaName = null)
+    private function query($sql)
     {
-        $sql = "SELECT
-                a.attnum,
-                n.nspname,
-                c.relname,
-                a.attname AS colname,
-                t.typname AS type,
-                a.atttypmod,
-                FORMAT_TYPE(a.atttypid, a.atttypmod) AS complete_type,
-                d.adsrc AS default_value,
-                a.attnotnull AS notnull,
-                a.attlen AS length,
-                co.contype,
-                ARRAY_TO_STRING(co.conkey, ',') AS conkey
-            FROM pg_attribute AS a
-                JOIN pg_class AS c ON a.attrelid = c.oid
-                JOIN pg_namespace AS n ON c.relnamespace = n.oid
-                JOIN pg_type AS t ON a.atttypid = t.oid
-                LEFT OUTER JOIN pg_constraint AS co ON (co.conrelid = c.oid
-                    AND a.attnum = ANY(co.conkey) AND co.contype = 'p')
-                LEFT OUTER JOIN pg_attrdef AS d ON d.adrelid = c.oid AND d.adnum = a.attnum
-            WHERE a.attnum > 0 AND c.relname = " . $this->connection->quote($tableName);
-        if ($schemaName) {
-            $sql .= " AND n.nspname = " . $this->connection->quote($schemaName);
+        echo $sql . "\n";
+        return odbc_exec($this->connection, $sql);
+    }
+
+    private function fetchAll($sql, $bind = [])
+    {
+        $stmt = odbc_prepare($this->connection, $sql);
+        odbc_execute($stmt, $bind);
+        $rows = [];
+        while ($row = odbc_fetch_array($stmt)) {
+            $rows[] = array_values($row);
         }
-        $sql .= ' ORDER BY a.attnum';
+        odbc_free_result($stmt);
+        return $rows;
+    }
 
-        $stmt = $this->connection->query($sql);
-
-        // Use FETCH_NUM so we are not dependent on the CASE attribute of the PDO connection
-        $result = $stmt->fetchAll();
-
-        $attnum = 0;
-        $nspname = 1;
-        $relname = 2;
-        $colname = 3;
-        $type = 4;
-        $atttypemod = 5;
-        $complete_type = 6;
-        $default_value = 7;
-        $notnull = 8;
-        $length = 9;
-        $contype = 10;
-        $conkey = 11;
-
-        $desc = [];
-        foreach ($result as $key => $row) {
-            $defaultValue = $row[$default_value];
-            if ($row[$type] == 'varchar' || $row[$type] == 'bpchar') {
-                if (preg_match('/character(?: varying)?(?:\((\d+)\))?/', $row[$complete_type], $matches)) {
-                    if (isset($matches[1])) {
-                        $row[$length] = $matches[1];
-                    } else {
-                        $row[$length] = null; // unlimited
-                    }
-                }
-                if (preg_match("/^'(.*?)'::(?:character varying|bpchar)$/", $defaultValue, $matches)) {
-                    $defaultValue = $matches[1];
-                }
+    public function assertArrayEqualsSorted($expected, $actual, $sortKey, $message = "")
+    {
+        $comparsion = function ($attrLeft, $attrRight) use ($sortKey) {
+            if ($attrLeft[$sortKey] == $attrRight[$sortKey]) {
+                return 0;
             }
-            list($primary, $primaryPosition, $identity) = [false, null, false];
-            if ($row[$contype] == 'p') {
-                $primary = true;
-                $primaryPosition = array_search($row[$attnum], explode(',', $row[$conkey])) + 1;
-                $identity = (bool)(preg_match('/^nextval/', $row[$default_value]));
-            }
-            $desc[$row[$colname]] = [
-                'SCHEMA_NAME' => $row[$nspname],
-                'TABLE_NAME' => $row[$relname],
-                'COLUMN_NAME' => $row[$colname],
-                'COLUMN_POSITION' => $row[$attnum],
-                'DATA_TYPE' => $row[$type],
-                'DEFAULT' => $defaultValue,
-                'NULLABLE' => (bool)($row[$notnull] != 't'),
-                'LENGTH' => $row[$length],
-                'SCALE' => null, // @todo
-                'PRECISION' => null, // @todo
-                'UNSIGNED' => null, // @todo
-                'PRIMARY' => $primary,
-                'PRIMARY_POSITION' => $primaryPosition,
-                'IDENTITY' => $identity
-            ];
-        }
-        return $desc;
+            return $attrLeft[$sortKey] < $attrRight[$sortKey] ? -1 : 1;
+        };
+        usort($expected, $comparsion);
+        usort($actual, $comparsion);
+        return $this->assertEquals($expected, $actual, $message);
     }
 }
