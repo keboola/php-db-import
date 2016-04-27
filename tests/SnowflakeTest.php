@@ -42,7 +42,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
      * @param $expected
      * @param $tableName
      * @param string $type
-     * @dataProvider  importData
+     * @dataProvider  fullImportData
      */
     public function testFullImport($sourceData, $columns, $expected, $tableName, $type = 'csv')
     {
