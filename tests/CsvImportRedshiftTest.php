@@ -319,8 +319,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
             // reserved words
             [[new CsvFile("s3://{$s3bucket}/reserved-words.csv")], ['column', 'table'], [['table', 'column']], 'table', 'csv'],
 
-            // increment to empty table
-            [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
 
             // import table with _timestamp columns - used by snapshots
             [

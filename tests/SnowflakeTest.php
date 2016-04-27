@@ -97,8 +97,25 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'],
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
 
+            // manifests
             [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
             [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
+
+            // reserved words
+            [[new CsvFile("s3://{$s3bucket}/reserved-words.csv")], ['column', 'table'], [['table', 'column']], 'table', 'csv'],
+
+
+            // import table with _timestamp columns - used by snapshots
+            [
+                [new CsvFile("s3://{$s3bucket}/with-ts.csv")],
+                ['col1', 'col2', '_timestamp'],
+                [
+                    ['a', 'b', 'Mon, 10 Nov 2014 13:12:06 Z'],
+                    ['c', 'd', 'Mon, 10 Nov 2014 14:12:06 Z'],
+                ],
+                'out.csv_2Cols'
+            ],
+
         ];
     }
 
@@ -132,6 +149,14 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
                 "_timestamp" TIMESTAMP_NTZ,
                 PRIMARY KEY("id")
         )', $this->destSchemaName));
+
+        $this->query(sprintf(
+           'CREATE TABLE "%s"."table" (
+              "column"  varchar(65535),
+              "table" varchar(65535),
+              "_timestamp" TIMESTAMP_NTZ
+            );'
+        , $this->destSchemaName));
     }
 
     private function tableColumns($tableName, $schemaName)
