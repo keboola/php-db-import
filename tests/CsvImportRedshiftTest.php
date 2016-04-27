@@ -22,7 +22,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $this->connection = $pdo = new \PDO(
             sprintf(
                 'pgsql:host=%s;dbname=%s;port=%s;sslmode=%s;sslrootcert=%s',
-                'pgsql:host=%s;dbname=%s;port=%s;sslmode=disable',
                 getenv('REDSHIFT_HOST'),
                 getenv('REDSHIFT_DATABASE'),
                 getenv('REDSHIFT_PORT'),
@@ -44,7 +43,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     private function validateSSLSecured()
     {
         $stmt = $this->connection->prepare("
-            SELECT sslcipher
+            SELECT NULLIF( TRIM( sslcipher ), '' ) AS sslcipher
                 FROM stl_connection_log
                     WHERE event = 'initiating session' AND pid = ?
                         ORDER BY recordtime DESC"
@@ -54,7 +53,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         $this->assertArrayHasKey('sslcipher', $result);
-        $this->assertNotEmpty(trim($result['sslcipher']));
+        $this->assertNotEmpty($result['sslcipher']);
     }
 
     private function initData()
