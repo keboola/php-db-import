@@ -30,21 +30,22 @@ $dest = 's3://' . $bucket;
 // clear bucket
 $result = $client->listObjects([
     'Bucket' => $bucket,
-    'Delimiter' => '/'
+    'Delimiter' => '/',
 ]);
 
 $objects = $result->get('Contents');
-
-$client->deleteObjects([
-    'Bucket' => $bucket,
-    'Delete' => [
-        'Objects' => array_map(function($object) {
-            return [
-                'Key' => $object['Key'],
-            ];
-        }, $objects),
-    ],
-]);
+if ($objects) {
+    $client->deleteObjects([
+        'Bucket' => $bucket,
+        'Delete' => [
+            'Objects' => array_map(function($object) {
+                return [
+                    'Key' => $object['Key'],
+                ];
+            }, $objects),
+        ],
+    ]);
+}
 
 // Create a transfer object.
 $manager = new \Aws\S3\Transfer($client, $source, $dest, [
