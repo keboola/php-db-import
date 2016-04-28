@@ -167,6 +167,23 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
             [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
 
+            // copy from table
+            [
+                ['schemaName' => $this->sourceSchemaName, 'tableName' => 'out.csv_2Cols'],
+                $escapingHeader,
+                [['a', 'b'], ['c', 'd']],
+                'out.csv_2Cols',
+                'copy'
+            ],
+
+            [
+                ['schemaName' => $this->sourceSchemaName, 'tableName' => 'types'],
+                ['charCol', 'numCol', 'floatCol'],
+                [['a', '10.5', '0.3']],
+                'types',
+                'copy'
+            ],
+
             // reserved words
             [[new CsvFile("s3://{$s3bucket}/reserved-words.csv")], ['column', 'table'], [['table', 'column']], 'table', 'csv'],
 
@@ -206,6 +223,9 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
     private function initData()
     {
+        $currentDate = new \DateTime('now', new \DateTimeZone('UTC'));
+        $now = $currentDate->format('Y-m-d H:i:s');
+
         foreach ([$this->sourceSchemaName, $this->destSchemaName] as $schema) {
             $this->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schema));
             $this->query(sprintf('CREATE SCHEMA "%s"', $schema));
@@ -216,6 +236,20 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
           "col2" VARCHAR,
           "_timestamp" TIMESTAMP_NTZ
         );', $this->destSchemaName));
+
+        $this->query(sprintf('INSERT INTO "%s"."out.csv_2Cols" VALUES
+                  (\'x\', \'y\', \'%s\');'
+        , $this->destSchemaName, $now));
+
+        $this->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
+          "col1" VARCHAR,
+          "col2" VARCHAR
+        );', $this->sourceSchemaName));
+
+
+        $this->query(sprintf('INSERT INTO "%s"."out.csv_2Cols" VALUES
+                (\'a\', \'b\'), (\'c\', \'d\');
+        ', $this->sourceSchemaName));
 
         $this->query(sprintf(
            'CREATE TABLE "%s"."accounts" (
@@ -242,6 +276,29 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
               "_timestamp" TIMESTAMP_NTZ
             );'
         , $this->destSchemaName));
+
+        $this->query(sprintf(
+            'CREATE TABLE "%s"."types" (
+              "charCol"  varchar NOT NULL,
+              "numCol" varchar NOT NULL,
+              "floatCol" varchar NOT NULL,
+              "_timestamp" TIMESTAMP_NTZ
+            );'
+        , $this->destSchemaName));
+
+        $this->query(sprintf(
+            'CREATE TABLE "%s"."types" (
+              "charCol"  varchar(65535) NOT NULL,
+              "numCol" number(10,1) NOT NULL,
+              "floatCol" float NOT NULL
+            );'
+        , $this->sourceSchemaName));
+
+        $this->query(sprintf(
+            'INSERT INTO "%s"."types" VALUES 
+              (\'a\', \'10.5\', \'0.3\')
+           ;'
+        , $this->sourceSchemaName));
     }
 
     private function tableColumns($tableName, $schemaName)
@@ -278,6 +335,11 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
                     getenv('AWS_ACCESS_KEY'),
                     getenv('AWS_SECRET_KEY'),
                     getenv('AWS_REGION'),
+                    $this->destSchemaName
+                );
+            case 'copy':
+                return new \Keboola\Db\Import\Snowflake\CopyImport(
+                    $this->connection,
                     $this->destSchemaName
                 );
             default:

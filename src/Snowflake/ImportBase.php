@@ -344,7 +344,6 @@ abstract class ImportBase implements ImportInterface
 
     protected function query($sql, $bind = [])
     {
-        echo $sql . "\n";
         $stmt = odbc_prepare($this->connection, $sql);
         odbc_execute($stmt, $bind);
         odbc_free_result($stmt);

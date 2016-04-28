@@ -8,7 +8,6 @@
 
 namespace Keboola\Db\Import\Snowflake;
 
-use Keboola\Db\Import\ImportInterface;
 use Keboola\Csv\CsvFile;
 use Keboola\Db\Import\Exception;
 use Tracy\Debugger;

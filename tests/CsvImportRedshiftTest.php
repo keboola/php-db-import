@@ -41,8 +41,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $now = $currentDate->format('Ymd H:i:s');
 
         foreach ($schemas as $schema) {
-
-
+            
             $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table'];
             foreach ($tablesToDelete as $tableToDelete) {
                 $stmt = $this->connection
