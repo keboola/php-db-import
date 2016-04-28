@@ -34,6 +34,12 @@ class CopyImport extends ImportBase
         try {
             Debugger::timer('copyToStaging');
             $this->connection->query($sql);
+            $rows = $this->connection->fetchAll(sprintf('SELECT COUNT(*) as "count" from %s.%s',
+                $this->connection->quoteIdentifier($this->schemaName),
+                $this->connection->quoteIdentifier($stagingTableName)
+            ));
+            $this->importedRowsCount += (int) $rows[0]['count'];
+            
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Exception $e) {
             // everything is user error

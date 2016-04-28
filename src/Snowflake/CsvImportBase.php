@@ -34,9 +34,13 @@ abstract class CsvImportBase extends ImportBase
         }
 
         try {
-            Debugger::timer('copyToStaging');
-            $res = $this->connection->fetchAll($this->generateCopyCommand($tableName, $csvFile));
-            $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
+            $timerName = 'copyToStaging-' . $csvFile->getBasename();
+            Debugger::timer($timerName);
+            $results = $this->connection->fetchAll($this->generateCopyCommand($tableName, $csvFile));
+            foreach ($results as $result) {
+                $this->importedRowsCount += (int) $result['rows_loaded'];
+            }
+            $this->addTimer($timerName, Debugger::timer($timerName));
         } catch (\Exception $e) {
             throw new Exception('Load error: ' . $e->getMessage(), Exception::INVALID_SOURCE_DATA, $e);
         }
@@ -70,33 +74,6 @@ abstract class CsvImportBase extends ImportBase
         );
 
         return $command;
-    }
-
-    private function isGzipped(CsvFile $csvFile, $isManifest)
-    {
-        if ($isManifest) {
-            $s3Client = new \Aws\S3\S3Client([
-                'credentials' => [
-                    'key' => $this->s3key,
-                    'secret' => $this->s3secret,
-                ],
-                'region' => $this->s3region,
-                'version' => '2006-03-01',
-            ]);
-
-            $path = parse_url($csvFile->getPathname());
-
-            $response = $s3Client->getObject([
-                'Bucket' => $path['host'],
-                'Key' => ltrim($path['path'], '/'),
-            ]);
-            $manifest = json_decode((string)$response['Body'], true);
-
-            $path = reset($manifest['entries'])['url'];
-        } else {
-            $path = $csvFile->getPathname();
-        }
-        return in_array(pathinfo($path, PATHINFO_EXTENSION), ['gz', 'gzip']);
     }
 
     private function quote($value)

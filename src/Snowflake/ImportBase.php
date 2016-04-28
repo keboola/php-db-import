@@ -23,9 +23,11 @@ abstract class ImportBase implements ImportInterface
      */
     protected $connection;
 
+    protected  $schemaName;
+
     protected $warnings = [];
 
-    private $importedRowsCount = 0;
+    protected $importedRowsCount = 0;
 
     private $timers = [];
 
@@ -34,8 +36,6 @@ abstract class ImportBase implements ImportInterface
     private $ignoreLines = 0;
 
     private $incremental = false;
-
-    private $schemaName;
 
     const TIMESTAMP_COLUMN_NAME = '_timestamp';
 
