@@ -5,7 +5,7 @@ Handling of large bulk data into database tables.
 
 ### Supported engines:
 - `MySQL` - load data from local CSV file
-- `AWS Redshift`
+- `AWS Redshift`, `Snowflake`
   - Load data from CSV stored in AWS S3
   - Load data from another Redshift table in same database
 
