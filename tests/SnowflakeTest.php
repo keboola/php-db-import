@@ -217,7 +217,33 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         } catch (\Keboola\Db\Import\Exception $e) {
             $this->assertEquals(\Keboola\Db\Import\Exception::MANDATORY_FILE_NOT_FOUND, $e->getCode());
         }
+    }
 
+    public function testCopyInvalidParamsShouldThrowException()
+    {
+        $import = $this->getImport('copy');
+
+        try {
+            $import->import('out.csv_2Cols', ['col1', 'col2'], []);
+            $this->fail('exception should be thrown');
+        } catch (\Keboola\Db\Import\Exception $e) {
+            $this->assertEquals(\Keboola\Db\Import\Exception::INVALID_SOURCE_DATA, $e->getCode());
+        }
+    }
+
+    public function testCopyInvalidSourceDataShouldThrowException()
+    {
+        $import = $this->getImport('copy');
+
+        try {
+            $import->import('out.csv_2Cols', ['c1', 'c2'], [
+                    'schemaName' => $this->sourceSchemaName,
+                    'tableName' => 'names']
+            );
+            $this->fail('exception should be thrown');
+        } catch (\Keboola\Db\Import\Exception $e) {
+            $this->assertEquals(\Keboola\Db\Import\Exception::COLUMNS_COUNT_NOT_MATCH, $e->getCode());
+        }
     }
 
 
