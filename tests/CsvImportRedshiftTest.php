@@ -41,8 +41,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $now = $currentDate->format('Ymd H:i:s');
 
         foreach ($schemas as $schema) {
-
-
+            
             $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table'];
             foreach ($tablesToDelete as $tableToDelete) {
                 $stmt = $this->connection
@@ -303,7 +302,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
             // full imports
             [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'],
@@ -319,8 +318,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
             // reserved words
             [[new CsvFile("s3://{$s3bucket}/reserved-words.csv")], ['column', 'table'], [['table', 'column']], 'table', 'csv'],
 
-            // increment to empty table
-            [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
 
             // import table with _timestamp columns - used by snapshots
             [

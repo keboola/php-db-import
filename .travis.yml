@@ -7,8 +7,9 @@ before_install:
   - docker-compose -v
 
 install:
-  - docker-compose run tests composer install -n
-  - docker-compose run -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY -e AWS_SECRET_KEY=$AWS_SECRET_KEY -e AWS_S3_BUCKET=keboola-tests -e AWS_REGION=us-east-1 tests php ./tests/loadS3.php
+  - docker-compose run php composer install -n
+  - docker-compose run -e AWS_ACCESS_KEY=$AWS_ODBC_KEY -e AWS_SECRET_KEY=$AWS_ODBC_SECRET php php docker/downloadOdbcDriver.php
+  - docker-compose run -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY -e AWS_SECRET_KEY=$AWS_SECRET_KEY -e AWS_S3_BUCKET=keboola-tests -e AWS_REGION=us-east-1 php php ./tests/loadS3.php
 
 script:
   >
@@ -18,8 +19,14 @@ script:
   -e REDSHIFT_PORT=$REDSHIFT_PORT
   -e REDSHIFT_DATABASE=$REDSHIFT_DATABASE
   -e REDSHIFT_PASSWORD=$REDSHIFT_PASSWORD
+  -e SNOWFLAKE_HOST=$SNOWFLAKE_HOST
+  -e SNOWLFAKE_PORT=$SNOWFLAKE_PORT
+  -e SNOWFLAKE_USER=$SNOWFLAKE_USER
+  -e SNOWFLAKE_PASSWORD=$SNOWFLAKE_PASSWORD
+  -e SNOWFLAKE_DATABASE=$SNOWFLAKE_DATABASE
+  -e SNOWFLAKE_WAREHOUSE=$SNOWFLAKE_WAREHOUSE
   -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY
   -e AWS_SECRET_KEY=$AWS_SECRET_KEY
-  -e AWS_S3_BUCKET=keboola-tests
-  -e AWS_REGION=us-east-1
+  -e AWS_S3_BUCKET=$AWS_S3_BUCKET
+  -e AWS_REGION=$AWS_REGION
   tests

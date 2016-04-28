@@ -6,3 +6,5 @@ composer.phar
 composer.lock
 vendor
 set-env.sh
+snowflake_linux_x8664_odbc.tgz
+snowflake_odbc_generic0.log
