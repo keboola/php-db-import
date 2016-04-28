@@ -4,10 +4,14 @@ namespace Keboola\DbImportTest;
 
 use Keboola\Csv\CsvFile;
 use Keboola\Db\Import\Exception;
+use Keboola\Db\Import\Snowflake\Connection;
 
 class SnowflakeTest extends \PHPUnit_Framework_TestCase
 {
-    protected $connection;
+    /**
+     * @var Connection
+     */
+    private $connection;
 
     private $destSchemaName = 'in.c-tests';
 
@@ -17,22 +21,14 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $dsn = "Driver=SnowflakeDSIIDriver;Server=" . getenv('SNOWFLAKE_HOST');
-        $dsn .= ";Port=" . getenv('SNOWFLAKE_PORT');
-        $dsn .= ";database=" . getenv('SNOWFLAKE_DATABASE');
-        $dsn .= ";Warehouse=" . getenv('SNOWFLAKE_WAREHOUSE');
-        $dsn .= ";Tracing=4";
-        $dsn .= ";Query_Timeout=60";
-        $connection = odbc_connect($dsn, getenv('SNOWFLAKE_USER'), getenv('SNOWFLAKE_PASSWORD'));
-        try {
-            odbc_exec($connection, "USE DATABASE " . getenv('SNOWFLAKE_DATABASE'));
-            odbc_exec($connection, "USE WAREHOUSE " . getenv('SNOWFLAKE_WAREHOUSE'));
-        } catch (\Exception $e) {
-            throw new \Exception("Initializing Snowflake connection failed: " . $e->getMessage(), null, $e);
-        }
-
-        $this->connection = $connection;
-
+        $this->connection = new Connection([
+            'host' => getenv('SNOWFLAKE_HOST'),
+            'port' => getenv('SNOWFLAKE_PORT'),
+            'database' => getenv('SNOWFLAKE_DATABASE'),
+            'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'user' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'password' => getenv('SNOWFLAKE_PASSWORD'),
+        ]);
         $this->initData();
     }
 
@@ -51,7 +47,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $import->import($tableName, $columns, $sourceData);
 
 
-        $tableColumns = $this->tableColumns($tableName, $this->destSchemaName);
+        $tableColumns = $this->connection->getTableColumns($this->destSchemaName, $tableName);
         if (!in_array('_timestamp', $columns)) {
             $tableColumns = array_filter($tableColumns, function($column) {
                 return $column !== '_timestamp';
@@ -91,7 +87,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             ->setIncremental(true)
             ->import($tableName, $columns, [$incrementFile]);
 
-        $tableColumns = $this->tableColumns($tableName, $this->destSchemaName);
+        $tableColumns = $this->connection->getTableColumns($this->destSchemaName, $tableName);
         $tableColumns = array_filter($tableColumns, function($column) {
             return $column !== '_timestamp';
         });
@@ -253,31 +249,31 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $now = $currentDate->format('Y-m-d H:i:s');
 
         foreach ([$this->sourceSchemaName, $this->destSchemaName] as $schema) {
-            $this->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schema));
-            $this->query(sprintf('CREATE SCHEMA "%s"', $schema));
+            $this->connection->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schema));
+            $this->connection->query(sprintf('CREATE SCHEMA "%s"', $schema));
         }
 
-        $this->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
+        $this->connection->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
           "col1" VARCHAR,
           "col2" VARCHAR,
           "_timestamp" TIMESTAMP_NTZ
         );', $this->destSchemaName));
 
-        $this->query(sprintf('INSERT INTO "%s"."out.csv_2Cols" VALUES
+        $this->connection->query(sprintf('INSERT INTO "%s"."out.csv_2Cols" VALUES
                   (\'x\', \'y\', \'%s\');'
         , $this->destSchemaName, $now));
 
-        $this->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
+        $this->connection->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
           "col1" VARCHAR,
           "col2" VARCHAR
         );', $this->sourceSchemaName));
 
 
-        $this->query(sprintf('INSERT INTO "%s"."out.csv_2Cols" VALUES
+        $this->connection->query(sprintf('INSERT INTO "%s"."out.csv_2Cols" VALUES
                 (\'a\', \'b\'), (\'c\', \'d\');
         ', $this->sourceSchemaName));
 
-        $this->query(sprintf(
+        $this->connection->query(sprintf(
            'CREATE TABLE "%s"."accounts" (
                 "id" varchar(65535) NOT NULL,
                 "idTwitter" varchar(65535) NOT NULL,
@@ -295,7 +291,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
                 PRIMARY KEY("id")
         )', $this->destSchemaName));
 
-        $this->query(sprintf(
+        $this->connection->query(sprintf(
            'CREATE TABLE "%s"."table" (
               "column"  varchar(65535),
               "table" varchar(65535),
@@ -303,7 +299,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             );'
         , $this->destSchemaName));
 
-        $this->query(sprintf(
+        $this->connection->query(sprintf(
             'CREATE TABLE "%s"."types" (
               "charCol"  varchar NOT NULL,
               "numCol" varchar NOT NULL,
@@ -312,7 +308,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             );'
         , $this->destSchemaName));
 
-        $this->query(sprintf(
+        $this->connection->query(sprintf(
             'CREATE TABLE "%s"."types" (
               "charCol"  varchar(65535) NOT NULL,
               "numCol" number(10,1) NOT NULL,
@@ -320,7 +316,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             );'
         , $this->sourceSchemaName));
 
-        $this->query(sprintf(
+        $this->connection->query(sprintf(
             'INSERT INTO "%s"."types" VALUES 
               (\'a\', \'10.5\', \'0.3\')
            ;'
@@ -329,7 +325,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
     private function tableColumns($tableName, $schemaName)
     {
-        $res = $this->query(sprintf('SHOW COLUMNS IN "%s"."%s"', $schemaName, $tableName));
+        $res = $this->connection->query(sprintf('SHOW COLUMNS IN "%s"."%s"', $schemaName, $tableName));
         $columns = [];
         while ($row = odbc_fetch_array($res)) {
             $columns[] = $row['column_name'];
@@ -374,11 +370,6 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    private function query($sql)
-    {
-        return odbc_exec($this->connection, $sql);
-    }
-
     private function fetchAll($schemaName, $tableName, $columns)
     {
         // temporary fix of client charset handling
@@ -392,16 +383,11 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             $tableName
         );
 
-        $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt);
-        $rows = [];
-        while ($row = odbc_fetch_array($stmt)) {
-            $rows[] = array_map(function($column) {
+        return array_map(function($row) {
+            return array_map(function($column) {
                 return base64_decode($column);
             }, array_values($row));
-        }
-        odbc_free_result($stmt);
-        return $rows;
+        }, $this->connection->fetchAll($sql));
     }
 
     public function assertArrayEqualsSorted($expected, $actual, $sortKey, $message = "")

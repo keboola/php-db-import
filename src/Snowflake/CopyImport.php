@@ -33,7 +33,7 @@ class CopyImport extends ImportBase
 
         try {
             Debugger::timer('copyToStaging');
-            $this->query($sql);
+            $this->connection->query($sql);
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Exception $e) {
             // everything is user error

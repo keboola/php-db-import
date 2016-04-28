@@ -35,7 +35,7 @@ abstract class CsvImportBase extends ImportBase
 
         try {
             Debugger::timer('copyToStaging');
-            $res = $this->queryFetchAll($this->generateCopyCommand($tableName, $csvFile));
+            $res = $this->connection->fetchAll($this->generateCopyCommand($tableName, $csvFile));
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Exception $e) {
 

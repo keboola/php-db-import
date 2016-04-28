@@ -19,7 +19,7 @@ abstract class ImportBase implements ImportInterface
 {
 
     /**
-     * @var resource odbc connection
+     * @var Connection
      */
     protected $connection;
 
@@ -39,7 +39,7 @@ abstract class ImportBase implements ImportInterface
 
     const TIMESTAMP_COLUMN_NAME = '_timestamp';
 
-    public function __construct($connection, $schemaName)
+    public function __construct(Connection $connection, $schemaName)
     {
         $this->connection = $connection;
         $this->schemaName = $schemaName;
@@ -67,7 +67,7 @@ abstract class ImportBase implements ImportInterface
                     $columns);
             } else {
                 Debugger::timer('dedup');
-                $this->dedupe($stagingTableName, $columns, $this->getTablePrimaryKey($tableName));
+                $this->dedupe($stagingTableName, $columns, $this->connection->getTablePrimaryKey($this->schemaName, $tableName));
                 $this->addTimer('dedup', Debugger::timer('dedup'));
                 $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns);
             }
@@ -98,7 +98,7 @@ abstract class ImportBase implements ImportInterface
                 null, 'csvImport.noColumns');
         }
 
-        $tableColumns = $this->getTableColumns($tableName);
+        $tableColumns = $this->connection->getTableColumns($this->schemaName, $tableName);
 
         $moreColumns = array_diff($columnsToImport, $tableColumns);
         if (!empty($moreColumns)) {
@@ -108,12 +108,12 @@ abstract class ImportBase implements ImportInterface
 
     private function insertAllIntoTargetTable($stagingTableName, $targetTableName, $columns)
     {
-        $this->query('BEGIN TRANSACTION');
+        $this->connection->query('BEGIN TRANSACTION');
 
         $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
         $stagingTableNameWithSchema = $this->nameWithSchemaEscaped($stagingTableName);
 
-        $this->query('TRUNCATE TABLE ' . $targetTableNameWithSchema);
+        $this->connection->query('TRUNCATE TABLE ' . $targetTableNameWithSchema);
 
         $columnsSql = implode(', ', array_map(function ($column) {
             return $this->quoteIdentifier($column);
@@ -127,10 +127,10 @@ abstract class ImportBase implements ImportInterface
         }
 
         Debugger::timer('copyFromStagingToTarget');
-        $this->query($sql);
+        $this->connection->query($sql);
         $this->addTimer('copyFromStagingToTarget', Debugger::timer('copyFromStagingToTarget'));
 
-        $this->query('COMMIT');
+        $this->connection->query('COMMIT');
     }
 
     /**
@@ -141,7 +141,7 @@ abstract class ImportBase implements ImportInterface
      */
     private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns)
     {
-        $this->query('BEGIN TRANSACTION');
+        $this->connection->query('BEGIN TRANSACTION');
         $nowFormatted = $this->getNowFormatted();
 
         $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
@@ -149,7 +149,7 @@ abstract class ImportBase implements ImportInterface
         $targetTableNameEscaped = $this->quoteIdentifier($targetTableName);
         $stagingTableNameEscaped = $this->quoteIdentifier($stagingTableName);
 
-        $primaryKey = $this->getTablePrimaryKey($targetTableName);
+        $primaryKey = $this->connection->getTablePrimaryKey($this->schemaName, $targetTableName);
 
         if (!empty($primaryKey)) {
 
@@ -196,7 +196,7 @@ abstract class ImportBase implements ImportInterface
             $sql .= " AND (" . implode(' OR ', $columnsComparsionSql) . ") ";
 
             Debugger::timer('updateTargetTable');
-            $this->query($sql);
+            $this->connection->query($sql);
             $this->addTimer('updateTargetTable', Debugger::timer('updateTargetTable'));
 
             // Delete updated rows from staging table
@@ -205,7 +205,7 @@ abstract class ImportBase implements ImportInterface
             $sql .= "WHERE " . implode(' AND ', $pkWhereSql);
 
             Debugger::timer('deleteUpdatedRowsFromStaging');
-            $this->query($sql);
+            $this->connection->query($sql);
             $this->addTimer('deleteUpdatedRowsFromStaging', Debugger::timer('deleteUpdatedRowsFromStaging'));
 
             // Dedup staging table
@@ -232,21 +232,21 @@ abstract class ImportBase implements ImportInterface
         $sql .= "SELECT " . implode(',', $columnsSetSql) . ", '{$nowFormatted}' ";
         $sql .= "FROM " . $stagingTableNameWithSchema;
         Debugger::timer('insertIntoTargetFromStaging');
-        $this->query($sql);
+        $this->connection->query($sql);
         $this->addTimer('insertIntoTargetFromStaging', Debugger::timer('insertIntoTargetFromStaging'));
 
-        $this->query('COMMIT');
+        $this->connection->query('COMMIT');
     }
 
     private function replaceTables($sourceTableName, $targetTableName)
     {
         $this->dropTable($targetTableName);
-        $this->query("ALTER TABLE {$this->nameWithSchemaEscaped($sourceTableName)} RENAME TO {$this->quoteIdentifier($targetTableName)}");
+        $this->connection->query("ALTER TABLE {$this->nameWithSchemaEscaped($sourceTableName)} RENAME TO {$this->quoteIdentifier($targetTableName)}");
     }
 
     private function dropTable($tableName)
     {
-        $this->query("DROP TABLE " . $this->nameWithSchemaEscaped($tableName));
+        $this->connection->query("DROP TABLE " . $this->nameWithSchemaEscaped($tableName));
     }
 
     protected function nameWithSchemaEscaped($tableName, $schemaName = null)
@@ -254,8 +254,7 @@ abstract class ImportBase implements ImportInterface
         if ($schemaName === null) {
             $schemaName = $this->schemaName;
         }
-        $tableNameFiltered = preg_replace('/[^a-zA-Z0-9_\-\.]+/', "", $tableName);
-        return "\"{$schemaName}\".\"{$tableNameFiltered}\"";
+        return sprintf('%s.%s', $this->connection->quoteIdentifier($schemaName), $this->connection->quoteIdentifier($tableName));
     }
 
     private function uniqueValue()
@@ -295,7 +294,7 @@ abstract class ImportBase implements ImportInterface
 
         $tempTable = $this->createStagingTable($columns);
 
-        $this->query("INSERT INTO {$this->nameWithSchemaEscaped($tempTable)} ($columnsSql) " . $sql);
+        $this->connection->query("INSERT INTO {$this->nameWithSchemaEscaped($tempTable)} ($columnsSql) " . $sql);
         $this->replaceTables($tempTable, $tableName);
     }
 
@@ -307,58 +306,13 @@ abstract class ImportBase implements ImportInterface
             return sprintf('%s varchar', $this->quoteIdentifier($column));
         }, $columns);
 
-        $this->query(sprintf(
+        $this->connection->query(sprintf(
             'CREATE TEMPORARY TABLE %s (%s)',
             $this->nameWithSchemaEscaped($tempName),
             implode(', ', $columnsSql)
         ));
 
         return $tempName;
-    }
-
-    /**
-     * @param $tableName
-     * @return array
-     */
-    private function getTablePrimaryKey($tableName)
-    {
-        $cols = $this->queryFetchAll(sprintf("DESC TABLE %s", $this->nameWithSchemaEscaped($tableName)));
-        $pkCols = [];
-        foreach ($cols as $col) {
-            if ($col['primary key'] !== 'Y') {
-                continue;
-            }
-            $pkCols[] = $col['name'];
-        }
-
-        return $pkCols;
-    }
-
-    private function getTableColumns($tableName)
-    {
-        return array_map(function ($column) {
-            return $column['column_name'];
-        }, $this->describeTable($tableName, $this->schemaName));
-    }
-
-
-    protected function query($sql, $bind = [])
-    {
-        $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt, $bind);
-        odbc_free_result($stmt);
-    }
-
-    protected function queryFetchAll($sql, $bind = [])
-    {
-        $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt, $bind);
-        $rows = [];
-        while ($row = odbc_fetch_array($stmt)) {
-            $rows[] = $row;
-        }
-        odbc_free_result($stmt);
-        return $rows;
     }
 
     /**
@@ -414,20 +368,9 @@ abstract class ImportBase implements ImportInterface
         ];
     }
 
-    protected function describeTable($tableName, $schemaName)
-    {
-        $res = odbc_exec($this->connection, sprintf('SHOW COLUMNS IN %s.%s', $this->quoteIdentifier($schemaName), $this->quoteIdentifier($tableName)));
-        $columns = [];
-        while ($row = odbc_fetch_array($res)) {
-            $columns[] = $row;
-        }
-        odbc_free_result($res);
-        return $columns;
-    }
-
     protected function quoteIdentifier($value)
     {
-        $q = '"';
-        return ($q . str_replace("$q", "$q$q", $value) . $q);
+        return $this->connection->quoteIdentifier($value);
     }
+
 }
