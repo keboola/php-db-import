@@ -185,6 +185,25 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    public function testInvalidManifestImport()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/_data/csv-import/tw_accounts.csv");
+        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/02_tw_accounts.csv.invalid.manifest");
+
+        $import = $this->getImport('manifest');
+        $import->setIgnoreLines(1);
+
+        try {
+            $import->import('accounts', $initialFile->getHeader(), [$importFile]);
+            $this->fail('Manifest should not be uploaded');
+        } catch (\Keboola\Db\Import\Exception $e) {
+            $this->assertEquals(\Keboola\Db\Import\Exception::MANDATORY_FILE_NOT_FOUND, $e->getCode());
+        }
+
+    }
+
+
     private function initData()
     {
         foreach ([$this->sourceSchemaName, $this->destSchemaName] as $schema) {

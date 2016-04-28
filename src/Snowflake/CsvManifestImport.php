@@ -8,6 +8,7 @@
 namespace Keboola\Db\Import\Snowflake;
 
 use Aws\Exception\AwsException;
+use Aws\S3\Exception\S3Exception;
 use Keboola\Csv\CsvFile;
 use Keboola\Db\Import\Exception;
 
@@ -52,9 +53,26 @@ class CsvManifestImport extends CsvImportBase
         }
 
         $manifest = json_decode((string) $response['Body'], true);
+        
+        return array_map(function($entry) use($s3Client) {
+            $path = parse_url($entry['url']);
 
-        return array_map(function($entry) {
+            try {
+                // file validation
+                $s3Client->headObject([
+                    'Bucket' => $path['host'],
+                    'Key' => ltrim($path['path'], '/'),
+                ]);
+            } catch (S3Exception $e) {
+                throw new Exception(
+                    sprintf('File "%s" download error: %s', $entry['url'], $e->getMessage()),
+                    Exception::MANDATORY_FILE_NOT_FOUND
+                );
+            }
+
             return $entry['url'];
         }, $manifest['entries']);
     }
+
+
 }
