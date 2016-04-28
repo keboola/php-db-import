@@ -198,6 +198,21 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
+    public function testInvalidCsvImport()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+
+        $import = $this->getImport();
+        $import->setIgnoreLines(1);
+        try {
+            $import->import('out.csv_2Cols', ['col1', 'col2'], [$importFile]);
+            $this->fail('File should not be imported');
+        } catch (Exception $e) {
+            $this->assertEquals(Exception::INVALID_SOURCE_DATA, $e->getCode());
+        }
+    }
+
     public function testInvalidManifestImport()
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);

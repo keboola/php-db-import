@@ -38,20 +38,7 @@ abstract class CsvImportBase extends ImportBase
             $res = $this->connection->fetchAll($this->generateCopyCommand($tableName, $csvFile));
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Exception $e) {
-
-            var_dump($e->getMessage());die;
-            $result = $this->connection->query("SELECT * FROM stl_load_errors WHERE query = pg_last_query_id();")->fetchAll();
-            if (!count($result)) {
-                throw $e;
-            }
-
-            $messages = [];
-            foreach ($result as $row) {
-                $messages[] = "Line $row[line_number] - $row[err_reason]";
-            }
-            $message = "Load error: " . implode("\n", $messages);
-
-            throw new Exception($message, Exception::INVALID_SOURCE_DATA, $e);
+            throw new Exception('Load error: ' . $e->getMessage(), Exception::INVALID_SOURCE_DATA, $e);
         }
     }
 
