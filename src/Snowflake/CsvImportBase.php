@@ -29,7 +29,7 @@ abstract class CsvImportBase extends ImportBase
     protected function importTable($tableName, CsvFile $csvFile)
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
-            throw new Exception('Invalid CSV params. Either enclosure or escapedBy must be specified for Redshift backend but not both.', Exception::INVALID_CSV_PARAMS,
+            throw new Exception('Invalid CSV params. Either enclosure or escapedBy must be specified for Snowflake backend but not both.', Exception::INVALID_CSV_PARAMS,
                 null);
         }
 
@@ -53,6 +53,8 @@ abstract class CsvImportBase extends ImportBase
 
         if ($csvFile->getEnclosure()) {
             $csvOptions[] = sprintf("FIELD_OPTIONALLY_ENCLOSED_BY = %s", $this->quote($csvFile->getEnclosure()));
+        } elseif ($csvFile->getEscapedBy()) {
+            $csvOptions[] = sprintf("ESCAPE_UNENCLOSED_FIELD = %s", $this->quote($csvFile->getEscapedBy()));
         }
 
         $command = sprintf("COPY INTO %s FROM %s 
@@ -99,7 +101,6 @@ abstract class CsvImportBase extends ImportBase
 
     private function quote($value)
     {
-        $q = "'";
-        return ($q . str_replace("$q", "$q$q", $value) . $q);
+        return "'" . addslashes($value) . "'";
     }
 }
