@@ -174,8 +174,8 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
             [
                 ['schemaName' => $this->sourceSchemaName, 'tableName' => 'types'],
-                ['charCol', 'numCol', 'floatCol'],
-                [['a', '10.5', '0.3']],
+                ['charCol', 'numCol', 'floatCol', 'boolCol'],
+                [['a', '10.5', '0.3', 'true']],
                 'types',
                 'copy'
             ],
@@ -319,6 +319,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
               "charCol"  varchar NOT NULL,
               "numCol" varchar NOT NULL,
               "floatCol" varchar NOT NULL,
+              "boolCol" varchar NOT NULL,
               "_timestamp" TIMESTAMP_NTZ
             );'
         , $this->destSchemaName));
@@ -327,26 +328,16 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             'CREATE TABLE "%s"."types" (
               "charCol"  varchar(65535) NOT NULL,
               "numCol" number(10,1) NOT NULL,
-              "floatCol" float NOT NULL
+              "floatCol" float NOT NULL,
+              "boolCol" boolean NOT NULL
             );'
         , $this->sourceSchemaName));
 
         $this->connection->query(sprintf(
             'INSERT INTO "%s"."types" VALUES 
-              (\'a\', \'10.5\', \'0.3\')
+              (\'a\', \'10.5\', \'0.3\', true)
            ;'
         , $this->sourceSchemaName));
-    }
-
-    private function tableColumns($tableName, $schemaName)
-    {
-        $res = $this->connection->query(sprintf('SHOW COLUMNS IN "%s"."%s"', $schemaName, $tableName));
-        $columns = [];
-        while ($row = odbc_fetch_array($res)) {
-            $columns[] = $row['column_name'];
-        }
-        odbc_free_result($res);
-        return $columns;
     }
 
 
