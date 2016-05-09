@@ -21,8 +21,6 @@ class Connection
         $requiredOptions = [
             'host',
             'port',
-            'database',
-            'warehouse',
             'user',
             'password',
         ];
@@ -34,18 +32,33 @@ class Connection
 
         $dsn = "Driver=SnowflakeDSIIDriver;Server=" . $options['host'];
         $dsn .= ";Port=" . $options['port'];
-        $dsn .= ";database=" . $options['database'];
-        $dsn .= ";Warehouse=" . $options['warehouse'];
+
+        if (isset($options['database'])) {
+            $dsn .= ";database=" . $options['database'];
+        }
+
+        if (isset($options['warehouse'])) {
+            $dsn .= ";Warehouse=" . $options['warehouse'];
+        }
+
         $dsn .= ";Tracing=4";
         $dsn .= ";Query_Timeout=60";
-        $connection = odbc_connect($dsn, $options['user'], $options['password']);
+
         try {
-            odbc_exec($connection, "USE DATABASE " . $options['database']);
-            odbc_exec($connection, "USE WAREHOUSE " . $options['warehouse']);
+            $connection = odbc_connect($dsn, $options['user'], $options['password']);
+
+            if (isset($options['database'])) {
+                odbc_exec($connection, "USE DATABASE " . $options['database']);
+            }
+
+            if (isset($options['warehouse'])) {
+                odbc_exec($connection, "USE WAREHOUSE " . $options['warehouse']);
+            }
+
+            $this->connection = $connection;
         } catch (\Exception $e) {
             throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), null, $e);
         }
-        $this->connection = $connection;
     }
 
     public function quoteIdentifier($value)

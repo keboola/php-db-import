@@ -32,6 +32,19 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $this->initData();
     }
 
+    public function testConnectionWithoutDbAndWarehouse()
+    {
+        $connection = new Connection([
+            'host' => getenv('SNOWFLAKE_HOST'),
+            'port' => getenv('SNOWFLAKE_PORT'),
+            'user' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'password' => getenv('SNOWFLAKE_PASSWORD'),
+        ]);
+
+        $databases = $connection->fetchAll('SHOW DATABASES');
+        $this->assertNotEmpty($databases);
+    }
+
     /**
      * @param $sourceData
      * @param $columns
