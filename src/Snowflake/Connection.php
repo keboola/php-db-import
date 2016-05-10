@@ -16,11 +16,25 @@ class Connection
      */
     private  $connection;
 
+    /**
+     * The connection constructor accepts the following options:
+     * - host (string, required) - hostname
+     * - port (int, optional) - port - default 443
+     * - user (string, required) - username
+     * - password (string, required) - password
+     * - warehouse (string) - default warehouse to use
+     * - database (string) - default database to use
+     * - tracing (int) - the level of detail to be logged in the driver trace files
+     * - loginTimeout (int) - Specifies how long to wait for a response when connecting to the Snowflake service before returning a login failure error.
+     * - networkTimeout (int) - Specifies how long to wait for a response when interacting with the Snowflake service before returning an error. Zero (0) indicates no network timeout is set.
+     * - queryTimeout (int) - Specifies how long to wait for a query to complete before returning an error. Zero (0) indicates to wait indefinitely.
+     *
+     * @param array $options
+     */
     public function __construct(array $options)
     {
         $requiredOptions = [
             'host',
-            'port',
             'user',
             'password',
         ];
@@ -30,8 +44,10 @@ class Connection
             throw new Exception('Missing options: ' . implode(', ', $missingOptions));
         }
 
+        $port = isset($options['port']) ? (int) $options['port'] : 443;
+
         $dsn = "Driver=SnowflakeDSIIDriver;Server=" . $options['host'];
-        $dsn .= ";Port=" . $options['port'];
+        $dsn .= ";Port=" . $port;
 
         if (isset($options['database'])) {
             $dsn .= ";database=" . $options['database'];
@@ -41,18 +57,31 @@ class Connection
             $dsn .= ";Warehouse=" . $options['warehouse'];
         }
 
-        $dsn .= ";Tracing=4";
-        $dsn .= ";Query_Timeout=60";
+        if (isset($options['tracing'])) {
+            $dsn .= ";Tracing=" . (int) $options['tracing'];
+        }
+
+        if (isset($options['loginTimeout'])) {
+            $dsn .= ";Login_timeout=" . (int) $options['loginTimeout'];
+        }
+
+        if (isset($options['networkTimeout'])) {
+            $dsn .= ";Network_timeout=" . (int) $options['networkTimeout'];
+        }
+
+        if (isset($options['queryTimeout'])) {
+            $dsn .= ";Query_timeout=" . (int) $options['queryTimeout'];
+        }
 
         try {
             $connection = odbc_connect($dsn, $options['user'], $options['password']);
 
             if (isset($options['database'])) {
-                odbc_exec($connection, "USE DATABASE " . $options['database']);
+                odbc_exec($connection, "USE DATABASE " . $this->quoteIdentifier($options['database']));
             }
 
             if (isset($options['warehouse'])) {
-                odbc_exec($connection, "USE WAREHOUSE " . $options['warehouse']);
+                odbc_exec($connection, "USE WAREHOUSE " . $this->quoteIdentifier($options['warehouse']));
             }
 
             $this->connection = $connection;
