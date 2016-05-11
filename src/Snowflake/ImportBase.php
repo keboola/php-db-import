@@ -241,7 +241,8 @@ abstract class ImportBase implements ImportInterface
     private function replaceTables($sourceTableName, $targetTableName)
     {
         $this->dropTable($targetTableName);
-        $this->connection->query("ALTER TABLE {$this->nameWithSchemaEscaped($sourceTableName)} RENAME TO {$this->quoteIdentifier($targetTableName)}");
+        $this->connection->query(
+            "ALTER TABLE {$this->nameWithSchemaEscaped($sourceTableName)} RENAME TO {$this->nameWithSchemaEscaped($targetTableName)}");
     }
 
     private function dropTable($tableName)

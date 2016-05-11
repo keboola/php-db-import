@@ -45,6 +45,12 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $this->assertNotEmpty($databases);
     }
 
+    public function testGetPrimaryKey()
+    {
+        $pk = $this->connection->getTablePrimaryKey($this->destSchemaName, 'accounts');
+        $this->assertEquals(['id'], $pk);
+    }
+
     /**
      * @param $sourceData
      * @param $columns
