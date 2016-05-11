@@ -16,3 +16,8 @@ RUN mv snowflake_odbc /usr/bin/snowflake_odbc
 
 ADD ./docker/snowflake/simba.snowflake.ini /etc/simba.snowflake.ini
 ADD ./docker/snowflake/odbcinst.ini /etc/odbcinst.ini
+RUN mkdir -p  /usr/bin/snowflake_odbc/log
+
+ENV SIMBAINI /etc/simba.snowflake.ini
+ENV SSL_DIR /usr/bin/snowflake_odbc/SSLCertificates/nssdb
+ENV LD_LIBRARY_PATH /usr/bin/snowflake_odbc/lib
