@@ -154,29 +154,26 @@ abstract class ImportBase implements ImportInterface
         if (!empty($primaryKey)) {
 
             // Update target table
-            $sql = "UPDATE " . $targetTableNameWithSchema . " SET ";
+            $sql = "UPDATE " . $targetTableNameWithSchema . " AS \"dest\" SET ";
 
             $columnsSet = [];
             foreach ($columns as $columnName) {
                 $columnsSet[] = sprintf(
-                    "%s = %s.%s",
+                    '%s = "src".%s',
                     $this->quoteIdentifier($columnName),
-                    $stagingTableNameEscaped,
                     $this->quoteIdentifier($columnName)
                 );
             }
 
             $sql .= implode(', ', $columnsSet) . ", " . $this->quoteIdentifier(self::TIMESTAMP_COLUMN_NAME) . " = '{$nowFormatted}' ";
-            $sql .= " FROM " . $stagingTableNameWithSchema . " ";
+            $sql .= " FROM " . $stagingTableNameWithSchema . ' AS "src" ';
             $sql .= " WHERE ";
 
             $pkWhereSql = [];
             foreach ($primaryKey as $pkColumn) {
                 $pkWhereSql[] = sprintf(
-                    "%s.%s = %s.%s",
-                    $targetTableNameEscaped,
+                    '"dest".%s = "src".%s',
                     $this->quoteIdentifier($pkColumn),
-                    $stagingTableNameEscaped,
                     $this->quoteIdentifier($pkColumn)
                 );
             }
@@ -186,10 +183,8 @@ abstract class ImportBase implements ImportInterface
             // update only changed rows - mysql TIMESTAMP ON UPDATE behaviour simulation
             $columnsComparsionSql = array_map(function ($columnName) use ($targetTableNameEscaped, $stagingTableNameEscaped) {
                 return sprintf(
-                    "%s.%s != %s.%s",
-                    $targetTableNameEscaped,
+                    '"dest".%s != "src".%s',
                     $this->quoteIdentifier($columnName),
-                    $stagingTableNameEscaped,
                     $this->quoteIdentifier($columnName)
                 );
             }, $columns);
@@ -200,8 +195,8 @@ abstract class ImportBase implements ImportInterface
             $this->addTimer('updateTargetTable', Debugger::timer('updateTargetTable'));
 
             // Delete updated rows from staging table
-            $sql = "DELETE FROM " . $stagingTableNameWithSchema . " ";
-            $sql .= "USING " . $targetTableNameWithSchema . " ";
+            $sql = "DELETE FROM " . $stagingTableNameWithSchema . ' "src" ';
+            $sql .= "USING " . $targetTableNameWithSchema . ' AS "dest" ';
             $sql .= "WHERE " . implode(' AND ', $pkWhereSql);
 
             Debugger::timer('deleteUpdatedRowsFromStaging');
@@ -215,7 +210,7 @@ abstract class ImportBase implements ImportInterface
         }
 
         // Insert from staging to target table
-        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) {
+        $sql = "INSERT INTO " . $targetTableNameWithSchema . ' (' . implode(', ', array_map(function ($column) {
                 return $this->quoteIdentifier($column);
             }, array_merge($columns, [self::TIMESTAMP_COLUMN_NAME]))) . ")";
 
@@ -223,14 +218,13 @@ abstract class ImportBase implements ImportInterface
 
         foreach ($columns as $columnName) {
             $columnsSetSql[] = sprintf(
-                "%s.%s",
-                $stagingTableNameEscaped,
+                '"src".%s',
                 $this->quoteIdentifier($columnName)
             );
         }
 
-        $sql .= "SELECT " . implode(',', $columnsSetSql) . ", '{$nowFormatted}' ";
-        $sql .= "FROM " . $stagingTableNameWithSchema;
+        $sql .= " SELECT " . implode(',', $columnsSetSql) . ", '{$nowFormatted}' ";
+        $sql .= "FROM " . $stagingTableNameWithSchema . ' AS "src"';
         Debugger::timer('insertIntoTargetFromStaging');
         $this->connection->query($sql);
         $this->addTimer('insertIntoTargetFromStaging', Debugger::timer('insertIntoTargetFromStaging'));

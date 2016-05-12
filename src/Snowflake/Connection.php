@@ -45,9 +45,11 @@ class Connection
         }
 
         $port = isset($options['port']) ? (int) $options['port'] : 443;
+        $tracing = isset($options['tracing']) ? (int) $options['tracing'] : 0;
 
         $dsn = "Driver=SnowflakeDSIIDriver;Server=" . $options['host'];
         $dsn .= ";Port=" . $port;
+        $dsn .= ";Tracing="  . $tracing;
 
         if (isset($options['database'])) {
             $dsn .= ";database=" . $options['database'];
@@ -55,10 +57,6 @@ class Connection
 
         if (isset($options['warehouse'])) {
             $dsn .= ";Warehouse=" . $options['warehouse'];
-        }
-
-        if (isset($options['tracing'])) {
-            $dsn .= ";Tracing=" . (int) $options['tracing'];
         }
 
         if (isset($options['loginTimeout'])) {

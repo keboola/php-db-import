@@ -47,7 +47,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
     public function testGetPrimaryKey()
     {
-        $pk = $this->connection->getTablePrimaryKey($this->destSchemaName, 'accounts');
+        $pk = $this->connection->getTablePrimaryKey($this->destSchemaName, 'accounts-3');
         $this->assertEquals(['id'], $pk);
     }
 
@@ -141,7 +141,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $expectedRows = array_values($expectedRows);
 
         return [
-            [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts', [15, 24]],
+            [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts-3', [15, 24]],
         ];
     }
 
@@ -175,12 +175,12 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             [[new CsvFile("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-            [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'],
-            [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
+            [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts-3'],
+            [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts-3'],
 
             // manifests
-            [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
-            [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
 
             // copy from table
             [
@@ -242,7 +242,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $import->setIgnoreLines(1);
 
         try {
-            $import->import('accounts', $initialFile->getHeader(), [$importFile]);
+            $import->import('accounts-3', $initialFile->getHeader(), [$importFile]);
             $this->fail('Manifest should not be uploaded');
         } catch (\Keboola\Db\Import\Exception $e) {
             $this->assertEquals(\Keboola\Db\Import\Exception::MANDATORY_FILE_NOT_FOUND, $e->getCode());
@@ -308,7 +308,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         ', $this->sourceSchemaName));
 
         $this->connection->query(sprintf(
-           'CREATE TABLE "%s"."accounts" (
+           'CREATE TABLE "%s"."accounts-3" (
                 "id" varchar(65535) NOT NULL,
                 "idTwitter" varchar(65535) NOT NULL,
                 "name" varchar(65535) NOT NULL,
