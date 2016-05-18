@@ -166,11 +166,19 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.changedColumnsOrder.csv');
         $accountChangedColumnsOrderHeader = $file->getHeader();
 
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/lemma.csv');
+        $expectedLemma = [];
+        foreach ($file as $row) {
+            $expectedLemma[] = $row;
+        }
+        $lemmaHeader = array_shift($expectedLemma);
+        $expectedLemma = array_values($expectedLemma);
 
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
         return [
             // full imports
+            [[new CsvFile("s3://{$s3bucket}/lemma.csv")], $lemmaHeader, $expectedLemma, 'out.lemma'],
             [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
@@ -286,6 +294,13 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             $this->connection->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schema));
             $this->connection->query(sprintf('CREATE SCHEMA "%s"', $schema));
         }
+
+        $this->connection->query(sprintf('CREATE TABLE "%s"."out.lemma" (
+          "ts" VARCHAR,
+          "lemma" VARCHAR,
+          "lemmaIndex" VARCHAR,
+          "_timestamp" TIMESTAMP_NTZ
+        );', $this->destSchemaName));
 
         $this->connection->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
           "col1" VARCHAR,
