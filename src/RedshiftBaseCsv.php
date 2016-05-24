@@ -28,7 +28,25 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 
         try {
             Debugger::timer('copyToStaging');
-            $this->query($this->generateCopyCommand($tableName, $columns, $csvFile, $isManifest));
+            $copyOptions = [
+                'isManifest' => $isManifest,
+            ];
+
+            if ($isManifest) {
+                $manifest =  $this->downloadManifest($csvFile->getPathname());
+
+                // empty manifest handling - do nothing
+                if (!count($manifest['entries'])) {
+                    $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
+                    return;
+                }
+
+                $copyOptions['isGzipped'] = $this->isGzipped(reset($manifest['entries'])['url']);
+            } else {
+                $copyOptions['isGzipped'] = $this->isGzipped($csvFile->getPathname());
+            }
+
+            $this->query($this->generateCopyCommand($tableName, $columns, $csvFile, $copyOptions));
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Exception $e) {
 
@@ -47,7 +65,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         }
     }
 
-    private function generateCopyCommand($tableName, $columns, CsvFile $csvFile, $isManifest)
+    private function generateCopyCommand($tableName, $columns, CsvFile $csvFile, array $options)
     {
         $tableNameWithSchema = $this->nameWithSchemaEscaped($tableName);
         $columnsSql = implode(', ', array_map(function($column) {
@@ -73,11 +91,11 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             $command .= " CSV ";
         }
 
-        if ($this->isGzipped($csvFile, $isManifest)) {
+        if (!empty($options['isGzipped'])) {
             $command .= " GZIP ";
         }
 
-        if ($isManifest) {
+        if (!empty($options['isManifest'])) {
             $command .= " MANIFEST ";
         }
 
@@ -86,31 +104,30 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         return $command;
     }
 
-    private function isGzipped(CsvFile $csvFile, $isManifest)
+    private function isGzipped($path)
     {
-        if ($isManifest) {
-            $s3Client = new \Aws\S3\S3Client([
-                'credentials' => [
-                    'key' => $this->s3key,
-                    'secret' => $this->s3secret,
-                ],
-                'region' => $this->s3region,
-                'version' => '2006-03-01',
-            ]);
-
-            $path = parse_url($csvFile->getPathname());
-
-            $response = $s3Client->getObject([
-                'Bucket' => $path['host'],
-                'Key' => ltrim($path['path'], '/'),
-            ]);
-            $manifest = json_decode((string)$response['Body'], true);
-
-            $path = reset($manifest['entries'])['url'];
-        } else {
-            $path = $csvFile->getPathname();
-        }
         return in_array(pathinfo($path, PATHINFO_EXTENSION), ['gz', 'gzip']);
+    }
+
+    private function downloadManifest($path)
+    {
+        $s3Client = new \Aws\S3\S3Client([
+            'credentials' => [
+                'key' => $this->s3key,
+                'secret' => $this->s3secret,
+            ],
+            'region' => $this->s3region,
+            'version' => '2006-03-01',
+        ]);
+
+        $path = parse_url($path);
+
+        $response = $s3Client->getObject([
+            'Bucket' => $path['host'],
+            'Key' => ltrim($path['path'], '/'),
+        ]);
+
+        return json_decode((string) $response['Body'], true);
     }
 
 }
