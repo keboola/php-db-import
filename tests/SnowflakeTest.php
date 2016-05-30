@@ -120,7 +120,6 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $updatedRows = array_keys($changedTimestamps);
         sort($updatedRows);
         sort($rowsShouldBeUpdated);
-        var_dump($updatedRows, $rowsShouldBeUpdated);
         $this->assertEquals($rowsShouldBeUpdated, $updatedRows);
 
         $importedData = $this->fetchAll($this->destSchemaName, $tableName, $tableColumns);
