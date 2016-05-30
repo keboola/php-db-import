@@ -119,11 +119,18 @@ abstract class ImportBase implements ImportInterface
             return $this->quoteIdentifier($column);
         }, $columns));
 
+        $columnsSetSql = implode(', ', array_map(function ($column) {
+            return sprintf("COALESCE(%s,'') AS %s",
+                $this->quoteIdentifier($column),
+                $this->quoteIdentifier($column)
+            );
+        }, $columns));
+
         $now = $this->getNowFormatted();
         if (in_array(self::TIMESTAMP_COLUMN_NAME, $columns)) {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSql FROM $stagingTableNameWithSchema)";
+            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSetSql FROM $stagingTableNameWithSchema)";
         } else {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, \"" . self::TIMESTAMP_COLUMN_NAME . "\") (SELECT $columnsSql, '{$now}' FROM $stagingTableNameWithSchema)";
+            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, \"" . self::TIMESTAMP_COLUMN_NAME . "\") (SELECT $columnsSetSql, '{$now}' FROM $stagingTableNameWithSchema)";
         }
 
         Debugger::timer('copyFromStagingToTarget');
@@ -159,7 +166,7 @@ abstract class ImportBase implements ImportInterface
             $columnsSet = [];
             foreach ($columns as $columnName) {
                 $columnsSet[] = sprintf(
-                    '%s = "src".%s',
+                    '%s = COALESCE("src".%s, \'\')',
                     $this->quoteIdentifier($columnName),
                     $this->quoteIdentifier($columnName)
                 );
@@ -181,9 +188,9 @@ abstract class ImportBase implements ImportInterface
             $sql .= implode(' AND ', $pkWhereSql) . " ";
 
             // update only changed rows - mysql TIMESTAMP ON UPDATE behaviour simulation
-            $columnsComparsionSql = array_map(function ($columnName) use ($targetTableNameEscaped, $stagingTableNameEscaped) {
+            $columnsComparsionSql = array_map(function ($columnName) {
                 return sprintf(
-                    '"dest".%s != "src".%s',
+                    '"dest".%s != COALESCE("src".%s, \'\')',
                     $this->quoteIdentifier($columnName),
                     $this->quoteIdentifier($columnName)
                 );
@@ -218,7 +225,7 @@ abstract class ImportBase implements ImportInterface
 
         foreach ($columns as $columnName) {
             $columnsSetSql[] = sprintf(
-                '"src".%s',
+                'COALESCE("src".%s, \'\')',
                 $this->quoteIdentifier($columnName)
             );
         }

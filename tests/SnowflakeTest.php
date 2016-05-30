@@ -120,6 +120,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $updatedRows = array_keys($changedTimestamps);
         sort($updatedRows);
         sort($rowsShouldBeUpdated);
+        var_dump($updatedRows, $rowsShouldBeUpdated);
         $this->assertEquals($rowsShouldBeUpdated, $updatedRows);
 
         $importedData = $this->fetchAll($this->destSchemaName, $tableName, $tableColumns);
@@ -297,15 +298,15 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         }
 
         $this->connection->query(sprintf('CREATE TABLE "%s"."out.lemma" (
-          "ts" VARCHAR,
-          "lemma" VARCHAR,
-          "lemmaIndex" VARCHAR,
+          "ts" VARCHAR NOT NULL DEFAULT \'\',
+          "lemma" VARCHAR NOT NULL DEFAULT \'\',
+          "lemmaIndex" VARCHAR NOT NULL DEFAULT \'\',
           "_timestamp" TIMESTAMP_NTZ
         );', $this->destSchemaName));
 
         $this->connection->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
-          "col1" VARCHAR,
-          "col2" VARCHAR,
+          "col1" VARCHAR NOT NULL DEFAULT \'\',
+          "col2" VARCHAR NOT NULL DEFAULT \'\',
           "_timestamp" TIMESTAMP_NTZ
         );', $this->destSchemaName));
 
@@ -314,8 +315,8 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         , $this->destSchemaName, $now));
 
         $this->connection->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
-          "col1" VARCHAR,
-          "col2" VARCHAR
+          "col1" VARCHAR NOT NULL DEFAULT \'\',
+          "col2" VARCHAR NOT NULL DEFAULT \'\'
         );', $this->sourceSchemaName));
 
 
@@ -343,8 +344,8 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
         $this->connection->query(sprintf(
            'CREATE TABLE "%s"."table" (
-              "column"  varchar(65535),
-              "table" varchar(65535),
+              "column"  varchar(65535) NOT NULL DEFAULT \'\',
+              "table" varchar(65535) NOT NULL DEFAULT \'\',
               "_timestamp" TIMESTAMP_NTZ
             );'
         , $this->destSchemaName));
