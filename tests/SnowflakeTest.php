@@ -258,6 +258,23 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testMoreColumnsShouldThrowException()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+
+        $import = $this->getImport();
+        $import->setIgnoreLines(1);
+        try {
+            $import->import('out.csv_2Cols', ['first', 'second'], [$importFile]);
+            $this->fail('File should not be imported');
+        } catch (Exception $e) {
+            $this->assertEquals(Exception::COLUMNS_COUNT_NOT_MATCH, $e->getCode());
+            $this->assertContains('first', $e->getMessage());
+            $this->assertContains('second', $e->getMessage());
+        }
+    }
+
     public function testCopyInvalidParamsShouldThrowException()
     {
         $import = $this->getImport('copy');
