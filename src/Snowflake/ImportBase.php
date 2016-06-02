@@ -153,8 +153,6 @@ abstract class ImportBase implements ImportInterface
 
         $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
         $stagingTableNameWithSchema = $this->nameWithSchemaEscaped($stagingTableName);
-        $targetTableNameEscaped = $this->quoteIdentifier($targetTableName);
-        $stagingTableNameEscaped = $this->quoteIdentifier($stagingTableName);
 
         $primaryKey = $this->connection->getTablePrimaryKey($this->schemaName, $targetTableName);
 
