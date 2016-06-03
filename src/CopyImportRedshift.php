@@ -7,7 +7,7 @@ use Tracy\Debugger;
 class CopyImportRedshift extends RedshiftBase
 {
 
-    protected function importDataToStagingTable($stagingTempTableName, $columns, $sourceData)
+    protected function importDataToStagingTable($stagingTableName, $columns, $sourceData)
     {
         if (!isset($sourceData['schemaName'])) {
             throw new Exception('Invalid source data. schemaName must be set', Exception::INVALID_SOURCE_DATA);
@@ -22,7 +22,7 @@ class CopyImportRedshift extends RedshiftBase
             strtolower($sourceData['schemaName'])
         );
 
-        $sql = "INSERT INTO " . $this->tableNameEscaped($stagingTempTableName) . " (" . implode(', ', array_map(function ($column) {
+        $sql = "INSERT INTO " . $this->nameWithSchemaEscaped($stagingTableName) . " (" . implode(', ', array_map(function ($column) {
                 return $this->quoteIdentifier($column);
             }, $columns)) . ") ";
 

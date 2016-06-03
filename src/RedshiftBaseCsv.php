@@ -19,7 +19,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         $this->s3region = $s3region;
     }
 
-    protected function importTable($tempTableName, $columns, CsvFile $csvFile, $isManifest)
+    protected function importTable($tableName, $columns, CsvFile $csvFile, $isManifest)
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
             throw new Exception('Invalid CSV params. Either enclosure or escapedBy must be specified for Redshift backend but not both.', Exception::INVALID_CSV_PARAMS,
@@ -46,7 +46,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
                 $copyOptions['isGzipped'] = $this->isGzipped($csvFile->getPathname());
             }
 
-            $this->query($this->generateCopyCommand($tempTableName, $columns, $csvFile, $copyOptions));
+            $this->query($this->generateCopyCommand($tableName, $columns, $csvFile, $copyOptions));
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Exception $e) {
 
@@ -65,14 +65,14 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         }
     }
 
-    private function generateCopyCommand($tempTableName, $columns, CsvFile $csvFile, array $options)
+    private function generateCopyCommand($tableName, $columns, CsvFile $csvFile, array $options)
     {
-        $tableNameEscaped = $this->tableNameEscaped($tempTableName);
+        $tableNameWithSchema = $this->nameWithSchemaEscaped($tableName);
         $columnsSql = implode(', ', array_map(function($column) {
             return $this->quoteIdentifier($column);
         }, $columns));
 
-        $command = "COPY $tableNameEscaped ($columnsSql) "
+        $command = "COPY $tableNameWithSchema ($columnsSql) "
             . " FROM {$this->connection->quote($csvFile->getPathname())}"
             . " CREDENTIALS 'aws_access_key_id={$this->s3key};aws_secret_access_key={$this->s3secret}' "
             . " DELIMITER '{$csvFile->getDelimiter()}' ";

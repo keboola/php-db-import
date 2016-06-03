@@ -5,10 +5,10 @@ namespace Keboola\Db\Import;
 class CsvImportRedshift extends RedshiftBaseCsv
 {
 
-    protected function importDataToStagingTable($stagingTempTableName, $columns, $sourceData)
+    protected function importDataToStagingTable($stagingTableName, $columns, $sourceData)
     {
         foreach ($sourceData as $csvFile) {
-            $this->importTable($stagingTempTableName, $columns, $csvFile, false);
+            $this->importTable($stagingTableName, $columns, $csvFile, false);
         }
     }
 
