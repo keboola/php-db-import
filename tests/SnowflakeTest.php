@@ -45,6 +45,24 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $this->assertNotEmpty($databases);
     }
 
+    public function testConnectionWithDefaultDbAndWarehouse()
+    {
+        $connection = new Connection([
+            'host' => getenv('SNOWFLAKE_HOST'),
+            'port' => getenv('SNOWFLAKE_PORT'),
+            'database' => getenv('SNOWFLAKE_DATABASE'),
+            'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'user' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'password' => getenv('SNOWFLAKE_PASSWORD'),
+        ]);
+
+        // test that we are able to create and query tables
+        $connection->query('CREATE TABLE "' . $this->destSchemaName . '"."TEST" (col1 varchar, col2 varchar)');
+        $connection->query('ALTER TABLE "' . $this->destSchemaName . '"."TEST" DROP COLUMN col2');
+        $connection->query('DROP TABLE "' . $this->destSchemaName . '"."TEST" RESTRICT');
+    }
+
+
     public function testGetPrimaryKey()
     {
         $pk = $this->connection->getTablePrimaryKey($this->destSchemaName, 'accounts-3');

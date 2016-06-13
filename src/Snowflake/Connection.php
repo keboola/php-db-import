@@ -51,14 +51,6 @@ class Connection
         $dsn .= ";Port=" . $port;
         $dsn .= ";Tracing="  . $tracing;
 
-        if (isset($options['database'])) {
-            $dsn .= ";database=" . $options['database'];
-        }
-
-        if (isset($options['warehouse'])) {
-            $dsn .= ";Warehouse=" . $options['warehouse'];
-        }
-
         if (isset($options['loginTimeout'])) {
             $dsn .= ";Login_timeout=" . (int) $options['loginTimeout'];
         }
@@ -72,11 +64,11 @@ class Connection
         }
 
         if (isset($options['database'])) {
-            $dsn .= ";database=" . $options['database'];
+            $dsn .= ";database=" . $this->quoteIdentifier($options['database']);
         }
 
         if (isset($options['warehouse'])) {
-            $dsn .= ";warehouse=" . $options['warehouse'];
+            $dsn .= ";warehouse=" . $this->quoteIdentifier($options['warehouse']);
         }
 
         try {
