@@ -6,7 +6,7 @@ RUN yum -y --enablerepo=epel,remi,remi-php56 install php-pgsql
 
 ADD . /code
 WORKDIR /code
-RUN echo "memory_limit = 100m" >> /etc/php.ini
+RUN echo "memory_limit = 256m" >> /etc/php.ini
 RUN composer install --no-interaction
 
 ## install snowflake drivers
