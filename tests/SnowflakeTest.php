@@ -62,6 +62,36 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $connection->query('DROP TABLE "' . $this->destSchemaName . '"."TEST" RESTRICT');
     }
 
+    /**
+     * This should not exhaust memory
+     */
+    public function testLargeTableIterate()
+    {
+        $generateRowsCount = 1000000;
+        $this->connection->query(sprintf("
+          CREATE TABLE \"bigData\" AS
+            SELECT 
+              uniform(1, 10, random()) as \"col1\",
+              uniform(1, 10, random()) as \"col2\",
+              uniform(1, 10, random()) as \"col3\"
+            FROM TABLE(GENERATOR(rowCount => $generateRowsCount)) v ORDER BY 1;
+        ", $this->destSchemaName));
+
+        $results = [
+            'count' => 0,
+        ];
+        $callback = function($row) use(&$results) {
+            $results['count'] = $results['count'] + 1;
+        };
+
+        $this->connection->fetch(sprintf("SELECT * FROM %s.%s",
+            $this->connection->quoteIdentifier($this->destSchemaName),
+            $this->connection->quoteIdentifier("bigData")
+        ), [], $callback);
+
+        $this->assertEquals($generateRowsCount, $results['count']);
+    }
+
 
     public function testGetPrimaryKey()
     {

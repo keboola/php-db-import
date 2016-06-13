@@ -129,4 +129,14 @@ class Connection
         return $rows;
     }
 
+    public function fetch($sql, $bind, callable $callback)
+    {
+        $stmt = odbc_prepare($this->connection, $sql);
+        odbc_execute($stmt, $bind);
+        while ($row = odbc_fetch_array($stmt)) {
+            $callback($row);
+        }
+        odbc_free_result($stmt);
+    }
+
 }
