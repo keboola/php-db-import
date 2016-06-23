@@ -62,17 +62,19 @@ class Connection
         if (isset($options['queryTimeout'])) {
             $dsn .= ";Query_timeout=" . (int) $options['queryTimeout'];
         }
-
-        if (isset($options['database'])) {
-            $dsn .= ";database=" . $this->quoteIdentifier($options['database']);
-        }
-
-        if (isset($options['warehouse'])) {
-            $dsn .= ";warehouse=" . $this->quoteIdentifier($options['warehouse']);
-        }
-
+        
         try {
-            $this->connection = odbc_connect($dsn, $options['user'], $options['password']);
+            $connection = odbc_connect($dsn, $options['user'], $options['password']);
+
+            if (isset($options['database'])) {
+                odbc_exec($connection, "USE DATABASE " . $this->quoteIdentifier($options['database']));
+            }
+
+            if (isset($options['warehouse'])) {
+                odbc_exec($connection, "USE WAREHOUSE " . $this->quoteIdentifier($options['warehouse']));
+            }
+
+            $this->connection = $connection;
         } catch (\Exception $e) {
             throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), null, $e);
         }
