@@ -64,6 +64,8 @@ class Connection
         }
         
         try {
+
+            echo $dsn . "\n";
             $connection = odbc_connect($dsn, $options['user'], $options['password']);
 
             if (isset($options['database'])) {

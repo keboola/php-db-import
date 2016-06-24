@@ -62,6 +62,22 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $connection->query('DROP TABLE "' . $this->destSchemaName . '"."TEST" RESTRICT');
     }
 
+    public function testConnectionEncoding()
+    {
+        $connection = new Connection([
+            'host' => getenv('SNOWFLAKE_HOST'),
+            'port' => getenv('SNOWFLAKE_PORT'),
+            'database' => getenv('SNOWFLAKE_DATABASE'),
+            'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'user' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'password' => getenv('SNOWFLAKE_PASSWORD'),
+            'tracing' => 6,
+        ]);
+
+        $connection->query('CREATE TABLE "' . $this->destSchemaName . '"."TEST" (col1 varchar, col2 varchar)');
+        $connection->query('INSERT INTO  "' . $this->destSchemaName . '"."TEST" VALUES (\'šperky.cz\', \'módní doplňky.cz\')');
+    }
+
     /**
      * This should not exhaust memory
      */
