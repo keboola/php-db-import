@@ -26,7 +26,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             'port' => getenv('SNOWFLAKE_PORT'),
             'database' => getenv('SNOWFLAKE_DATABASE'),
             'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
-            'user' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'user' => getenv('SNOWFLAKE_USER'),
             'password' => getenv('SNOWFLAKE_PASSWORD'),
         ]);
         $this->initData();
