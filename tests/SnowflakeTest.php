@@ -76,6 +76,16 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
         $connection->query('CREATE TABLE "' . $this->destSchemaName . '"."TEST" (col1 varchar, col2 varchar)');
         $connection->query('INSERT INTO  "' . $this->destSchemaName . '"."TEST" VALUES (\'šperky.cz\', \'módní doplňky.cz\')');
+
+        $data = $connection->fetchAll('SELECT * FROM "' . $this->destSchemaName . '"."TEST"');
+        var_dump($data);
+
+        $this->assertEquals([
+            [
+                'COL1' => 'šperky.cz',
+                'COL2' => 'módní doplňky.cz',
+            ],
+        ], $data);
     }
 
     /**
