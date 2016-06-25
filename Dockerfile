@@ -21,3 +21,4 @@ RUN mkdir -p  /usr/bin/snowflake_odbc/log
 ENV SIMBAINI /etc/simba.snowflake.ini
 ENV SSL_DIR /usr/bin/snowflake_odbc/SSLCertificates/nssdb
 ENV LD_LIBRARY_PATH /usr/bin/snowflake_odbc/lib
+ENV LANG en_US.UTF-8

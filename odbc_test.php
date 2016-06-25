@@ -6,7 +6,6 @@ $dsn .= ";Tracing=6";
 $dsn .= ";Database=\"". getenv('SNOWFLAKE_DATABASE') . "\"";
 $dsn .= ";Warehouse=\"". getenv('SNOWFLAKE_WAREHOUSE') . "\"";
 
-
 $connection = odbc_connect($dsn, getenv('SNOWFLAKE_USER'), getenv('SNOWFLAKE_PASSWORD'));
 
 function fetchAll($connection, $sql, $bind = [])
@@ -32,5 +31,5 @@ query($connection, "DROP SCHEMA IF EXISTS test");
 query($connection, "CREATE SCHEMA test");
 query($connection, "USE SCHEMA test");
 query($connection, 'CREATE TABLE test (col1 varchar, col2 varchar)');
-query($connection, 'INSERT INTO  test VALUES (\'šperky.cz\', \'módní doplňky.cz\')');
+query($connection, 'INSERT INTO  test VALUES (\'šperky.cz\', \'módní doplňěščřžýáíéky.cz\')');
 var_dump(fetchAll($connection, "select * from test"));
