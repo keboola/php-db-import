@@ -33,6 +33,21 @@ docker-compose run \
     php php ./tests/loadS3.php
 ```
 
+#### Snowflake settings
+Role, user, database and warehouse are required for tests. You can create them:
+```
+CREATE ROLE "KEBOOLA_DB_IMPORT";
+CREATE DATABASE "KEBOOLA_DB_IMPORT";
+
+CREATE WAREHOUSE "KEBOOLA_DB_IMPORT" WITH WAREHOUSE_SIZE = 'XSMALL' WAREHOUSE_TYPE = 'STANDARD' AUTO_SUSPEND = 3600 AUTO_RESUME = TRUE;
+GRANT USAGE ON WAREHOUSE "KEBOOLA_DB_IMPORT" TO ROLE "KEBOOLA_DB_IMPORT" WITH GRANT OPTION;
+
+CREATE USER "KEBOOLA_DB_IMPORT"
+PASSWORD = "YOUR_PASSWORD"
+DEFAULT_ROLE = "KEBOOLA_DB_IMPORT";
+
+GRANT ROLE "KEBOOLA_DB_IMPORT" TO USER "KEBOOLA_DB_IMPORT";
+```
 #### Tests Execution
 Run tests with following command.
 
