@@ -27,6 +27,8 @@ ENV SIMBAINI /etc/simba.snowflake.ini
 ENV SSL_DIR /usr/bin/snowflake_odbc/SSLCertificates/nssdb
 ENV LD_LIBRARY_PATH /usr/bin/snowflake_odbc/lib
 
+# snowflake - charset settings
+ENV LANG en_US.UTF-8
 
 RUN cd \
   && curl -sS https://getcomposer.org/installer | php \
