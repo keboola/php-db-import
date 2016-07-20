@@ -3,6 +3,7 @@
 namespace Keboola\DbImportTest;
 
 use Keboola\Csv\CsvFile;
+use Keboola\Db\Import\Exception;
 
 class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 {
@@ -42,7 +43,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
         foreach ($schemas as $schema) {
             
-            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table'];
+            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table', 'random'];
             foreach ($tablesToDelete as $tableToDelete) {
                 $stmt = $this->connection
                     ->prepare("SELECT table_name FROM information_schema.tables WHERE table_name = ? AND table_schema = ?");
@@ -237,6 +238,34 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
             $this->fail('exception should be thrown');
         } catch (\Keboola\Db\Import\Exception $e) {
             $this->assertEquals(\Keboola\Db\Import\Exception::INVALID_SOURCE_DATA, $e->getCode());
+        }
+    }
+
+    public function testQueryTimeoutError()
+    {
+        $import = $this->getImport('copy');
+
+        $this->connection->query("CREATE TABLE \"{$this->sourceSchemaName}\".\"random\" (
+          \"col1\"  varchar(65535) NOT NULL,
+          \"col2\"  varchar(65535) NOT NULL
+        );");
+
+        $this->connection->query(sprintf("INSERT INTO \"{$this->sourceSchemaName}\".\"random\" 
+          VALUES %s
+        ", implode(',', array_map(function($number) {
+            return "($number, $number)";
+        }, range(0, 10000)))));
+
+        $this->connection->query('set statement_timeout to 1;');
+
+        try {
+            $import->import('out.csv_2Cols', ['col1', 'col2'], [
+                'schemaName' => $this->sourceSchemaName,
+                'tableName' => 'random'
+            ]);
+            $this->fail();
+        } catch (\Keboola\Db\Import\Exception $e) {
+            $this->assertEquals(\Keboola\Db\Import\Exception::QUERY_TIMEOUT, $e->getCode());
         }
     }
 

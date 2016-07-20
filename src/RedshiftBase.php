@@ -45,7 +45,6 @@ abstract class RedshiftBase implements ImportInterface
 
         try {
             $this->importDataToStagingTable($stagingTableName, $columns, $sourceData);
-
             if ($this->getIncremental()) {
                 $this->insertOrUpdateTargetTable(
                     $stagingTableName,
@@ -60,19 +59,16 @@ abstract class RedshiftBase implements ImportInterface
             }
             $this->dropTempTable($stagingTableName);
             $this->importedColumns = $columns;
-
             return new Result([
                 'warnings' => $this->warnings,
                 'timers' => $this->timers,
                 'importedRowsCount' => $this->importedRowsCount,
                 'importedColumns' => $this->importedColumns,
             ]);
-
         } catch (\Exception $e) {
             $this->dropTempTable($stagingTableName);
             throw $e;
         }
-
     }
 
     protected abstract function importDataToStagingTable($stagingTempTableName, $columns, $sourceData);
@@ -334,7 +330,7 @@ abstract class RedshiftBase implements ImportInterface
 
         return array_map(function ($row) {
             return $row['attname'];
-        }, $this->connection->query($sql)->fetchAll());
+        }, $this->queryFetchAll($sql));
     }
 
     private function getTableColumns($tableName)
@@ -348,11 +344,31 @@ abstract class RedshiftBase implements ImportInterface
         try {
             $this->connection->prepare($sql)->execute($bind);
         } catch (\PDOException $e) {
-            if (strpos($e->getMessage(), 'Mandatory url is not present in manifest file') !== false) {
-                throw new Exception('Mandatory url is not present in manifest file', Exception::MANDATORY_FILE_NOT_FOUND);
-            }
-            throw $e;
+            throw $this->handleQueryException($e);
         }
+    }
+
+    private function queryFetchAll($sql)
+    {
+        try {
+            return $this->connection->query($sql)->fetchAll();
+        } catch (\PDOException $e) {
+            throw $this->handleQueryException($e);
+        }
+    }
+
+    private function handleQueryException(\PDOException $e)
+    {
+        if (strpos($e->getMessage(), 'Mandatory url is not present in manifest file') !== false) {
+            return new Exception('Mandatory url is not present in manifest file', Exception::MANDATORY_FILE_NOT_FOUND);
+        }
+
+        if (strpos($e->getMessage(), 'SQLSTATE[57014]') !== false && strpos($e->getMessage(),
+                'Query cancelled on user\'s request') !== false) {
+            return new Exception('Statement timeout. Maximum query execution time exeeded.', Exception::QUERY_TIMEOUT);
+        }
+
+        return $e;
     }
 
     /**
@@ -436,10 +452,7 @@ abstract class RedshiftBase implements ImportInterface
         }
         $sql .= ' ORDER BY a.attnum';
 
-        $stmt = $this->connection->query($sql);
-
-        // Use FETCH_NUM so we are not dependent on the CASE attribute of the PDO connection
-        $result = $stmt->fetchAll();
+        $result = $this->queryFetchAll($sql);
 
         $attnum = 0;
         $nspname = 1;

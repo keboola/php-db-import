@@ -16,4 +16,5 @@ class Exception extends \Exception
     const DATA_TYPE_MISMATCH = 9;
     const INVALID_CSV_PARAMS = 10;
     const ROW_SIZE_TOO_LARGE = 11;
+    const QUERY_TIMEOUT = 12;
 }
