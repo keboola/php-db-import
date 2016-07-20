@@ -43,32 +43,28 @@ abstract class RedshiftBase implements ImportInterface
         $primaryKey = $this->getTablePrimaryKey($tableName);
         $stagingTableName = $this->createTemporaryTableFromSourceTable($tableName, $primaryKey, $this->schemaName);
 
-        try {
-            $this->importDataToStagingTable($stagingTableName, $columns, $sourceData);
-            if ($this->getIncremental()) {
-                $this->insertOrUpdateTargetTable(
-                    $stagingTableName,
-                    $tableName,
-                    $primaryKey,
-                    $columns);
-            } else {
-                Debugger::timer('dedup');
-                $this->dedup($stagingTableName, $columns, $primaryKey);
-                $this->addTimer('dedup', Debugger::timer('dedup'));
-                $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns);
-            }
-            $this->dropTempTable($stagingTableName);
-            $this->importedColumns = $columns;
-            return new Result([
-                'warnings' => $this->warnings,
-                'timers' => $this->timers,
-                'importedRowsCount' => $this->importedRowsCount,
-                'importedColumns' => $this->importedColumns,
-            ]);
-        } catch (\Exception $e) {
-            $this->dropTempTable($stagingTableName);
-            throw $e;
+        $this->importDataToStagingTable($stagingTableName, $columns, $sourceData);
+
+        if ($this->getIncremental()) {
+            $this->insertOrUpdateTargetTable(
+                $stagingTableName,
+                $tableName,
+                $primaryKey,
+                $columns);
+        } else {
+            Debugger::timer('dedup');
+            $this->dedup($stagingTableName, $columns, $primaryKey);
+            $this->addTimer('dedup', Debugger::timer('dedup'));
+            $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns);
         }
+        $this->dropTempTable($stagingTableName);
+        $this->importedColumns = $columns;
+        return new Result([
+            'warnings' => $this->warnings,
+            'timers' => $this->timers,
+            'importedRowsCount' => $this->importedRowsCount,
+            'importedColumns' => $this->importedColumns,
+        ]);
     }
 
     protected abstract function importDataToStagingTable($stagingTempTableName, $columns, $sourceData);
