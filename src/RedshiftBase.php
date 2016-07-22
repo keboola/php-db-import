@@ -359,8 +359,7 @@ abstract class RedshiftBase implements ImportInterface
             return new Exception('Mandatory url is not present in manifest file', Exception::MANDATORY_FILE_NOT_FOUND);
         }
 
-        if (strpos($e->getMessage(), 'SQLSTATE[57014]') !== false && strpos($e->getMessage(),
-                'Query cancelled on user\'s request') !== false) {
+        if (strpos($e->getMessage(), 'SQLSTATE[57014]') !== false ) {
             return new Exception('Statement timeout. Maximum query execution time exeeded.', Exception::QUERY_TIMEOUT);
         }
 
