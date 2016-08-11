@@ -113,7 +113,7 @@ class Connection
 
     public function describeTableColumns($schemaName, $tableName)
     {
-        $this->fetchAll(sprintf('SHOW COLUMNS IN %s.%s', $this->quoteIdentifier($schemaName), $this->quoteIdentifier($tableName)));
+        return $this->fetchAll(sprintf('SHOW COLUMNS IN %s.%s', $this->quoteIdentifier($schemaName), $this->quoteIdentifier($tableName)));
     }
 
     public function getTableColumns($schemaName, $tableName)
