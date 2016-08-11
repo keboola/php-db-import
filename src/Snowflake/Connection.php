@@ -84,16 +84,43 @@ class Connection
         return ($q . str_replace("$q", "$q$q", $value) . $q);
     }
 
+    /**
+     * Returns information about table:
+     *  - name
+     *  - bytes
+     *  - rows
+     * @param $schemaName
+     * @param $tableName
+     * @return array
+     * @throws Exception
+     */
     public function describeTable($schemaName, $tableName)
     {
-        return $this->fetchAll(sprintf('SHOW COLUMNS IN %s.%s', $this->quoteIdentifier($schemaName), $this->quoteIdentifier($tableName)));
+        $tables = $this->fetchAll(sprintf(
+            "SHOW TABLES LIKE %s IN SCHEMA %s",
+            "'" . addslashes($tableName) . "'",
+            $this->quoteIdentifier($schemaName)
+        ));
+
+        foreach ($tables as $table) {
+            if ($table['name'] === $tableName) {
+                return $table;
+            }
+        }
+
+        throw new Exception("Table $tableName not found in schema $schemaName");
+    }
+
+    public function describeTableColumns($schemaName, $tableName)
+    {
+        $this->fetchAll(sprintf('SHOW COLUMNS IN %s.%s', $this->quoteIdentifier($schemaName), $this->quoteIdentifier($tableName)));
     }
 
     public function getTableColumns($schemaName, $tableName)
     {
         return array_map(function ($column) {
             return $column['column_name'];
-        }, $this->describeTable($schemaName, $tableName));
+        }, $this->describeTableColumns($schemaName, $tableName));
     }
 
     public function getTablePrimaryKey($schemaName, $tableName)

@@ -116,6 +116,16 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($generateRowsCount, $results['count']);
     }
 
+    public function testTableInfo()
+    {
+        $this->connection->query('CREATE TABLE "' . $this->destSchemaName . '"."Test" (col1 varchar, col2 varchar)');
+
+        $table = $this->connection->describeTable($this->destSchemaName, "Test");
+        $this->assertEquals("Test", $table['name']);
+        $this->assertArrayHasKey('rows', $table);
+        $this->assertArrayHasKey('bytes', $table);
+    }
+
 
     public function testGetPrimaryKey()
     {
