@@ -37,6 +37,8 @@ abstract class ImportBase implements ImportInterface
 
     private $incremental = false;
 
+    private $addTimestamp = true;
+
     const TIMESTAMP_COLUMN_NAME = '_timestamp';
 
     public function __construct(Connection $connection, $schemaName)
@@ -52,8 +54,9 @@ abstract class ImportBase implements ImportInterface
      * @param array CsvFile $csvFiles
      * @return mixed
      */
-    public function import($tableName, $columns, array $sourceData)
+    public function import($tableName, $columns, array $sourceData, $addTimestamp = true)
     {
+        $this->addTimestamp = $addTimestamp;
         $this->validateColumns($tableName, $columns);
         $stagingTableName = $this->createStagingTable($columns);
 
@@ -127,7 +130,7 @@ abstract class ImportBase implements ImportInterface
         }, $columns));
 
         $now = $this->getNowFormatted();
-        if (in_array(self::TIMESTAMP_COLUMN_NAME, $columns)) {
+        if (in_array(self::TIMESTAMP_COLUMN_NAME, $columns) || $this->addTimestamp === false) {
             $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSetSql FROM $stagingTableNameWithSchema)";
         } else {
             $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, \"" . self::TIMESTAMP_COLUMN_NAME . "\") (SELECT $columnsSetSql, '{$now}' FROM $stagingTableNameWithSchema)";
