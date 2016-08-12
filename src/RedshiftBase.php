@@ -37,7 +37,7 @@ abstract class RedshiftBase implements ImportInterface
      * @param array CsvFile $csvFiles
      * @return mixed
      */
-    public function import($tableName, $columns, array $sourceData)
+    public function import($tableName, $columns, array $sourceData, array $options = ["useTimestamp" => true])
     {
         $this->validateColumns($tableName, $columns);
         $primaryKey = $this->getTablePrimaryKey($tableName);
@@ -86,7 +86,7 @@ abstract class RedshiftBase implements ImportInterface
         }
     }
 
-    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns)
+    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true)
     {
         $this->connection->beginTransaction();
 
@@ -100,7 +100,7 @@ abstract class RedshiftBase implements ImportInterface
         }, $columns));
 
         $now = $this->getNowFormatted();
-        if (in_array('_timestamp', $columns)) {
+        if (in_array('_timestamp', $columns) || $useTimestamp === false) {
             $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSql FROM $stagingTableNameEscaped)";
         } else {
             $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, _timestamp) (SELECT $columnsSql, '{$now}' FROM $stagingTableNameEscaped)";
@@ -119,7 +119,7 @@ abstract class RedshiftBase implements ImportInterface
      * @param $targetTableName
      * @param $columns
      */
-    private function insertOrUpdateTargetTable($stagingTempTableName, $targetTableName, array $primaryKey, $columns)
+    private function insertOrUpdateTargetTable($stagingTempTableName, $targetTableName, array $primaryKey, $columns, $useTimestamp = true)
     {
         $this->connection->beginTransaction();
         $nowFormatted = $this->getNowFormatted();
@@ -142,7 +142,10 @@ abstract class RedshiftBase implements ImportInterface
                 );
             }
 
-            $sql .= implode(', ', $columnsSet) . ", _timestamp = '{$nowFormatted}' ";
+            $sql .= implode(', ', $columnsSet);
+            if ($useTimestamp) {
+                $sql .= ", _timestamp = '{$nowFormatted}' ";
+            }
             $sql .= " FROM " . $stagingTableNameEscaped . " ";
             $sql .= " WHERE ";
 
@@ -193,7 +196,7 @@ abstract class RedshiftBase implements ImportInterface
         // Insert from staging to target table
         $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) {
                 return $this->quoteIdentifier($column);
-            }, $columns)) . ", _timestamp) ";
+            }, $columns)) . ($useTimestamp) ? ", _timestamp) " : ")";
 
 
         $columnsSetSql = [];
@@ -206,7 +209,7 @@ abstract class RedshiftBase implements ImportInterface
             );
         }
 
-        $sql .= "SELECT " . implode(',', $columnsSetSql) . ", '{$nowFormatted}' ";
+        $sql .= "SELECT " . implode(',', $columnsSetSql) . ($useTimestamp) ? ", '{$nowFormatted}' " : "";
         $sql .= "FROM " . $stagingTableNameEscaped;
         Debugger::timer('insertIntoTargetFromStaging');
         $this->query($sql);
