@@ -37,8 +37,6 @@ abstract class ImportBase implements ImportInterface
 
     private $incremental = false;
 
-    private $addTimestamp = true;
-
     const TIMESTAMP_COLUMN_NAME = '_timestamp';
 
     public function __construct(Connection $connection, $schemaName)
@@ -54,9 +52,8 @@ abstract class ImportBase implements ImportInterface
      * @param array CsvFile $csvFiles
      * @return mixed
      */
-    public function import($tableName, $columns, array $sourceData, $addTimestamp = true)
+    public function import($tableName, $columns, array $sourceData, array $options = ['useTimestamp' => true])
     {
-        $this->addTimestamp = $addTimestamp;
         $this->validateColumns($tableName, $columns);
         $stagingTableName = $this->createStagingTable($columns);
 
@@ -72,7 +69,7 @@ abstract class ImportBase implements ImportInterface
                 Debugger::timer('dedup');
                 $this->dedupe($stagingTableName, $columns, $this->connection->getTablePrimaryKey($this->schemaName, $tableName));
                 $this->addTimer('dedup', Debugger::timer('dedup'));
-                $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns);
+                $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns, $options['useTimestamp']);
             }
             $this->dropTable($stagingTableName);
             $this->importedColumns = $columns;
@@ -109,7 +106,7 @@ abstract class ImportBase implements ImportInterface
         }
     }
 
-    private function insertAllIntoTargetTable($stagingTableName, $targetTableName, $columns)
+    private function insertAllIntoTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true)
     {
         $this->connection->query('BEGIN TRANSACTION');
 
@@ -130,7 +127,7 @@ abstract class ImportBase implements ImportInterface
         }, $columns));
 
         $now = $this->getNowFormatted();
-        if (in_array(self::TIMESTAMP_COLUMN_NAME, $columns) || $this->addTimestamp === false) {
+        if (in_array(self::TIMESTAMP_COLUMN_NAME, $columns) || $useTimestamp === false) {
             $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSetSql FROM $stagingTableNameWithSchema)";
         } else {
             $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, \"" . self::TIMESTAMP_COLUMN_NAME . "\") (SELECT $columnsSetSql, '{$now}' FROM $stagingTableNameWithSchema)";
@@ -149,7 +146,7 @@ abstract class ImportBase implements ImportInterface
      * @param $targetTableName
      * @param $columns
      */
-    private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns)
+    private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true)
     {
         $this->connection->query('BEGIN TRANSACTION');
         $nowFormatted = $this->getNowFormatted();
@@ -173,7 +170,10 @@ abstract class ImportBase implements ImportInterface
                 );
             }
 
-            $sql .= implode(', ', $columnsSet) . ", " . $this->quoteIdentifier(self::TIMESTAMP_COLUMN_NAME) . " = '{$nowFormatted}' ";
+            $sql .= implode(', ', $columnsSet);
+            if ($useTimestamp) {
+              $sql .= ", " . $this->quoteIdentifier(self::TIMESTAMP_COLUMN_NAME) . " = '{$nowFormatted}' ";
+            }
             $sql .= " FROM " . $stagingTableNameWithSchema . ' AS "src" ';
             $sql .= " WHERE ";
 
@@ -220,7 +220,7 @@ abstract class ImportBase implements ImportInterface
         // Insert from staging to target table
         $sql = "INSERT INTO " . $targetTableNameWithSchema . ' (' . implode(', ', array_map(function ($column) {
                 return $this->quoteIdentifier($column);
-            }, array_merge($columns, [self::TIMESTAMP_COLUMN_NAME]))) . ")";
+            }, ($useTimestamp) ? array_merge($columns, [self::TIMESTAMP_COLUMN_NAME]) : $columns)) . ")";
 
         $columnsSetSql = [];
 
