@@ -43,7 +43,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
         foreach ($schemas as $schema) {
             
-            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table', 'random', 'out.no_timestamp_table'];
+            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table', 'random', 'out.no_timestamp_table', 'accounts_bez_ts'];
             foreach ($tablesToDelete as $tableToDelete) {
                 $stmt = $this->connection
                     ->prepare("SELECT table_name FROM information_schema.tables WHERE table_name = ? AND table_schema = ?");
@@ -97,6 +97,24 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                     oauthSecret varchar(65535) NOT NULL,
                     idApp varchar(65535) NOT NULL,
                     _timestamp TIMESTAMP,
+                    PRIMARY KEY(id)
+                );
+            ";
+
+            $commands[] = "
+                CREATE TABLE \"$schema\".accounts_bez_ts (
+                    id varchar(65535) NOT NULL,
+                    idTwitter varchar(65535) NOT NULL,
+                    name varchar(65535) NOT NULL,
+                    import varchar(65535) NOT NULL,
+                    isImported varchar(65535) NOT NULL,
+                    apiLimitExceededDatetime varchar(65535) NOT NULL,
+                    analyzeSentiment varchar(65535) NOT NULL,
+                    importKloutScore varchar(65535) NOT NULL,
+                    timestamp varchar(65535) NOT NULL,
+                    oauthToken varchar(65535) NOT NULL,
+                    oauthSecret varchar(65535) NOT NULL,
+                    idApp varchar(65535) NOT NULL,
                     PRIMARY KEY(id)
                 );
             ";
@@ -199,41 +217,60 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
      * @param $expected
      * @param $tableName
      */
-    public function testIncrementalImport(\Keboola\Csv\CsvFile $initialImportFile, \Keboola\Csv\CsvFile $incrementFile, $columns, $expected, $tableName, $rowsShouldBeUpdated)
+    public function testIncrementalImport(
+        \Keboola\Csv\CsvFile $initialImportFile, 
+        \Keboola\Csv\CsvFile $incrementFile, 
+        $columns, 
+        $expected, 
+        $tableName, 
+        $rowsShouldBeUpdated,
+        $importOptions = ['useTimestamp' => true])
     {
+        if ($importOptions['useTimestamp']) {
+            $diffColumn = '_timestamp';
+        } else {
+            if (!isset($importOptions['diffColumn'])) {
+                throw new Exception("If not using timestamps, need to set option diffColumn for column to check for updated row differences");
+            }
+            $diffColumn = $importOptions['diffColumn'];
+        }
         // initial import
         $import = $this->getImport();
         $import
             ->setIgnoreLines(1)
             ->setIncremental(false)
-            ->import($tableName, $columns, [$initialImportFile]);
+            ->import($tableName, $columns, [$initialImportFile], $importOptions);
 
-        $timestampsByIdsAfterFullLoad = [];
-
-        foreach ($this->connection->query("SELECT id, _timestamp FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll() as $row) {
-            $timestampsByIdsAfterFullLoad[$row['id']] = $row['_timestamp'];
+        $rowsByIdsAfterFullLoad = [];
+        foreach ($this->connection->query("SELECT * FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll() as $row) {
+            $rowsByIdsAfterFullLoad[$row['id']] = $row[$diffColumn];
         }
 
         sleep(2);
         $import
             ->setIncremental(true)
-            ->import($tableName, $columns, [$incrementFile]);
+            ->import($tableName, $columns, [$incrementFile], $importOptions);
 
         $tableColumns = $this->describeTable($tableName, strtolower($this->destSchemaName));
-        unset($tableColumns['_timestamp']);
+        if ($importOptions['useTimestamp']) {
+            $this->assertArrayHasKey('_timestamp', $tableColumns);
+            unset($tableColumns['_timestamp']);
+        } else {
+            $this->assertArrayNotHasKey('_timestamp', $tableColumns);
+        }
 
         $columnsSql = implode(", ", array_map(function ($column) {
             return '"' . $column . '"';
         }, array_keys($tableColumns)));
 
 
-        $timestampsByIdsAfterIncrement = [];
-        foreach ($this->connection->query("SELECT id, _timestamp FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll() as $row) {
-            $timestampsByIdsAfterIncrement[$row['id']] = $row['_timestamp'];
+        $rowsByIdsAfterIncrement = [];
+        foreach ($this->connection->query("SELECT * FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll() as $row) {
+            $rowsByIdsAfterIncrement[$row['id']] = $row[$diffColumn];
         }
 
-        $changedTimestamps = array_diff($timestampsByIdsAfterIncrement, $timestampsByIdsAfterFullLoad);
-        $updatedRows = array_keys($changedTimestamps);
+        $changedRows = array_diff($rowsByIdsAfterIncrement, $rowsByIdsAfterFullLoad);
+        $updatedRows = array_keys($changedRows);
         sort($updatedRows);
         sort($rowsShouldBeUpdated);
         $this->assertEquals($rowsShouldBeUpdated, $updatedRows);
@@ -399,6 +436,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
         return [
             [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts', [15, 24]],
+            [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts_bez_ts', [15, 24], ['useTimestamp' => false, 'diffColumn' => "name"]]
         ];
     }
 
