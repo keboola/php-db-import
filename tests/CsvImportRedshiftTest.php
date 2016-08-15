@@ -43,7 +43,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
         foreach ($schemas as $schema) {
             
-            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table', 'random'];
+            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table', 'random', 'out.no_timestamp_table'];
             foreach ($tablesToDelete as $tableToDelete) {
                 $stmt = $this->connection
                     ->prepare("SELECT table_name FROM information_schema.tables WHERE table_name = ? AND table_schema = ?");
@@ -98,6 +98,13 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                     idApp varchar(65535) NOT NULL,
                     _timestamp TIMESTAMP,
                     PRIMARY KEY(id)
+                );
+            ";
+
+            $commands[] =  "
+                CREATE TABLE \"$schema\".\"out.no_timestamp_table\" (
+                  col1  varchar(65535),
+                  col2 varchar(65535)
                 );
             ";
         }
@@ -164,6 +171,13 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
 
         $tableColumns = $this->describeTable(strtolower($tableName), strtolower($this->destSchemaName));
+
+        if ($importOptions['useTimestamp']) {
+            $this->assertArrayHasKey('_timestamp',$tableColumns);
+        } else {
+            $this->assertArrayNotHasKey('_timestamp',$tableColumns);
+        }
+
         if (!in_array('_timestamp', $columns)) {
             unset($tableColumns['_timestamp']);
         }
@@ -325,7 +339,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.changedColumnsOrder.csv');
         $accountChangedColumnsOrderHeader = $file->getHeader();
 
-
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         return [
 
@@ -336,9 +349,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
             [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'],
-
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
-
             [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
             [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
 
@@ -359,13 +370,12 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 ],
                 'out.csv_2Cols'
             ],
-
             // test creating table without _timestamp column
             [
                 [new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")],
                 $escapingHeader,
                 $expectedEscaping,
-                'out.csv_2Cols',
+                'out.no_timestamp_table',
                 'csv',
                 ['useTimestamp' => false]
             ]
