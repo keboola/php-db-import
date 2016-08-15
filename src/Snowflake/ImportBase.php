@@ -64,7 +64,8 @@ abstract class ImportBase implements ImportInterface
                 $this->insertOrUpdateTargetTable(
                     $stagingTableName,
                     $tableName,
-                    $columns);
+                    $columns,
+                    $options['useTimestamp']);
             } else {
                 Debugger::timer('dedup');
                 $this->dedupe($stagingTableName, $columns, $this->connection->getTablePrimaryKey($this->schemaName, $tableName));
@@ -218,9 +219,10 @@ abstract class ImportBase implements ImportInterface
         }
 
         // Insert from staging to target table
+        $insColumns = ($useTimestamp) ? array_merge($columns, [self::TIMESTAMP_COLUMN_NAME]) : $columns;
         $sql = "INSERT INTO " . $targetTableNameWithSchema . ' (' . implode(', ', array_map(function ($column) {
                 return $this->quoteIdentifier($column);
-            }, ($useTimestamp) ? array_merge($columns, [self::TIMESTAMP_COLUMN_NAME]) : $columns)) . ")";
+            }, $insColumns)) . ")";
 
         $columnsSetSql = [];
 
@@ -231,7 +233,10 @@ abstract class ImportBase implements ImportInterface
             );
         }
 
-        $sql .= " SELECT " . implode(',', $columnsSetSql) . ", '{$nowFormatted}' ";
+        $sql .= " SELECT " . implode(',', $columnsSetSql);
+        if ($useTimestamp) {
+            $sql .= ", '{$nowFormatted}' ";
+        }
         $sql .= "FROM " . $stagingTableNameWithSchema . ' AS "src"';
         Debugger::timer('insertIntoTargetFromStaging');
         $this->connection->query($sql);

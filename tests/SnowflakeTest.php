@@ -174,39 +174,61 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
      * @param $columns
      * @param $expected
      * @param $tableName
+     * @param $rowsShouldBeUpdated
+     * @param $importOptions
      */
-    public function testIncrementalImport(\Keboola\Csv\CsvFile $initialImportFile, \Keboola\Csv\CsvFile $incrementFile, $columns, $expected, $tableName, $rowsShouldBeUpdated)
+    public function testIncrementalImport(
+        \Keboola\Csv\CsvFile $initialImportFile,
+        \Keboola\Csv\CsvFile $incrementFile,
+        $columns,
+        $expected,
+        $tableName,
+        $rowsShouldBeUpdated,
+        $importOptions = ['useTimestamp' => true])
     {
+        $diffColumn = ($importOptions['useTimestamp']) ? '_timestamp' : (isset($importOptions['diffColumn']) ? $importOptions['diffColumn'] : null);
+
+        if (is_null($diffColumn)) {
+            throw new Exception("If you don't want to use timestamp, please specify an alternate column to use");
+        }
+
         // initial import
         $import = $this->getImport();
         $import
             ->setIgnoreLines(1)
             ->setIncremental(false)
-            ->import($tableName, $columns, [$initialImportFile]);
+            ->import($tableName, $columns, [$initialImportFile], $importOptions);
 
-        $timestampsByIdsAfterFullLoad = [];
-        foreach ($this->fetchAll($this->destSchemaName, $tableName, ['id', '_timestamp']) as $row) {
-            $timestampsByIdsAfterFullLoad[$row[0]] = $row[1];
+        $rowsByIdsAfterFullLoad = [];
+        foreach ($this->fetchAll($this->destSchemaName, $tableName, ['id', $diffColumn]) as $row) {
+            $rowsByIdsAfterFullLoad[$row[0]] = $row[1];
         }
 
 
         sleep(2);
         $import
             ->setIncremental(true)
-            ->import($tableName, $columns, [$incrementFile]);
+            ->import($tableName, $columns, [$incrementFile], $importOptions);
 
         $tableColumns = $this->connection->getTableColumns($this->destSchemaName, $tableName);
+
+        if ($importOptions['useTimestamp']) {
+            $this->assertContains('_timestamp', $tableColumns);
+        } else {
+            $this->assertNotContains('_timestamp', $tableColumns);
+        }
+
         $tableColumns = array_filter($tableColumns, function($column) {
             return $column !== '_timestamp';
         });
         
-        $timestampsByIdsAfterIncrement = [];
-        foreach ($this->fetchAll($this->destSchemaName, $tableName, ['id', '_timestamp']) as $row) {
-            $timestampsByIdsAfterIncrement[$row[0]] = $row[1];
+        $rowsByIdsAfterIncrement = [];
+        foreach ($this->fetchAll($this->destSchemaName, $tableName, ['id', $diffColumn]) as $row) {
+            $rowsByIdsAfterIncrement[$row[0]] = $row[1];
         }
 
-        $changedTimestamps = array_diff($timestampsByIdsAfterIncrement, $timestampsByIdsAfterFullLoad);
-        $updatedRows = array_keys($changedTimestamps);
+        $changedRows = array_diff($rowsByIdsAfterIncrement, $rowsByIdsAfterFullLoad);
+        $updatedRows = array_keys($changedRows);
         sort($updatedRows);
         sort($rowsShouldBeUpdated);
         $this->assertEquals($rowsShouldBeUpdated, $updatedRows);
@@ -231,6 +253,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
         return [
             [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts-3', [15, 24]],
+            [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts-bez-ts', [15, 24], ['useTimestamp' => false, 'diffColumn' => 'name']],
         ];
     }
 
@@ -267,18 +290,18 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
         return [
             // full imports
-//            [[new CsvFile("s3://{$s3bucket}/empty.manifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],
-//            [[new CsvFile("s3://{$s3bucket}/lemma.csv")], $lemmaHeader, $expectedLemma, 'out.lemma'],
-//            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-//            [[new CsvFile("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-//            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-//            [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-//            [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts-3'],
-//            [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts-3'],
+            [[new CsvFile("s3://{$s3bucket}/empty.manifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],
+            [[new CsvFile("s3://{$s3bucket}/lemma.csv")], $lemmaHeader, $expectedLemma, 'out.lemma'],
+            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts-3'],
+            [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts-3'],
 
             // manifests
-//            [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
-  //          [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
 
             // copy from table
             [
@@ -453,6 +476,23 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
                 "oauthSecret" varchar(65535) NOT NULL,
                 "idApp" varchar(65535) NOT NULL,
                 "_timestamp" TIMESTAMP_NTZ,
+                PRIMARY KEY("id")
+        )', $this->destSchemaName));
+
+        $this->connection->query(sprintf(
+            'CREATE TABLE "%s"."accounts-bez-ts" (
+                "id" varchar(65535) NOT NULL,
+                "idTwitter" varchar(65535) NOT NULL,
+                "name" varchar(65535) NOT NULL,
+                "import" varchar(65535) NOT NULL,
+                "isImported" varchar(65535) NOT NULL,
+                "apiLimitExceededDatetime" varchar(65535) NOT NULL,
+                "analyzeSentiment" varchar(65535) NOT NULL,
+                "importKloutScore" varchar(65535) NOT NULL,
+                "timestamp" varchar(65535) NOT NULL,
+                "oauthToken" varchar(65535) NOT NULL,
+                "oauthSecret" varchar(65535) NOT NULL,
+                "idApp" varchar(65535) NOT NULL,
                 PRIMARY KEY("id")
         )', $this->destSchemaName));
 
