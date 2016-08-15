@@ -154,13 +154,13 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider tables
      */
-    public function testImport($sourceData, $columns, $expected, $tableName, $type = 'csv')
+    public function testImport($sourceData, $columns, $expected, $tableName, $type = 'csv', $importOptions = ['useTimestamp' => true])
     {
 
         $import = $this->getImport($type);
         $import->setIgnoreLines(1);
 
-        $import->import($tableName, $columns, $sourceData);
+        $import->import($tableName, $columns, $sourceData, $importOptions);
 
 
         $tableColumns = $this->describeTable(strtolower($tableName), strtolower($this->destSchemaName));
@@ -359,6 +359,16 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 ],
                 'out.csv_2Cols'
             ],
+
+            // test creating table without _timestamp column
+            [
+                [new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")],
+                $escapingHeader,
+                $expectedEscaping,
+                'out.csv_2Cols',
+                'csv',
+                ['useTimestamp' => false]
+            ]
         ];
     }
 
