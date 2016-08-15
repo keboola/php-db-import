@@ -128,7 +128,6 @@ abstract class RedshiftBase implements ImportInterface
         $stagingTableNameEscaped = $this->tableNameEscaped($stagingTempTableName);
 
         if (!empty($primaryKey)) {
-
             // Update target table
             $sql = "UPDATE " . $targetTableNameWithSchema . " SET ";
 
@@ -196,8 +195,9 @@ abstract class RedshiftBase implements ImportInterface
         // Insert from staging to target table
         $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) {
                 return $this->quoteIdentifier($column);
-            }, $columns)) . ($useTimestamp) ? ", _timestamp) " : ")";
+            }, $columns));
 
+        $sql .= ($useTimestamp) ? ", _timestamp) " : ")";
 
         $columnsSetSql = [];
 
@@ -208,8 +208,8 @@ abstract class RedshiftBase implements ImportInterface
                 $this->quoteIdentifier($columnName)
             );
         }
-
-        $sql .= "SELECT " . implode(',', $columnsSetSql) . ($useTimestamp) ? ", '{$nowFormatted}' " : "";
+        $sql .= "SELECT " . implode(',', $columnsSetSql);
+        $sql .= ($useTimestamp) ? ", '{$nowFormatted}' " : "";
         $sql .= "FROM " . $stagingTableNameEscaped;
         Debugger::timer('insertIntoTargetFromStaging');
         $this->query($sql);
