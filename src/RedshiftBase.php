@@ -50,12 +50,13 @@ abstract class RedshiftBase implements ImportInterface
                 $stagingTableName,
                 $tableName,
                 $primaryKey,
-                $columns);
+                $columns,
+                $options['useTimestamp']);
         } else {
             Debugger::timer('dedup');
             $this->dedup($stagingTableName, $columns, $primaryKey);
             $this->addTimer('dedup', Debugger::timer('dedup'));
-            $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns);
+            $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns, $options['useTimestamp']);
         }
         $this->dropTempTable($stagingTableName);
         $this->importedColumns = $columns;
@@ -79,7 +80,6 @@ abstract class RedshiftBase implements ImportInterface
 
         $tableColumns = $this->getTableColumns($tableName);
         $columnsToImport = array_map('strtolower', $columnsToImport);
-
         $moreColumns = array_diff($columnsToImport, $tableColumns);
         if (!empty($moreColumns)) {
             throw new Exception('Columns doest not match', Exception::COLUMNS_COUNT_NOT_MATCH);
