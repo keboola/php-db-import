@@ -38,7 +38,7 @@ if ($objects) {
     $client->deleteObjects([
         'Bucket' => $bucket,
         'Delete' => [
-            'Objects' => array_map(function($object) {
+            'Objects' => array_map(function ($object) {
                 return [
                     'Key' => $object['Key'],
                 ];

@@ -42,7 +42,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $now = $currentDate->format('Ymd H:i:s');
 
         foreach ($schemas as $schema) {
-            
             $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table', 'random', 'out.no_timestamp_table', 'accounts_bez_ts'];
             foreach ($tablesToDelete as $tableToDelete) {
                 $stmt = $this->connection
@@ -172,7 +171,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         foreach ($commands as $command) {
             $this->connection->query($command);
         }
-
     }
 
 
@@ -191,9 +189,9 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $tableColumns = $this->describeTable(strtolower($tableName), strtolower($this->destSchemaName));
 
         if ($importOptions['useTimestamp']) {
-            $this->assertArrayHasKey('_timestamp',$tableColumns);
+            $this->assertArrayHasKey('_timestamp', $tableColumns);
         } else {
-            $this->assertArrayNotHasKey('_timestamp',$tableColumns);
+            $this->assertArrayNotHasKey('_timestamp', $tableColumns);
         }
 
         if (!in_array('_timestamp', $columns)) {
@@ -218,14 +216,14 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
      * @param $tableName
      */
     public function testIncrementalImport(
-        \Keboola\Csv\CsvFile $initialImportFile, 
-        \Keboola\Csv\CsvFile $incrementFile, 
-        $columns, 
-        $expected, 
-        $tableName, 
+        \Keboola\Csv\CsvFile $initialImportFile,
+        \Keboola\Csv\CsvFile $incrementFile,
+        $columns,
+        $expected,
+        $tableName,
         $rowsShouldBeUpdated,
-        $importOptions = ['useTimestamp' => true])
-    {
+        $importOptions = ['useTimestamp' => true]
+    ) {
         if ($importOptions['useTimestamp']) {
             $diffColumn = '_timestamp';
         } else {
@@ -301,11 +299,14 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
           \"col2\"  varchar(65535) NOT NULL
         );");
 
-        $this->connection->query(sprintf("INSERT INTO \"{$this->sourceSchemaName}\".\"random\" 
-          VALUES %s
-        ", implode(',', array_map(function($number) {
-            return "($number, $number)";
-        }, range(0, 10000)))));
+        $this->connection->query(sprintf(
+            "INSERT INTO \"{$this->sourceSchemaName}\".\"random\" 
+              VALUES %s
+            ",
+            implode(',', array_map(function ($number) {
+                return "($number, $number)";
+            }, range(0, 10000)))
+        ));
 
         $this->connection->query('set statement_timeout to 1;');
 
@@ -326,9 +327,13 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $import = $this->getImport('copy');
 
         try {
-            $import->import('out.csv_2Cols', ['c1', 'c2'], [
+            $import->import(
+                'out.csv_2Cols',
+                ['c1', 'c2'],
+                [
                     'schemaName' => $this->sourceSchemaName,
-                    'tableName' => 'names']
+                    'tableName' => 'names',
+                ]
             );
             $this->fail('exception should be thrown');
         } catch (\Keboola\Db\Import\Exception $e) {
@@ -350,7 +355,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         } catch (\Keboola\Db\Import\Exception $e) {
             $this->assertEquals(\Keboola\Db\Import\Exception::MANDATORY_FILE_NOT_FOUND, $e->getCode());
         }
-
     }
 
     public function tables()
@@ -478,7 +482,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                     getenv('AWS_REGION'),
                     $this->destSchemaName
                 );
-            case 'copy';
+            case 'copy':
                 return new \Keboola\Db\Import\CopyImportRedshift(
                     $this->connection,
                     $this->destSchemaName
@@ -486,7 +490,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 break;
             default:
                 throw new \Exception("Import type $type not found");
-
         }
     }
 
