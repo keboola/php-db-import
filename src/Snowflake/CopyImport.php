@@ -23,13 +23,15 @@ class CopyImport extends ImportBase
             throw new Exception('Invalid source data. schemaName must be set', Exception::INVALID_SOURCE_DATA);
         }
 
-        $sql = "INSERT INTO " . $this->nameWithSchemaEscaped($stagingTableName) . " (" . implode(', ', array_map(function ($column) {
-                return $this->quoteIdentifier($column);
-            }, $columns)) . ") ";
+        $sql = "INSERT INTO " . $this->nameWithSchemaEscaped($stagingTableName) . " (" . implode(', ',
+                array_map(function ($column) {
+                    return $this->quoteIdentifier($column);
+                }, $columns)) . ") ";
 
         $sql .= "SELECT " . implode(',', array_map(function ($column) {
                 return $this->quoteIdentifier($column);
-            }, $columns)) . " FROM " . $this->nameWithSchemaEscaped($sourceData['tableName'], $sourceData['schemaName']);
+            }, $columns)) . " FROM " . $this->nameWithSchemaEscaped($sourceData['tableName'],
+                $sourceData['schemaName']);
 
         try {
             Debugger::timer('copyToStaging');
@@ -38,8 +40,8 @@ class CopyImport extends ImportBase
                 $this->connection->quoteIdentifier($this->schemaName),
                 $this->connection->quoteIdentifier($stagingTableName)
             ));
-            $this->importedRowsCount += (int) $rows[0]['count'];
-            
+            $this->importedRowsCount += (int)$rows[0]['count'];
+
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Exception $e) {
             // everything is user error

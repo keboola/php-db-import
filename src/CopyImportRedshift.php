@@ -22,9 +22,10 @@ class CopyImportRedshift extends RedshiftBase
             strtolower($sourceData['schemaName'])
         );
 
-        $sql = "INSERT INTO " . $this->tableNameEscaped($stagingTempTableName) . " (" . implode(', ', array_map(function ($column) {
-                return $this->quoteIdentifier($column);
-            }, $columns)) . ") ";
+        $sql = "INSERT INTO " . $this->tableNameEscaped($stagingTempTableName) . " (" . implode(', ',
+                array_map(function ($column) {
+                    return $this->quoteIdentifier($column);
+                }, $columns)) . ") ";
 
         $sql .= "SELECT " . implode(',', array_map(function ($column) use ($sourceColumnTypes) {
                 if ($sourceColumnTypes[$column]['DATA_TYPE'] === 'bool') {
@@ -32,7 +33,8 @@ class CopyImportRedshift extends RedshiftBase
                 } else {
                     return "COALESCE(CAST({$this->quoteIdentifier($column)} as varchar), '') ";
                 }
-            }, $columns)) . " FROM " . $this->nameWithSchemaEscaped($sourceData['tableName'], $sourceData['schemaName']);
+            }, $columns)) . " FROM " . $this->nameWithSchemaEscaped($sourceData['tableName'],
+                $sourceData['schemaName']);
 
         try {
             Debugger::timer('copyToStaging');

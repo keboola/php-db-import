@@ -6,14 +6,12 @@
  * Time: 10:05
  */
 
-
 namespace Keboola\Db\Import\Snowflake;
 
 use Keboola\Db\Import\ImportInterface;
 use Keboola\Db\Import\Exception;
 use Tracy\Debugger;
 use Keboola\Db\Import\Result;
-
 
 abstract class ImportBase implements ImportInterface
 {
@@ -23,7 +21,7 @@ abstract class ImportBase implements ImportInterface
      */
     protected $connection;
 
-    protected  $schemaName;
+    protected $schemaName;
 
     protected $warnings = [];
 
@@ -45,7 +43,6 @@ abstract class ImportBase implements ImportInterface
         $this->schemaName = $schemaName;
     }
 
-
     /**
      * @param $tableName
      * @param $columns
@@ -65,10 +62,15 @@ abstract class ImportBase implements ImportInterface
                     $stagingTableName,
                     $tableName,
                     $columns,
-                    $options['useTimestamp']);
+                    $options['useTimestamp']
+                );
             } else {
                 Debugger::timer('dedup');
-                $this->dedupe($stagingTableName, $columns, $this->connection->getTablePrimaryKey($this->schemaName, $tableName));
+                $this->dedupe(
+                    $stagingTableName,
+                    $columns,
+                    $this->connection->getTablePrimaryKey($this->schemaName, $tableName)
+                );
                 $this->addTimer('dedup', Debugger::timer('dedup'));
                 $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns, $options['useTimestamp']);
             }
@@ -81,29 +83,33 @@ abstract class ImportBase implements ImportInterface
                 'importedRowsCount' => $this->importedRowsCount,
                 'importedColumns' => $this->importedColumns,
             ]);
-
         } catch (\Exception $e) {
             $this->dropTable($stagingTableName);
             throw $e;
         }
-
     }
 
-    protected abstract function importDataToStagingTable($stagingTableName, $columns, $sourceData);
-
+    abstract protected function importDataToStagingTable($stagingTableName, $columns, $sourceData);
 
     private function validateColumns($tableName, $columnsToImport)
     {
         if (count($columnsToImport) == 0) {
-            throw new Exception('No columns found in CSV file.', Exception::NO_COLUMNS,
-                null, 'csvImport.noColumns');
+            throw new Exception(
+                'No columns found in CSV file.',
+                Exception::NO_COLUMNS,
+                null,
+                'csvImport.noColumns'
+            );
         }
 
         $tableColumns = $this->connection->getTableColumns($this->schemaName, $tableName);
 
         $moreColumns = array_diff($columnsToImport, $tableColumns);
         if (!empty($moreColumns)) {
-            throw new Exception('Columns doest not match. Non existing columns: ' . implode(', ', $moreColumns), Exception::COLUMNS_COUNT_NOT_MATCH);
+            throw new Exception(
+                'Columns doest not match. Non existing columns: ' . implode(', ', $moreColumns),
+                Exception::COLUMNS_COUNT_NOT_MATCH
+            );
         }
     }
 
@@ -121,7 +127,8 @@ abstract class ImportBase implements ImportInterface
         }, $columns));
 
         $columnsSetSql = implode(', ', array_map(function ($column) {
-            return sprintf("COALESCE(%s,'') AS %s",
+            return sprintf(
+                "COALESCE(%s,'') AS %s",
                 $this->quoteIdentifier($column),
                 $this->quoteIdentifier($column)
             );
@@ -158,7 +165,6 @@ abstract class ImportBase implements ImportInterface
         $primaryKey = $this->connection->getTablePrimaryKey($this->schemaName, $targetTableName);
 
         if (!empty($primaryKey)) {
-
             // Update target table
             $sql = "UPDATE " . $targetTableNameWithSchema . " AS \"dest\" SET ";
 
@@ -173,7 +179,7 @@ abstract class ImportBase implements ImportInterface
 
             $sql .= implode(', ', $columnsSet);
             if ($useTimestamp) {
-              $sql .= ", " . $this->quoteIdentifier(self::TIMESTAMP_COLUMN_NAME) . " = '{$nowFormatted}' ";
+                $sql .= ", " . $this->quoteIdentifier(self::TIMESTAMP_COLUMN_NAME) . " = '{$nowFormatted}' ";
             }
             $sql .= " FROM " . $stagingTableNameWithSchema . ' AS "src" ';
             $sql .= " WHERE ";
@@ -221,8 +227,8 @@ abstract class ImportBase implements ImportInterface
         // Insert from staging to target table
         $insColumns = ($useTimestamp) ? array_merge($columns, [self::TIMESTAMP_COLUMN_NAME]) : $columns;
         $sql = "INSERT INTO " . $targetTableNameWithSchema . ' (' . implode(', ', array_map(function ($column) {
-                return $this->quoteIdentifier($column);
-            }, $insColumns)) . ")";
+            return $this->quoteIdentifier($column);
+        }, $insColumns)) . ")";
 
         $columnsSetSql = [];
 
@@ -249,7 +255,8 @@ abstract class ImportBase implements ImportInterface
     {
         $this->dropTable($targetTableName);
         $this->connection->query(
-            "ALTER TABLE {$this->nameWithSchemaEscaped($sourceTableName)} RENAME TO {$this->nameWithSchemaEscaped($targetTableName)}");
+            "ALTER TABLE {$this->nameWithSchemaEscaped($sourceTableName)} RENAME TO {$this->nameWithSchemaEscaped($targetTableName)}"
+        );
     }
 
     private function dropTable($tableName)
@@ -262,7 +269,11 @@ abstract class ImportBase implements ImportInterface
         if ($schemaName === null) {
             $schemaName = $this->schemaName;
         }
-        return sprintf('%s.%s', $this->connection->quoteIdentifier($schemaName), $this->connection->quoteIdentifier($tableName));
+        return sprintf(
+            '%s.%s',
+            $this->connection->quoteIdentifier($schemaName),
+            $this->connection->quoteIdentifier($tableName)
+        );
     }
 
     private function uniqueValue()
@@ -286,7 +297,8 @@ abstract class ImportBase implements ImportInterface
             return "a." . $this->quoteIdentifier($column);
         }, $columns));
 
-        $sql .= sprintf(" FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"row_number\" FROM %s)",
+        $sql .= sprintf(
+            " FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"row_number\" FROM %s)",
             implode(",", array_map(function ($column) {
                 return $this->quoteIdentifier($column);
             }, $columns)),
@@ -306,11 +318,12 @@ abstract class ImportBase implements ImportInterface
         $this->replaceTables($tempTable, $tableName);
     }
 
-    private function createStagingTable(array $columns) {
+    private function createStagingTable(array $columns)
+    {
 
         $tempName = '__temp_' . $this->uniqueValue();
 
-        $columnsSql = array_map(function($column) {
+        $columnsSql = array_map(function ($column) {
             return sprintf('%s varchar', $this->quoteIdentifier($column));
         }, $columns);
 
@@ -380,5 +393,4 @@ abstract class ImportBase implements ImportInterface
     {
         return $this->connection->quoteIdentifier($value);
     }
-
 }

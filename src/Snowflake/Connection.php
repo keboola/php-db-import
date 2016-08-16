@@ -14,7 +14,7 @@ class Connection
     /**
      * @var resource odbc handle
      */
-    private  $connection;
+    private $connection;
 
     /**
      * The connection constructor accepts the following options:
@@ -44,23 +44,23 @@ class Connection
             throw new Exception('Missing options: ' . implode(', ', $missingOptions));
         }
 
-        $port = isset($options['port']) ? (int) $options['port'] : 443;
-        $tracing = isset($options['tracing']) ? (int) $options['tracing'] : 0;
+        $port = isset($options['port']) ? (int)$options['port'] : 443;
+        $tracing = isset($options['tracing']) ? (int)$options['tracing'] : 0;
 
         $dsn = "Driver=SnowflakeDSIIDriver;Server=" . $options['host'];
         $dsn .= ";Port=" . $port;
-        $dsn .= ";Tracing="  . $tracing;
+        $dsn .= ";Tracing=" . $tracing;
 
         if (isset($options['loginTimeout'])) {
-            $dsn .= ";Login_timeout=" . (int) $options['loginTimeout'];
+            $dsn .= ";Login_timeout=" . (int)$options['loginTimeout'];
         }
 
         if (isset($options['networkTimeout'])) {
-            $dsn .= ";Network_timeout=" . (int) $options['networkTimeout'];
+            $dsn .= ";Network_timeout=" . (int)$options['networkTimeout'];
         }
 
         if (isset($options['queryTimeout'])) {
-            $dsn .= ";Query_timeout=" . (int) $options['queryTimeout'];
+            $dsn .= ";Query_timeout=" . (int)$options['queryTimeout'];
         }
 
         if (isset($options['database'])) {
@@ -113,7 +113,8 @@ class Connection
 
     public function describeTableColumns($schemaName, $tableName)
     {
-        return $this->fetchAll(sprintf('SHOW COLUMNS IN %s.%s', $this->quoteIdentifier($schemaName), $this->quoteIdentifier($tableName)));
+        return $this->fetchAll(sprintf('SHOW COLUMNS IN %s.%s', $this->quoteIdentifier($schemaName),
+            $this->quoteIdentifier($tableName)));
     }
 
     public function getTableColumns($schemaName, $tableName)
@@ -125,7 +126,8 @@ class Connection
 
     public function getTablePrimaryKey($schemaName, $tableName)
     {
-        $cols = $this->fetchAll(sprintf("DESC TABLE %s.%s", $this->quoteIdentifier($schemaName), $this->quoteIdentifier($tableName)));
+        $cols = $this->fetchAll(sprintf("DESC TABLE %s.%s", $this->quoteIdentifier($schemaName),
+            $this->quoteIdentifier($tableName)));
         $pkCols = [];
         foreach ($cols as $col) {
             if ($col['primary key'] !== 'Y') {

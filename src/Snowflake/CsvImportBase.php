@@ -29,7 +29,8 @@ abstract class CsvImportBase extends ImportBase
     protected function importTable($tableName, CsvFile $csvFile)
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
-            throw new Exception('Invalid CSV params. Either enclosure or escapedBy must be specified for Snowflake backend but not both.', Exception::INVALID_CSV_PARAMS,
+            throw new Exception('Invalid CSV params. Either enclosure or escapedBy must be specified for Snowflake backend but not both.',
+                Exception::INVALID_CSV_PARAMS,
                 null);
         }
 
@@ -38,7 +39,7 @@ abstract class CsvImportBase extends ImportBase
             Debugger::timer($timerName);
             $results = $this->connection->fetchAll($this->generateCopyCommand($tableName, $csvFile));
             foreach ($results as $result) {
-                $this->importedRowsCount += (int) $result['rows_loaded'];
+                $this->importedRowsCount += (int)$result['rows_loaded'];
             }
             $this->addTimer($timerName, Debugger::timer($timerName));
         } catch (\Exception $e) {

@@ -14,7 +14,6 @@ interface ImportInterface
      */
     public function import($tableName, $columns, array $sourceData);
 
-
     public function getIncremental();
 
     /**
