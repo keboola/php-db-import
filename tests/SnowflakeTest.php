@@ -141,9 +141,9 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $tableColumns = $this->connection->getTableColumns($this->destSchemaName, $tableName);
 
         if ($importOptions['useTimestamp']) {
-            $this->assertArrayHasKey('_timestamp',$tableColumns);
+            $this->assertContains('_timestamp', $tableColumns);
         } else {
-            $this->assertArrayNotHasKey('_timestamp',$tableColumns);
+            $this->assertNotContains('_timestamp', $tableColumns);
         }
 
         if (!in_array('_timestamp', $columns)) {
