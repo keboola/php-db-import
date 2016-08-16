@@ -13,7 +13,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^5.0",
-        "phpunit/dbunit": "^2.0"
+        "phpunit/dbunit": "^2.0",
+        "squizlabs/php_codesniffer": "^2.6"
     },
     "autoload": {
         "psr-4": {

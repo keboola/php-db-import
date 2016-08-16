@@ -8,6 +8,7 @@ before_install:
 
 install:
   - docker-compose run php composer install -n
+  - docker-compose run ./vendor/bin/phpcs --standard=psr2 --ignore=vendor -n .
   - docker-compose run -e AWS_ACCESS_KEY=$AWS_ODBC_KEY -e AWS_SECRET_KEY=$AWS_ODBC_SECRET php php docker/downloadOdbcDriver.php
   - docker-compose run -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY -e AWS_SECRET_KEY=$AWS_SECRET_KEY -e AWS_S3_BUCKET=$AWS_S3_BUCKET -e AWS_REGION=$AWS_REGION php php ./tests/loadS3.php
 
