@@ -22,9 +22,11 @@ abstract class RedshiftBaseCsv extends RedshiftBase
     protected function importTable($tempTableName, $columns, CsvFile $csvFile, $isManifest)
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
-            throw new Exception('Invalid CSV params. Either enclosure or escapedBy must be specified for Redshift backend but not both.',
+            throw new Exception(
+                'Invalid CSV params. Either enclosure or escapedBy must be specified for Redshift backend but not both.',
                 Exception::INVALID_CSV_PARAMS,
-                null);
+                null
+            );
         }
 
         try {
@@ -50,7 +52,6 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             $this->query($this->generateCopyCommand($tempTableName, $columns, $csvFile, $copyOptions));
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Exception $e) {
-
             $result = $this->connection->query("SELECT * FROM stl_load_errors WHERE query = pg_last_query_id();")->fetchAll();
             if (!count($result)) {
                 throw $e;
@@ -130,5 +131,4 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 
         return json_decode((string)$response['Body'], true);
     }
-
 }

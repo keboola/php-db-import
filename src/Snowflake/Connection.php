@@ -113,8 +113,11 @@ class Connection
 
     public function describeTableColumns($schemaName, $tableName)
     {
-        return $this->fetchAll(sprintf('SHOW COLUMNS IN %s.%s', $this->quoteIdentifier($schemaName),
-            $this->quoteIdentifier($tableName)));
+        return $this->fetchAll(sprintf(
+            'SHOW COLUMNS IN %s.%s',
+            $this->quoteIdentifier($schemaName),
+            $this->quoteIdentifier($tableName)
+        ));
     }
 
     public function getTableColumns($schemaName, $tableName)
@@ -126,8 +129,11 @@ class Connection
 
     public function getTablePrimaryKey($schemaName, $tableName)
     {
-        $cols = $this->fetchAll(sprintf("DESC TABLE %s.%s", $this->quoteIdentifier($schemaName),
-            $this->quoteIdentifier($tableName)));
+        $cols = $this->fetchAll(sprintf(
+            "DESC TABLE %s.%s",
+            $this->quoteIdentifier($schemaName),
+            $this->quoteIdentifier($tableName)
+        ));
         $pkCols = [];
         foreach ($cols as $col) {
             if ($col['primary key'] !== 'Y') {
@@ -167,5 +173,4 @@ class Connection
         }
         odbc_free_result($stmt);
     }
-
 }

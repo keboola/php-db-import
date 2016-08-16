@@ -51,7 +51,8 @@ abstract class RedshiftBase implements ImportInterface
                 $tableName,
                 $primaryKey,
                 $columns,
-                $options['useTimestamp']);
+                $options['useTimestamp']
+            );
         } else {
             Debugger::timer('dedup');
             $this->dedup($stagingTableName, $columns, $primaryKey);
@@ -68,13 +69,17 @@ abstract class RedshiftBase implements ImportInterface
         ]);
     }
 
-    protected abstract function importDataToStagingTable($stagingTempTableName, $columns, $sourceData);
+    abstract protected function importDataToStagingTable($stagingTempTableName, $columns, $sourceData);
 
     private function validateColumns($tableName, $columnsToImport)
     {
         if (count($columnsToImport) == 0) {
-            throw new Exception('No columns found in CSV file.', Exception::NO_COLUMNS,
-                null, 'csvImport.noColumns');
+            throw new Exception(
+                'No columns found in CSV file.',
+                Exception::NO_COLUMNS,
+                null,
+                'csvImport.noColumns'
+            );
         }
 
         $tableColumns = $this->getTableColumns($tableName);
@@ -202,8 +207,8 @@ abstract class RedshiftBase implements ImportInterface
 
         // Insert from staging to target table
         $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) {
-                return $this->quoteIdentifier($column);
-            }, $columns));
+            return $this->quoteIdentifier($column);
+        }, $columns));
 
         $sql .= ($useTimestamp) ? ", _timestamp) " : ")";
 
@@ -272,7 +277,8 @@ abstract class RedshiftBase implements ImportInterface
             return "a." . $this->quoteIdentifier($column);
         }, $columns));
 
-        $sql .= sprintf(" FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"row_number\" FROM %s)",
+        $sql .= sprintf(
+            " FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"row_number\" FROM %s)",
             implode(",", array_map(function ($column) {
                 return $this->quoteIdentifier($column);
             }, $columns)),
@@ -298,8 +304,7 @@ abstract class RedshiftBase implements ImportInterface
         $this->query(sprintf(
             'CREATE TEMPORARY TABLE %s (LIKE %s)',
             $this->tableNameEscaped($tempName),
-            $schemaName ? $this->nameWithSchemaEscaped($sourceTableName,
-                $schemaName) : $this->tableNameEscaped($sourceTableName)
+            $schemaName ? $this->nameWithSchemaEscaped($sourceTableName, $schemaName) : $this->tableNameEscaped($sourceTableName)
         ));
 
         // PK is not copied - add it to the table
@@ -343,8 +348,10 @@ abstract class RedshiftBase implements ImportInterface
 
     private function getTableColumns($tableName)
     {
-        return array_map('strtolower',
-            array_keys($this->describeTable(strtolower($tableName), strtolower($this->schemaName))));
+        return array_map(
+            'strtolower',
+            array_keys($this->describeTable(strtolower($tableName), strtolower($this->schemaName)))
+        );
     }
 
     protected function query($sql, $bind = [])

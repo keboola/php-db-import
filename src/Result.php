@@ -36,5 +36,4 @@ class Result
     {
         return isset($this->results[$keyName]) ? $this->results[$keyName] : $default;
     }
-
 }

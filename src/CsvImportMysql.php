@@ -154,7 +154,6 @@ class CsvImportMysql implements ImportInterface
         $this->query($sql);
 
         $this->addTimer('insertIntoTargetTable', Debugger::timer('csvImport.insertIntoTargetTable'));
-
     }
 
     protected function swapTables($table1, $table2)
@@ -171,7 +170,8 @@ class CsvImportMysql implements ImportInterface
 
     protected function dropTable($tableName, $temporary = false)
     {
-        $this->query(sprintf('DROP %S TABLE %s',
+        $this->query(sprintf(
+            'DROP %S TABLE %s',
             $temporary ? 'TEMPORARY' : '',
             $this->quoteIdentifier($tableName)
         ));
@@ -205,8 +205,10 @@ class CsvImportMysql implements ImportInterface
 
         $duplicates = self::duplicates($columns, false); // case insensitive search
         if (!empty($duplicates)) {
-            throw new Exception('There are duplicate columns in CSV file: ' . implode(', ', $duplicates),
-                Exception::DUPLICATE_COLUMN_NAMES);
+            throw new Exception(
+                'There are duplicate columns in CSV file: ' . implode(', ', $duplicates),
+                Exception::DUPLICATE_COLUMN_NAMES
+            );
         }
     }
 
@@ -376,5 +378,4 @@ class CsvImportMysql implements ImportInterface
         $q = '`';
         return ($q . str_replace("$q", "$q$q", $value) . $q);
     }
-
 }

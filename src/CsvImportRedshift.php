@@ -11,5 +11,4 @@ class CsvImportRedshift extends RedshiftBaseCsv
             $this->importTable($stagingTempTableName, $columns, $csvFile, false);
         }
     }
-
 }
