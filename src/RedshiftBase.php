@@ -35,6 +35,7 @@ abstract class RedshiftBase implements ImportInterface
      * @param $tableName
      * @param $columns
      * @param array CsvFile $csvFiles
+     * @param array $options
      * @return mixed
      */
     public function import($tableName, $columns, array $sourceData, array $options = ["useTimestamp" => true])
@@ -118,6 +119,7 @@ abstract class RedshiftBase implements ImportInterface
      * @param $stagingTempTableName
      * @param $targetTableName
      * @param $columns
+     * @param $useTimestamp
      */
     private function insertOrUpdateTargetTable($stagingTempTableName, $targetTableName, array $primaryKey, $columns, $useTimestamp = true)
     {
