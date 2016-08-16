@@ -29,9 +29,11 @@ abstract class CsvImportBase extends ImportBase
     protected function importTable($tableName, CsvFile $csvFile)
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
-            throw new Exception('Invalid CSV params. Either enclosure or escapedBy must be specified for Snowflake backend but not both.',
+            throw new Exception(
+                'Invalid CSV params. Either enclosure or escapedBy must be specified for Snowflake backend but not both.',
                 Exception::INVALID_CSV_PARAMS,
-                null);
+                null
+            );
         }
 
         try {
@@ -63,7 +65,8 @@ abstract class CsvImportBase extends ImportBase
             $csvOptions[] = sprintf("ESCAPE_UNENCLOSED_FIELD = %s", $this->quote($csvFile->getEscapedBy()));
         }
 
-        $command = sprintf("COPY INTO %s FROM %s 
+        $command = sprintf(
+            "COPY INTO %s FROM %s 
             CREDENTIALS = (AWS_KEY_ID = %s AWS_SECRET_KEY = %s)
             REGION = %s
             FILE_FORMAT = (TYPE=CSV %s)",

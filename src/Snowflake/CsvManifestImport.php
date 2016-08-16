@@ -25,8 +25,12 @@ class CsvManifestImport extends CsvImportBase
     {
         $files = $this->getFilesToDownloadFromManifest($csvFile->getPathname());
         foreach ($files as $path) {
-            $newCsvPath = new CsvFile($path, $csvFile->getDelimiter(), $csvFile->getEnclosure(),
-                $csvFile->getEscapedBy());
+            $newCsvPath = new CsvFile(
+                $path,
+                $csvFile->getDelimiter(),
+                $csvFile->getEnclosure(),
+                $csvFile->getEscapedBy()
+            );
             $this->importTable($stagingTableName, $newCsvPath);
         }
     }
@@ -74,5 +78,4 @@ class CsvManifestImport extends CsvImportBase
             return $entry['url'];
         }, $manifest['entries']);
     }
-
 }
