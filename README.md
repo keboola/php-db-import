@@ -25,12 +25,7 @@ Handling of large bulk data into database tables.
 
 Upload test fixtures to S3:
 ```
-docker-compose run \
-    -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
-    -e AWS_SECRET_KEY=$AWS_SECRET_KEY \
-    -e AWS_S3_BUCKET=$AWS_S3_BUCKET \
-    -e AWS_REGION=$AWS_REGION \
-    php php ./tests/loadS3.php
+docker-compose run php php ./tests/loadS3.php
 ```
 
 #### Snowflake settings
@@ -53,23 +48,7 @@ GRANT ROLE "KEBOOLA_DB_IMPORT" TO USER "KEBOOLA_DB_IMPORT";
 Run tests with following command.
 
 ```
-docker-compose run \
-  -e REDSHIFT_HOST=$REDSHIFT_HOST \
-  -e REDSHIFT_USER=$REDSHIFT_USER \
-  -e REDSHIFT_PORT=$REDSHIFT_PORT \
-  -e REDSHIFT_DATABASE=$REDSHIFT_DATABASE \
-  -e REDSHIFT_PASSWORD=$REDSHIFT_PASSWORD \
-  -e SNOWFLAKE_HOST=$SNOWFLAKE_HOST \
-  -e SNOWFLAKE_PORT=$SNOWFLAKE_PORT \
-  -e SNOWFLAKE_USER=$SNOWFLAKE_USER \
-  -e SNOWFLAKE_PASSWORD=$SNOWFLAKE_PASSWORD \
-  -e SNOWFLAKE_DATABASE=$SNOWFLAKE_DATABASE \
-  -e SNOWFLAKE_WAREHOUSE=$SNOWFLAKE_WAREHOUSE \
-  -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
-  -e AWS_SECRET_KEY=$AWS_SECRET_KEY \
-  -e AWS_S3_BUCKET=$AWS_S3_BUCKET \
-  -e AWS_REGION=$AWS_REGION \
-  tests
+docker-compose run tests
 ```
 
 Tests are executed against real backends `MySQL` is provisioned and wired by Docker. Redshift and S3 credentials have to be provided.

@@ -8,6 +8,22 @@ tests:
   stdin_open: true
   links:
     - mysql
+  environment:
+    - REDSHIFT_HOST
+    - REDSHIFT_USER
+    - REDSHIFT_PORT
+    - REDSHIFT_DATABASE
+    - REDSHIFT_PASSWORD
+    - SNOWFLAKE_HOST
+    - SNOWFLAKE_PORT
+    - SNOWFLAKE_USER
+    - SNOWFLAKE_PASSWORD
+    - SNOWFLAKE_DATABASE
+    - SNOWFLAKE_WAREHOUSE
+    - AWS_ACCESS_KEY
+    - AWS_SECRET_KEY
+    - AWS_S3_BUCKET
+    - AWS_REGION
 
 mysql:
   image: mysql:5.5
@@ -20,3 +36,8 @@ php:
   volumes:
       - .:/code
   working_dir: /code
+  environment:
+    - AWS_ACCESS_KEY
+    - AWS_SECRET_KEY
+    - AWS_S3_BUCKET
+    - AWS_REGION
