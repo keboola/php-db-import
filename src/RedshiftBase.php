@@ -30,7 +30,6 @@ abstract class RedshiftBase implements ImportInterface
         $this->schemaName = $schemaName;
     }
 
-
     /**
      * @param $tableName
      * @param $columns
@@ -52,7 +51,8 @@ abstract class RedshiftBase implements ImportInterface
                 $tableName,
                 $primaryKey,
                 $columns,
-                $options['useTimestamp']);
+                $options['useTimestamp']
+            );
         } else {
             Debugger::timer('dedup');
             $this->dedup($stagingTableName, $columns, $primaryKey);
@@ -69,14 +69,17 @@ abstract class RedshiftBase implements ImportInterface
         ]);
     }
 
-    protected abstract function importDataToStagingTable($stagingTempTableName, $columns, $sourceData);
-
+    abstract protected function importDataToStagingTable($stagingTempTableName, $columns, $sourceData);
 
     private function validateColumns($tableName, $columnsToImport)
     {
         if (count($columnsToImport) == 0) {
-            throw new Exception('No columns found in CSV file.', Exception::NO_COLUMNS,
-                null, 'csvImport.noColumns');
+            throw new Exception(
+                'No columns found in CSV file.',
+                Exception::NO_COLUMNS,
+                null,
+                'csvImport.noColumns'
+            );
         }
 
         $tableColumns = $this->getTableColumns($tableName);
@@ -121,8 +124,13 @@ abstract class RedshiftBase implements ImportInterface
      * @param $columns
      * @param $useTimestamp
      */
-    private function insertOrUpdateTargetTable($stagingTempTableName, $targetTableName, array $primaryKey, $columns, $useTimestamp = true)
-    {
+    private function insertOrUpdateTargetTable(
+        $stagingTempTableName,
+        $targetTableName,
+        array $primaryKey,
+        $columns,
+        $useTimestamp = true
+    ) {
         $this->connection->beginTransaction();
         $nowFormatted = $this->getNowFormatted();
 
@@ -164,7 +172,10 @@ abstract class RedshiftBase implements ImportInterface
             $sql .= implode(' AND ', $pkWhereSql) . " ";
 
             // update only changed rows - mysql TIMESTAMP ON UPDATE behaviour simulation
-            $columnsComparsionSql = array_map(function ($columnName) use ($targetTableNameWithSchema, $stagingTableNameEscaped) {
+            $columnsComparsionSql = array_map(function ($columnName) use (
+                $targetTableNameWithSchema,
+                $stagingTableNameEscaped
+            ) {
                 return sprintf(
                     "%s.%s != %s.%s",
                     $targetTableNameWithSchema,
@@ -196,8 +207,8 @@ abstract class RedshiftBase implements ImportInterface
 
         // Insert from staging to target table
         $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) {
-                return $this->quoteIdentifier($column);
-            }, $columns));
+            return $this->quoteIdentifier($column);
+        }, $columns));
 
         $sql .= ($useTimestamp) ? ", _timestamp) " : ")";
 
@@ -266,7 +277,8 @@ abstract class RedshiftBase implements ImportInterface
             return "a." . $this->quoteIdentifier($column);
         }, $columns));
 
-        $sql .= sprintf(" FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"row_number\" FROM %s)",
+        $sql .= sprintf(
+            " FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"row_number\" FROM %s)",
             implode(",", array_map(function ($column) {
                 return $this->quoteIdentifier($column);
             }, $columns)),
@@ -304,7 +316,7 @@ abstract class RedshiftBase implements ImportInterface
                     ADD PRIMARY KEY (%s)
                 ",
                 $tableIdentifier,
-                implode(',', array_map(function($columnName) {
+                implode(',', array_map(function ($columnName) {
                     return $this->quoteIdentifier($columnName);
                 }, $primaryKey))
             ));
@@ -336,9 +348,11 @@ abstract class RedshiftBase implements ImportInterface
 
     private function getTableColumns($tableName)
     {
-        return array_map('strtolower', array_keys($this->describeTable(strtolower($tableName), strtolower($this->schemaName))));
+        return array_map(
+            'strtolower',
+            array_keys($this->describeTable(strtolower($tableName), strtolower($this->schemaName)))
+        );
     }
-
 
     protected function query($sql, $bind = [])
     {
@@ -364,7 +378,7 @@ abstract class RedshiftBase implements ImportInterface
             return new Exception('Mandatory url is not present in manifest file', Exception::MANDATORY_FILE_NOT_FOUND);
         }
 
-        if (strpos($e->getMessage(), 'SQLSTATE[57014]') !== false ) {
+        if (strpos($e->getMessage(), 'SQLSTATE[57014]') !== false) {
             return new Exception('Statement timeout. Maximum query execution time exeeded.', Exception::QUERY_TIMEOUT);
         }
 
@@ -502,7 +516,7 @@ abstract class RedshiftBase implements ImportInterface
                 'UNSIGNED' => null, // @todo
                 'PRIMARY' => $primary,
                 'PRIMARY_POSITION' => $primaryPosition,
-                'IDENTITY' => $identity
+                'IDENTITY' => $identity,
             ];
         }
         return $desc;

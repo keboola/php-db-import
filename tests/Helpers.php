@@ -36,5 +36,4 @@ class Helpers
         fclose($handle);
         return $count;
     }
-
 }

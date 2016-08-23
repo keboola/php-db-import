@@ -25,7 +25,12 @@ class CsvManifestImport extends CsvImportBase
     {
         $files = $this->getFilesToDownloadFromManifest($csvFile->getPathname());
         foreach ($files as $path) {
-            $newCsvPath = new CsvFile($path, $csvFile->getDelimiter(), $csvFile->getEnclosure(), $csvFile->getEscapedBy());
+            $newCsvPath = new CsvFile(
+                $path,
+                $csvFile->getDelimiter(),
+                $csvFile->getEnclosure(),
+                $csvFile->getEscapedBy()
+            );
             $this->importTable($stagingTableName, $newCsvPath);
         }
     }
@@ -52,9 +57,9 @@ class CsvManifestImport extends CsvImportBase
             throw new Exception('Unable to download file from S3: ' . $e->getMessage());
         }
 
-        $manifest = json_decode((string) $response['Body'], true);
-        
-        return array_map(function($entry) use($s3Client) {
+        $manifest = json_decode((string)$response['Body'], true);
+
+        return array_map(function ($entry) use ($s3Client) {
             $path = parse_url($entry['url']);
 
             try {
@@ -73,6 +78,4 @@ class CsvManifestImport extends CsvImportBase
             return $entry['url'];
         }, $manifest['entries']);
     }
-
-
 }

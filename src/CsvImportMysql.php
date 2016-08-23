@@ -143,8 +143,8 @@ class CsvImportMysql implements ImportInterface
         $sql .= $columnsListEscaped($importColumns);
         $sql .= ') ';
 
-
-        $sql .= 'SELECT ' . $columnsListEscaped($importColumns, 't') . ' FROM ' . $this->quoteIdentifier($sourceTable) . ' t ';
+        $sql .= 'SELECT ' . $columnsListEscaped($importColumns,
+                't') . ' FROM ' . $this->quoteIdentifier($sourceTable) . ' t ';
         $sql .= 'ON DUPLICATE KEY UPDATE ';
 
         $sql .= implode(', ', array_map(function ($columnName) use ($connection) {
@@ -154,7 +154,6 @@ class CsvImportMysql implements ImportInterface
         $this->query($sql);
 
         $this->addTimer('insertIntoTargetTable', Debugger::timer('csvImport.insertIntoTargetTable'));
-
     }
 
     protected function swapTables($table1, $table2)
@@ -171,7 +170,8 @@ class CsvImportMysql implements ImportInterface
 
     protected function dropTable($tableName, $temporary = false)
     {
-        $this->query(sprintf('DROP %S TABLE %s',
+        $this->query(sprintf(
+            'DROP %S TABLE %s',
             $temporary ? 'TEMPORARY' : '',
             $this->quoteIdentifier($tableName)
         ));
@@ -205,7 +205,10 @@ class CsvImportMysql implements ImportInterface
 
         $duplicates = self::duplicates($columns, false); // case insensitive search
         if (!empty($duplicates)) {
-            throw new Exception('There are duplicate columns in CSV file: ' . implode(', ', $duplicates), Exception::DUPLICATE_COLUMN_NAMES);
+            throw new Exception(
+                'There are duplicate columns in CSV file: ' . implode(', ', $duplicates),
+                Exception::DUPLICATE_COLUMN_NAMES
+            );
         }
     }
 
@@ -230,11 +233,13 @@ class CsvImportMysql implements ImportInterface
     {
         $code = 0;
         $message = $e->getMessage();
-        if (strpos($e->getMessage(), 'SQLSTATE[42S02]') !== FALSE) {
+        if (strpos($e->getMessage(), 'SQLSTATE[42S02]') !== false) {
             $code = Exception::TABLE_NOT_EXISTS;
             $message = 'Table not exists';
-        } else if (strpos($e->getMessage(), '1118') !== FALSE) {
-            $code = Exception::ROW_SIZE_TOO_LARGE;
+        } else {
+            if (strpos($e->getMessage(), '1118') !== false) {
+                $code = Exception::ROW_SIZE_TOO_LARGE;
+            }
         }
         return new Exception($message, $code, $e);
     }
@@ -318,18 +323,24 @@ class CsvImportMysql implements ImportInterface
             if (preg_match('/^((?:var)?char)\((\d+)\)/', $row[$type], $matches)) {
                 $row[$type] = $matches[1];
                 $length = $matches[2];
-            } else if (preg_match('/^decimal\((\d+),(\d+)\)/', $row[$type], $matches)) {
-                $row[$type] = 'decimal';
-                $precision = $matches[1];
-                $scale = $matches[2];
-            } else if (preg_match('/^float\((\d+),(\d+)\)/', $row[$type], $matches)) {
-                $row[$type] = 'float';
-                $precision = $matches[1];
-                $scale = $matches[2];
-            } else if (preg_match('/^((?:big|medium|small|tiny)?int)\((\d+)\)/', $row[$type], $matches)) {
-                $row[$type] = $matches[1];
-                // The optional argument of a MySQL int type is not precision
-                // or length; it is only a hint for display width.
+            } else {
+                if (preg_match('/^decimal\((\d+),(\d+)\)/', $row[$type], $matches)) {
+                    $row[$type] = 'decimal';
+                    $precision = $matches[1];
+                    $scale = $matches[2];
+                } else {
+                    if (preg_match('/^float\((\d+),(\d+)\)/', $row[$type], $matches)) {
+                        $row[$type] = 'float';
+                        $precision = $matches[1];
+                        $scale = $matches[2];
+                    } else {
+                        if (preg_match('/^((?:big|medium|small|tiny)?int)\((\d+)\)/', $row[$type], $matches)) {
+                            $row[$type] = $matches[1];
+                            // The optional argument of a MySQL int type is not precision
+                            // or length; it is only a hint for display width.
+                        }
+                    }
+                }
             }
             if (strtoupper($row[$key]) == 'PRI') {
                 $primary = true;
@@ -355,17 +366,16 @@ class CsvImportMysql implements ImportInterface
                 'UNSIGNED' => $unsigned,
                 'PRIMARY' => $primary,
                 'PRIMARY_POSITION' => $primaryPosition,
-                'IDENTITY' => $identity
+                'IDENTITY' => $identity,
             ];
             ++$i;
         }
         return $desc;
     }
 
-    private  function quoteIdentifier($value)
+    private function quoteIdentifier($value)
     {
         $q = '`';
         return ($q . str_replace("$q", "$q$q", $value) . $q);
     }
-
 }

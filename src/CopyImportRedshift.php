@@ -22,17 +22,20 @@ class CopyImportRedshift extends RedshiftBase
             strtolower($sourceData['schemaName'])
         );
 
-        $sql = "INSERT INTO " . $this->tableNameEscaped($stagingTempTableName) . " (" . implode(', ', array_map(function ($column) {
+        $sql = "INSERT INTO " . $this->tableNameEscaped($stagingTempTableName) . " (" . implode(
+            ', ',
+            array_map(function ($column) {
                 return $this->quoteIdentifier($column);
-            }, $columns)) . ") ";
+            }, $columns)
+        ) . ") ";
 
         $sql .= "SELECT " . implode(',', array_map(function ($column) use ($sourceColumnTypes) {
-                if ($sourceColumnTypes[$column]['DATA_TYPE'] === 'bool') {
-                    return sprintf('DECODE(%s, true, 1, 0) ', $this->quoteIdentifier($column));
-                } else {
-                    return "COALESCE(CAST({$this->quoteIdentifier($column)} as varchar), '') ";
-                }
-            }, $columns)) . " FROM " . $this->nameWithSchemaEscaped($sourceData['tableName'], $sourceData['schemaName']);
+            if ($sourceColumnTypes[$column]['DATA_TYPE'] === 'bool') {
+                return sprintf('DECODE(%s, true, 1, 0) ', $this->quoteIdentifier($column));
+            } else {
+                return "COALESCE(CAST({$this->quoteIdentifier($column)} as varchar), '') ";
+            }
+        }, $columns)) . " FROM " . $this->nameWithSchemaEscaped($sourceData['tableName'], $sourceData['schemaName']);
 
         try {
             Debugger::timer('copyToStaging');
@@ -46,5 +49,4 @@ class CopyImportRedshift extends RedshiftBase
             throw new Exception($e->getMessage(), Exception::UNKNOWN_ERROR, $e);
         }
     }
-
 }

@@ -205,5 +205,4 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
             ]
         ];
     }
-
 }

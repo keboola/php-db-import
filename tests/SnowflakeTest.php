@@ -104,11 +104,12 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $results = [
             'count' => 0,
         ];
-        $callback = function($row) use(&$results) {
+        $callback = function ($row) use (&$results) {
             $results['count'] = $results['count'] + 1;
         };
 
-        $this->connection->fetch(sprintf("SELECT * FROM %s.%s",
+        $this->connection->fetch(sprintf(
+            "SELECT * FROM %s.%s",
             $this->connection->quoteIdentifier($this->destSchemaName),
             $this->connection->quoteIdentifier("bigData")
         ), [], $callback);
@@ -157,7 +158,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         }
 
         if (!in_array('_timestamp', $columns)) {
-            $tableColumns = array_filter($tableColumns, function($column) {
+            $tableColumns = array_filter($tableColumns, function ($column) {
                 return $column !== '_timestamp';
             });
         }
@@ -184,8 +185,8 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $expected,
         $tableName,
         $rowsShouldBeUpdated,
-        $importOptions = ['useTimestamp' => true])
-    {
+        $importOptions = ['useTimestamp' => true]
+    ) {
         $diffColumn = ($importOptions['useTimestamp']) ? '_timestamp' : (isset($importOptions['diffColumn']) ? $importOptions['diffColumn'] : null);
 
         if (is_null($diffColumn)) {
@@ -218,7 +219,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             $this->assertNotContains('_timestamp', $tableColumns);
         }
 
-        $tableColumns = array_filter($tableColumns, function($column) {
+        $tableColumns = array_filter($tableColumns, function ($column) {
             return $column !== '_timestamp';
         });
         
@@ -413,9 +414,13 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $import = $this->getImport('copy');
 
         try {
-            $import->import('out.csv_2Cols', ['c1', 'c2'], [
+            $import->import(
+                'out.csv_2Cols',
+                ['c1', 'c2'],
+                [
                     'schemaName' => $this->sourceSchemaName,
-                    'tableName' => 'names']
+                    'tableName' => 'names',
+                ]
             );
             $this->fail('exception should be thrown');
         } catch (\Keboola\Db\Import\Exception $e) {
@@ -447,9 +452,12 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
           "_timestamp" TIMESTAMP_NTZ
         );', $this->destSchemaName));
 
-        $this->connection->query(sprintf('INSERT INTO "%s"."out.csv_2Cols" VALUES
-                  (\'x\', \'y\', \'%s\');'
-        , $this->destSchemaName, $now));
+        $this->connection->query(sprintf(
+            'INSERT INTO "%s"."out.csv_2Cols" VALUES
+                  (\'x\', \'y\', \'%s\');',
+            $this->destSchemaName,
+            $now
+        ));
 
         $this->connection->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
           "col1" VARCHAR NOT NULL DEFAULT \'\',
@@ -462,7 +470,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         ', $this->sourceSchemaName));
 
         $this->connection->query(sprintf(
-           'CREATE TABLE "%s"."accounts-3" (
+            'CREATE TABLE "%s"."accounts-3" (
                 "id" varchar(65535) NOT NULL,
                 "idTwitter" varchar(65535) NOT NULL,
                 "name" varchar(65535) NOT NULL,
@@ -477,7 +485,9 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
                 "idApp" varchar(65535) NOT NULL,
                 "_timestamp" TIMESTAMP_NTZ,
                 PRIMARY KEY("id")
-        )', $this->destSchemaName));
+            )',
+            $this->destSchemaName
+        ));
 
         $this->connection->query(sprintf(
             'CREATE TABLE "%s"."accounts-bez-ts" (
@@ -494,15 +504,18 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
                 "oauthSecret" varchar(65535) NOT NULL,
                 "idApp" varchar(65535) NOT NULL,
                 PRIMARY KEY("id")
-        )', $this->destSchemaName));
+            )',
+            $this->destSchemaName
+        ));
 
         $this->connection->query(sprintf(
-           'CREATE TABLE "%s"."table" (
+            'CREATE TABLE "%s"."table" (
               "column"  varchar(65535) NOT NULL DEFAULT \'\',
               "table" varchar(65535) NOT NULL DEFAULT \'\',
               "_timestamp" TIMESTAMP_NTZ
-            );'
-        , $this->destSchemaName));
+            );',
+            $this->destSchemaName
+        ));
 
         $this->connection->query(sprintf(
             'CREATE TABLE "%s"."types" (
@@ -511,8 +524,9 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
               "floatCol" varchar NOT NULL,
               "boolCol" varchar NOT NULL,
               "_timestamp" TIMESTAMP_NTZ
-            );'
-        , $this->destSchemaName));
+            );',
+            $this->destSchemaName
+        ));
 
         $this->connection->query(sprintf(
             'CREATE TABLE "%s"."types" (
@@ -520,19 +534,24 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
               "numCol" number(10,1) NOT NULL,
               "floatCol" float NOT NULL,
               "boolCol" boolean NOT NULL
-            );'
-        , $this->sourceSchemaName));
+            );',
+            $this->sourceSchemaName
+        ));
 
         $this->connection->query(sprintf(
             'INSERT INTO "%s"."types" VALUES 
               (\'a\', \'10.5\', \'0.3\', true)
-           ;'
-        , $this->sourceSchemaName));
+           ;',
+            $this->sourceSchemaName
+        ));
 
-        $this->connection->query(sprintf('CREATE TABLE "%s"."out.no_timestamp_table" (
-          "col1" VARCHAR NOT NULL DEFAULT \'\',
-          "col2" VARCHAR NOT NULL DEFAULT \'\'
-        );', $this->destSchemaName));
+        $this->connection->query(sprintf(
+            'CREATE TABLE "%s"."out.no_timestamp_table" (
+              "col1" VARCHAR NOT NULL DEFAULT \'\',
+              "col2" VARCHAR NOT NULL DEFAULT \'\'
+            );',
+            $this->destSchemaName
+        ));
     }
 
 
@@ -567,25 +586,25 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
                 );
             default:
                 throw new \Exception("Import type $type not found");
-
         }
     }
 
     private function fetchAll($schemaName, $tableName, $columns)
     {
         // temporary fix of client charset handling
-        $columnsSql = array_map(function($column) {
+        $columnsSql = array_map(function ($column) {
             return sprintf('BASE64_ENCODE("%s") AS "%s"', $column, $column);
         }, $columns);
 
-        $sql = sprintf("SELECT %s FROM \"%s\".\"%s\"",
+        $sql = sprintf(
+            "SELECT %s FROM \"%s\".\"%s\"",
             implode(', ', $columnsSql),
             $schemaName,
             $tableName
         );
 
-        return array_map(function($row) {
-            return array_map(function($column) {
+        return array_map(function ($row) {
+            return array_map(function ($column) {
                 return base64_decode($column);
             }, array_values($row));
         }, $this->connection->fetchAll($sql));

@@ -2,7 +2,7 @@
 
 namespace Keboola\Db\Import;
 
-use    Keboola\Csv\CsvFile;
+use Keboola\Csv\CsvFile;
 
 interface ImportInterface
 {
@@ -13,7 +13,6 @@ interface ImportInterface
      * @return Result
      */
     public function import($tableName, $columns, array $sourceData);
-
 
     public function getIncremental();
 
@@ -30,5 +29,4 @@ interface ImportInterface
      * @return $this
      */
     public function setIgnoreLines($linesCount);
-
 }

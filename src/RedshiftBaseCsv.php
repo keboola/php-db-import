@@ -22,8 +22,11 @@ abstract class RedshiftBaseCsv extends RedshiftBase
     protected function importTable($tempTableName, $columns, CsvFile $csvFile, $isManifest)
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
-            throw new Exception('Invalid CSV params. Either enclosure or escapedBy must be specified for Redshift backend but not both.', Exception::INVALID_CSV_PARAMS,
-                null);
+            throw new Exception(
+                'Invalid CSV params. Either enclosure or escapedBy must be specified for Redshift backend but not both.',
+                Exception::INVALID_CSV_PARAMS,
+                null
+            );
         }
 
         try {
@@ -33,7 +36,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             ];
 
             if ($isManifest) {
-                $manifest =  $this->downloadManifest($csvFile->getPathname());
+                $manifest = $this->downloadManifest($csvFile->getPathname());
 
                 // empty manifest handling - do nothing
                 if (!count($manifest['entries'])) {
@@ -49,7 +52,6 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             $this->query($this->generateCopyCommand($tempTableName, $columns, $csvFile, $copyOptions));
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Exception $e) {
-
             $result = $this->connection->query("SELECT * FROM stl_load_errors WHERE query = pg_last_query_id();")->fetchAll();
             if (!count($result)) {
                 throw $e;
@@ -68,7 +70,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
     private function generateCopyCommand($tempTableName, $columns, CsvFile $csvFile, array $options)
     {
         $tableNameEscaped = $this->tableNameEscaped($tempTableName);
-        $columnsSql = implode(', ', array_map(function($column) {
+        $columnsSql = implode(', ', array_map(function ($column) {
             return $this->quoteIdentifier($column);
         }, $columns));
 
@@ -127,7 +129,6 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             'Key' => ltrim($path['path'], '/'),
         ]);
 
-        return json_decode((string) $response['Body'], true);
+        return json_decode((string)$response['Body'], true);
     }
-
 }
