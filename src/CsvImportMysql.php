@@ -36,7 +36,7 @@ class CsvImportMysql implements ImportInterface
      * @param $columns
      * @param @CsvFile[] $sourceData
      */
-    public function import($tableName, $columns, array $sourceData)
+    public function import($tableName, $columns, array $sourceData, array $options = [])
     {
         $this->importedRowsCount = 0;
         $this->importedColumns = 0;
