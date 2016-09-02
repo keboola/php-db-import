@@ -19,7 +19,17 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         $this->s3region = $s3region;
     }
 
-    protected function importTable($tempTableName, $columns, CsvFile $csvFile, $isManifest)
+    /**
+     * @param $tempTableName
+     * @param $columns
+     * @param CsvFile $csvFile
+     * @param array $options
+     *  - isManifest
+     *  - copyOptions
+     * @throws Exception
+     * @throws \Exception
+     */
+    protected function importTable($tempTableName, $columns, CsvFile $csvFile, array $options)
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
             throw new Exception(
@@ -32,10 +42,11 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         try {
             Debugger::timer('copyToStaging');
             $copyOptions = [
-                'isManifest' => $isManifest,
+                'isManifest' => $options['isManifest'],
+                'copyOptions' => isset($options['copyOptions']) ? $options['copyOptions'] : [],
             ];
 
-            if ($isManifest) {
+            if ($options['isManifest']) {
                 $manifest = $this->downloadManifest($csvFile->getPathname());
 
                 // empty manifest handling - do nothing
@@ -102,6 +113,9 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         }
 
         $command .= " IGNOREHEADER " . $this->getIgnoreLines();
+
+        // custom options
+        $command .= " " . implode(" ", $options['copyOptions']);
 
         return $command;
     }

@@ -278,6 +278,34 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     }
 
 
+    public function testCopyOptions()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"dates\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"dates\" (valid_from DATETIME,  _timestamp TIMESTAMP)");
+
+        $import = $this->getImport('csv');
+
+        $import->import(
+            'dates',
+            ['valid_from'],
+            [
+                new CsvFile("s3://{$s3bucket}/dates.csv"),
+            ],
+            [
+                'useTimestamp' => true,
+                'copyOptions' => [
+                    'NULL AS \'NULL\'',
+                    'ACCEPTANYDATE',
+                    'TRUNCATECOLUMNS',
+                ]
+            ]
+        );
+
+        $importedData = $this->connection->query("SELECT valid_from FROM \"{$this->destSchemaName}\".\"dates\"")->fetchAll();
+        $this->assertCount(4, $importedData);
+    }
+
     public function testCopyInvalidParamsShouldThrowException()
     {
         $import = $this->getImport('copy');

@@ -12,7 +12,7 @@ interface ImportInterface
      * @param array CsvFile $csvFiles
      * @return Result
      */
-    public function import($tableName, $columns, array $sourceData);
+    public function import($tableName, $columns, array $sourceData, array $options = []);
 
     public function getIncremental();
 

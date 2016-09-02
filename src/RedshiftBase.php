@@ -35,15 +35,17 @@ abstract class RedshiftBase implements ImportInterface
      * @param $columns
      * @param array CsvFile $csvFiles
      * @param array $options
+     *  - useTimestamp - update and use timestamp column. default true
+     *  - copyOptions - additional copy options for import command
      * @return mixed
      */
-    public function import($tableName, $columns, array $sourceData, array $options = ["useTimestamp" => true])
+    public function import($tableName, $columns, array $sourceData, array $options = ["useTimestamp" => true, "copyOptions" => []])
     {
         $this->validateColumns($tableName, $columns);
         $primaryKey = $this->getTablePrimaryKey($tableName);
         $stagingTableName = $this->createTemporaryTableFromSourceTable($tableName, $primaryKey, $this->schemaName);
 
-        $this->importDataToStagingTable($stagingTableName, $columns, $sourceData);
+        $this->importDataToStagingTable($stagingTableName, $columns, $sourceData, $options);
 
         if ($this->getIncremental()) {
             $this->insertOrUpdateTargetTable(
@@ -69,7 +71,7 @@ abstract class RedshiftBase implements ImportInterface
         ]);
     }
 
-    abstract protected function importDataToStagingTable($stagingTempTableName, $columns, $sourceData);
+    abstract protected function importDataToStagingTable($stagingTempTableName, $columns, $sourceData, array $options = []);
 
     private function validateColumns($tableName, $columnsToImport)
     {
