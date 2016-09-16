@@ -42,7 +42,18 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $now = $currentDate->format('Ymd H:i:s');
 
         foreach ($schemas as $schema) {
-            $tablesToDelete = ['out.csv_2Cols', 'accounts', 'types', 'names', 'with_ts', 'table', 'random', 'out.no_timestamp_table', 'accounts_bez_ts'];
+            $tablesToDelete = [
+                'out.csv_2Cols',
+                'accounts',
+                'types',
+                'names',
+                'with_ts',
+                'table',
+                'random',
+                'out.no_timestamp_table',
+                'accounts_bez_ts',
+                'column_name_row_number',
+            ];
             foreach ($tablesToDelete as $tableToDelete) {
                 $stmt = $this->connection
                     ->prepare("SELECT table_name FROM information_schema.tables WHERE table_name = ? AND table_schema = ?");
@@ -168,6 +179,15 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
             ;
         ";
 
+        $commands[] = "
+            CREATE TABLE \"$schema\".column_name_row_number (
+                  id  varchar(65535) NOT NULL,
+                  row_number  varchar(65535) NOT NULL,
+                  _timestamp TIMESTAMP,
+                  PRIMARY KEY(id)
+                );
+        ";
+
         foreach ($commands as $command) {
             $this->connection->query($command);
         }
@@ -205,6 +225,24 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $importedData = $this->connection->query("SELECT $columnsSql FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll(\PDO::FETCH_NUM);
 
         $this->assertArrayEqualsSorted($expected, $importedData, 0);
+    }
+
+    public function testImportShouldNotFailOnColumnNameRowNumber()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+
+        $import = $this->getImport('csv');
+        $import->setIncremental(false);
+
+        $import->import(
+            'column_name_row_number',
+            [
+                'id',
+                'row_number',
+            ],
+            [new CsvFile("s3://{$s3bucket}/column-name-row-number.csv")],
+            ['useTimestamp' => false]
+        );
     }
 
     /**
