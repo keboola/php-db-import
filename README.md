@@ -48,7 +48,7 @@ GRANT ROLE "KEBOOLA_DB_IMPORT" TO USER "KEBOOLA_DB_IMPORT";
 Run tests with following command.
 
 ```
-docker-compose run tests
+docker-compose run --rm tests
 ```
 
 Tests are executed against real backends `MySQL` is provisioned and wired by Docker. Redshift and S3 credentials have to be provided.
