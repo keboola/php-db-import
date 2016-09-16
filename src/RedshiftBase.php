@@ -280,7 +280,7 @@ abstract class RedshiftBase implements ImportInterface
         }, $columns));
 
         $sql .= sprintf(
-            " FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"row_number\" FROM %s)",
+            " FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"_row_number_\" FROM %s)",
             implode(",", array_map(function ($column) {
                 return $this->quoteIdentifier($column);
             }, $columns)),
@@ -289,7 +289,7 @@ abstract class RedshiftBase implements ImportInterface
             $this->tableNameEscaped($inputTempTableName)
         );
 
-        $sql .= " AS a WHERE a.\"row_number\" = 1";
+        $sql .= " AS a WHERE a.\"_row_number_\" = 1";
         $columnsSql = implode(', ', array_map(function ($column) {
             return $this->quoteIdentifier($column);
         }, $columns));

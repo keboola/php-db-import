@@ -363,6 +363,16 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testImportShouldNotFailOnColumnNameRowNumber()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/column-name-row-number.csv");
+
+        $import = $this->getImport();
+        $import->setIncremental(false);
+        $import->import('column-name-row-number', ['id', 'row_number'], [$importFile]);
+    }
+
     public function testInvalidManifestImport()
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
@@ -549,6 +559,16 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             'CREATE TABLE "%s"."out.no_timestamp_table" (
               "col1" VARCHAR NOT NULL DEFAULT \'\',
               "col2" VARCHAR NOT NULL DEFAULT \'\'
+            );',
+            $this->destSchemaName
+        ));
+
+        $this->connection->query(sprintf(
+            'CREATE TABLE "%s"."column-name-row-number" (
+              "id" varchar(65535) NOT NULL,
+              "row_number" varchar(65535) NOT NULL,
+              "_timestamp" TIMESTAMP_NTZ,
+              PRIMARY KEY("id")
             );',
             $this->destSchemaName
         ));
