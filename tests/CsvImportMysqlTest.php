@@ -16,9 +16,9 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
     public function getConnection()
     {
         $pdo = new \PDO(
-            sprintf('mysql:host=%s;dbname=%s', getenv('MYSQL_PORT_3306_TCP_ADDR'), getenv('MYSQL_ENV_MYSQL_DATABASE')),
+            sprintf('mysql:host=%s;dbname=%s', getenv('MYSQL_HOST'), getenv('MYSQL_DATABASE')),
             'root',
-            getenv('MYSQL_ENV_MYSQL_ROOT_PASSWORD'),
+            getenv('MYSQL_PASSWORD'),
             [
                 \PDO::MYSQL_ATTR_LOCAL_INFILE => true,
                 \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,

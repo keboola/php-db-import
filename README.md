@@ -20,8 +20,26 @@ Handling of large bulk data into database tables.
 
 - Create AWS S3 bucket and IAM user using `aws-services.json` cloudformation template.
 - Create Redshift cluster
-- Create `set-env.sh` from `set-env.template.sh`. Use output of `aws-services` cloudfront stack to fill the variables and your Redshift credentials.
-- Set environment `source ./set-env.sh`
+- Create `.env` file. Use output of `aws-services` cloudfront stack to fill the variables and your Redshift credentials.
+```
+REDSHIFT_HOST=
+REDSHIFT_PORT=5439
+REDSHIFT_USER=
+REDSHIFT_DATABASE=
+REDSHIFT_PASSWORD=
+
+SNOWFLAKE_HOST=
+SNOWFLAKE_PORT=
+SNOWFLAKE_USER=
+SNOWFLAKE_PASSWORD=
+SNOWFLAKE_DATABASE=
+SNOWFLAKE_WAREHOUSE=
+
+AWS_ACCESS_KEY=
+AWS_SECRET_KEY=
+AWS_S3_BUCKET=
+AWS_REGION=
+```
 
 Upload test fixtures to S3:
 ```

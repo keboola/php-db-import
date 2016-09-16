@@ -28,9 +28,9 @@ services:
       - AWS_SECRET_KEY
       - AWS_S3_BUCKET
       - AWS_REGION
-      - MYSQL_PORT_3306_TCP_ADDR
-      - MYSQL_ENV_MYSQL_DATABASE
-      - MYSQL_ENV_MYSQL_ROOT_PASSWORD
+      - MYSQL_HOST=mysql
+      - MYSQL_DATABASE=tests
+      - MYSQL_PASSWORD=password
 
   mysql:
     image: mysql:5.5
