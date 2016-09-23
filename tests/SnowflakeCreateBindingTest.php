@@ -62,38 +62,52 @@ class SnowflakeCreateBindingTest extends \PHPUnit_Framework_TestCase
         odbc_execute($stmt);
         odbc_free_result($stmt);
 
-        $stmt = odbc_prepare($connection, "CREATE TABLE original (x NUMBER, y NUMBER)");
+        $stmt = odbc_prepare($connection, "DROP TABLE IF EXISTS original;");
         odbc_execute($stmt);
         odbc_free_result($stmt);
 
-        $stmt = odbc_prepare($connection, "INSERT INTO original VALUES (1,23), (2,46)");
+        $stmt = odbc_prepare($connection, "CREATE TABLE original (x VARCHAR, y VARCHAR)");
         odbc_execute($stmt);
         odbc_free_result($stmt);
 
-        // This will throw an exception
+        $stmt = odbc_prepare($connection, "INSERT INTO original VALUES ('aaa', 'bbb'), ('ccc','ddd')");
+        odbc_execute($stmt);
+        odbc_free_result($stmt);
+
+
+        // this is ok
+        $stmt = odbc_prepare($connection, "SELECT * FROM original WHERE x = ?");
+        odbc_execute($stmt, array('aaa'));
+        $result = odbc_fetch_array($stmt);
+        $this->assertNotEmpty($result);
+        odbc_free_result($stmt);
+
+        // this is also ok
+        $stmt = odbc_prepare($connection, "SELECT * FROM original WHERE x = ?");
+        odbc_execute($stmt, array('ddd'));
+        $result = odbc_fetch_array($stmt);
+        $this->assertEmpty($result);
+        odbc_free_result($stmt);
+
+        // this is also ok
+        $stmt = odbc_prepare($connection, "SELECT * FROM original WHERE x = ?");
+        odbc_execute($stmt, array("'ddd"));
+        $result = odbc_fetch_array($stmt);
+        $this->assertEmpty($result);
+        odbc_free_result($stmt);
+
+        // this is not ok
+        // it throws - odbc_execute(): Can't open file ddd
         try {
-            $stmt = odbc_prepare($connection, "CREATE TABLE destination (x NUMBER, y NUMBER) AS SELECT * FROM original WHERE y = ?");
-            $this->fail("This will fail, but should it?");
-            // It won't get to apply this execution binding
-            odbc_execute($stmt, array(23));
+            $stmt = odbc_prepare($connection, "SELECT * FROM original WHERE x = ?");
+            odbc_execute($stmt, array("'ddd'"));
+            $result = odbc_fetch_array($stmt);
+            $this->assertEmpty($result);
             odbc_free_result($stmt);
-
         } catch (\Exception $e) {
-            // odbc_prepare(): SQL error: SQL compilation error: error line 1 at position 82
-            // Bind variable ? not set., SQL state 42601 in SQLPrepare
-            echo "\n\n" . $e->getMessage();
+            var_dump($e->getMessage());
+
         }
-
-        $stmt = odbc_prepare($connection, "DROP TABLE original;");
-        odbc_execute($stmt);
-        odbc_free_result($stmt);
-
-        $stmt = odbc_prepare($connection, "DROP TABLE IF EXISTS destination;");
-        odbc_execute($stmt);
-        odbc_free_result($stmt);
-
-        $stmt = odbc_prepare($connection, "DROP SCHEMA binding_test;");
-        odbc_execute($stmt);
-        odbc_free_result($stmt);
     }
+
 }
