@@ -15,4 +15,6 @@ install:
   - docker-compose run --rm php php ./tests/loadS3.php
 
 script:
-  - docker-compose run --rm tests
+ - docker-compose run --rm tests php ./vendor/bin/phpunit tests/CsvImportMysqlTest.php
+ - docker-compose run --rm tests php ./vendor/bin/phpunit tests/CsvImportRedshiftTest.php
+ - docker-compose run --rm tests php ./vendor/bin/phpunit tests/SnowflakeTest.php
