@@ -86,6 +86,17 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         ], $data);
     }
 
+    public function testConnectionBinding()
+    {
+
+        $this->connection->query('CREATE TABLE "' . $this->destSchemaName . '"."Test" (col1 varchar, col2 varchar)');
+        $this->connection->query('INSERT INTO "' . $this->destSchemaName . '"."Test" VALUES (\'\\\'a\\\'\',\'b\')');
+        $this->connection->query('INSERT INTO "' . $this->destSchemaName . '"."Test" VALUES (\'a\',\'b\')');
+
+        $rows = $this->connection->fetchAll('SELECT * FROM "' . $this->destSchemaName . '"."Test" WHERE col1 = ?', ["'a'"]);
+        $this->assertEmpty($rows);
+    }
+
     /**
      * This should not exhaust memory
      */

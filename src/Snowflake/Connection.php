@@ -148,14 +148,14 @@ class Connection
     public function query($sql, array $bind = [])
     {
         $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt, $bind);
+        odbc_execute($stmt, $this->repairBinding($bind));
         odbc_free_result($stmt);
     }
 
     public function fetchAll($sql, $bind = [])
     {
         $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt, $bind);
+        odbc_execute($stmt, $this->repairBinding($bind));
         $rows = [];
         while ($row = odbc_fetch_array($stmt)) {
             $rows[] = $row;
@@ -167,10 +167,26 @@ class Connection
     public function fetch($sql, $bind, callable $callback)
     {
         $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt, $bind);
+        odbc_execute($stmt, $this->repairBinding($bind));
         while ($row = odbc_fetch_array($stmt)) {
             $callback($row);
         }
         odbc_free_result($stmt);
+    }
+
+    /**
+     * Avoid odbc file open http://php.net/manual/en/function.odbc-execute.php
+     * @param array $bind
+     * @return array
+     */
+    private function repairBinding(array $bind)
+    {
+        return array_map(function($value) {
+            if (preg_match("/^'.*'$/", $value)) {
+                return " {$value} ";
+            } else {
+                return $value;
+            }
+        }, $bind);
     }
 }
