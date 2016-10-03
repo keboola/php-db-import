@@ -181,7 +181,7 @@ class Connection
      */
     private function repairBinding(array $bind)
     {
-        return array_map(function($value) {
+        return array_map(function ($value) {
             if (preg_match("/^'.*'$/", $value)) {
                 return " {$value} ";
             } else {
