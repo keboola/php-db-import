@@ -9,6 +9,7 @@ before_install:
   - docker-compose -v
 
 install:
+  - docker-compose build
   - docker-compose run --rm php composer install -n
   - docker-compose run --rm php ./vendor/bin/phpcs --standard=psr2 --ignore=vendor -n .
   - docker-compose run --rm -e AWS_ACCESS_KEY=$AWS_ODBC_KEY -e AWS_SECRET_KEY=$AWS_ODBC_SECRET php php docker/downloadOdbcDriver.php
