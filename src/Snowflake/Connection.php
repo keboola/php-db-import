@@ -14,7 +14,7 @@ class Connection
     /**
      * @var resource odbc handle
      */
-    private $connection;
+    private $connection = null;
 
     /**
      * The connection constructor accepts the following options:
@@ -46,6 +46,7 @@ class Connection
 
         $port = isset($options['port']) ? (int)$options['port'] : 443;
         $tracing = isset($options['tracing']) ? (int)$options['tracing'] : 0;
+        $maxBackoffAttempts = isset($options['maxBackoffAttempts']) ? (int)$options['maxBackoffAttempts'] : 5;
 
         $dsn = "Driver=SnowflakeDSIIDriver;Server=" . $options['host'];
         $dsn .= ";Port=" . $port;
@@ -71,11 +72,25 @@ class Connection
             $dsn .= ";Warehouse=" . $this->quoteIdentifier($options['warehouse']);
         }
 
-        try {
-            $this->connection = odbc_connect($dsn, $options['user'], $options['password']);
-        } catch (\Exception $e) {
-            throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), null, $e);
-        }
+        $attemptNumber = 0;
+        do {
+            if ($attemptNumber > 0) {
+                sleep(pow(2,$attemptNumber));
+            }
+            try {
+                $this->connection = odbc_connect($dsn, $options['user'], $options['password']);
+            } catch (\Exception $e) {
+                // try again if it is a failed rest request
+                if (stristr($e->getMessage(), "SFRestRequestFailed")) {
+                    $attemptNumber++;
+                    if ($attemptNumber > $maxBackoffAttempts) {
+                        throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), null, $e);
+                    }
+                } else {
+                    throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), null, $e);
+                }
+            }
+        } while ($this->connection === null);
     }
 
     public function quoteIdentifier($value)
