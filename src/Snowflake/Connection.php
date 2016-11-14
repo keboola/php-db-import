@@ -81,7 +81,7 @@ class Connection
                 $this->connection = odbc_connect($dsn, $options['user'], $options['password']);
             } catch (\Exception $e) {
                 // try again if it is a failed rest request
-                if (stristr($e->getMessage(), "SFRestRequestFailed")) {
+                if (stristr($e->getMessage(), "S1000")) {
                     $attemptNumber++;
                     if ($attemptNumber > $maxBackoffAttempts) {
                         throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), null, $e);
