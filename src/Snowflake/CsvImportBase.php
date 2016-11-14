@@ -112,7 +112,7 @@ abstract class CsvImportBase extends ImportBase
                 implode(
                     ', ',
                     array_map(
-                        function($file) use($s3Prefix) {
+                        function ($file) use ($s3Prefix) {
                             return $this->quote(str_replace($s3Prefix . '/', '', $file));
                         },
                         $this->getFilesToDownloadFromManifest($csvFile->getPathname())
@@ -151,9 +151,8 @@ abstract class CsvImportBase extends ImportBase
 
         $manifest = json_decode((string)$response['Body'], true);
 
-        return array_map(function ($entry)  {
+        return array_map(function ($entry) {
             return $entry['url'];
         }, $manifest['entries']);
     }
-
 }
