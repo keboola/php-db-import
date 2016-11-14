@@ -12,7 +12,13 @@ class CsvImport extends CsvImportBase
     protected function importDataToStagingTable($stagingTableName, $columns, $sourceData)
     {
         foreach ($sourceData as $csvFile) {
-            $this->importTable($stagingTableName, $csvFile);
+            $this->importTable(
+                $stagingTableName,
+                $csvFile,
+                [
+                    'isManifest' => false,
+                ]
+            );
         }
     }
 }
