@@ -14,7 +14,7 @@ class Connection
     /**
      * @var resource odbc handle
      */
-    private $connection = null;
+    private $connection;
 
     /**
      * The connection constructor accepts the following options:
