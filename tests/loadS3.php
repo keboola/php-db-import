@@ -82,7 +82,11 @@ $client->putObject([
 $manifest = [
     'entries' => [
         [
-            'url' => sprintf("s3://%s/04_tw_accounts.csv.gz", $bucket),
+            'url' => sprintf("s3://%s/manifests/accounts-gzip/tw_accounts.csv.gz0000_part_00.gz", $bucket),
+            'mandatory' => true,
+        ],
+        [
+            'url' => sprintf("s3://%s/manifests/accounts-gzip/tw_accounts.csv.gz0001_part_00.gz", $bucket),
             'mandatory' => true,
         ]
     ]
@@ -90,7 +94,7 @@ $manifest = [
 
 $client->putObject([
     'Bucket' => $bucket,
-    'Key' => '03_tw_accounts.csv.gzip.manifest',
+    'Key' => 'manifests/accounts-gzip/tw_accounts.csv.gzmanifest',
     'Body' => json_encode($manifest),
 ]);
 

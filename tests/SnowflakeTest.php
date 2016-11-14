@@ -303,10 +303,6 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
         return [
-            [[new CsvFile("s3://{$s3bucket}/manifests/accounts/tw_accounts.csvmanifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
-        ];
-
-        return [
             // full imports
             [[new CsvFile("s3://{$s3bucket}/empty.manifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],
             [[new CsvFile("s3://{$s3bucket}/lemma.csv")], $lemmaHeader, $expectedLemma, 'out.lemma'],
@@ -319,7 +315,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
 
             // manifests
             [[new CsvFile("s3://{$s3bucket}/manifests/accounts/tw_accounts.csvmanifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
-            [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/manifests/accounts-gzip/tw_accounts.csv.gzmanifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
 
             // copy from table
             [

@@ -197,11 +197,13 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider tables
      */
-    public function testImport($sourceData, $columns, $expected, $tableName, $type = 'csv', $importOptions = ['useTimestamp' => true])
+    public function testFullImport($sourceData, $columns, $expected, $tableName, $type = 'csv', $importOptions = ['useTimestamp' => true])
     {
 
         $import = $this->getImport($type);
-        $import->setIgnoreLines(1);
+        if ($type !== 'manifest') {
+            $import->setIgnoreLines(1);
+        }
 
         $import->import($tableName, $columns, $sourceData, $importOptions);
 
@@ -447,6 +449,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $accountChangedColumnsOrderHeader = $file->getHeader();
 
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+
         return [
 
             // full imports
@@ -457,8 +460,8 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
             [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts'],
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
-            [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
-            [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/manifests/accounts/tw_accounts.csvmanifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/manifests/accounts-gzip/tw_accounts.csv.gzmanifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
 
             [['schemaName' => $this->sourceSchemaName, 'tableName' => 'out.csv_2Cols'], $escapingHeader, [['a', 'b'], ['c', 'd']], 'out.csv_2Cols', 'copy'],
             [['schemaName' => $this->sourceSchemaName, 'tableName' => 'types'], $escapingHeader, [['c', '1'], ['d', '0']], 'types', 'copy'],
