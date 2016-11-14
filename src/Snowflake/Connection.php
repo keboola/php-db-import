@@ -44,24 +44,24 @@ class Connection
             throw new Exception('Missing options: ' . implode(', ', $missingOptions));
         }
 
-        $port = isset($options['port']) ? (int)$options['port'] : 443;
-        $tracing = isset($options['tracing']) ? (int)$options['tracing'] : 0;
-        $maxBackoffAttempts = isset($options['maxBackoffAttempts']) ? (int)$options['maxBackoffAttempts'] : 5;
+        $port = isset($options['port']) ? (int) $options['port'] : 443;
+        $tracing = isset($options['tracing']) ? (int) $options['tracing'] : 0;
+        $maxBackoffAttempts = isset($options['maxBackoffAttempts']) ? (int) $options['maxBackoffAttempts'] : 5;
 
         $dsn = "Driver=SnowflakeDSIIDriver;Server=" . $options['host'];
         $dsn .= ";Port=" . $port;
         $dsn .= ";Tracing=" . $tracing;
 
         if (isset($options['loginTimeout'])) {
-            $dsn .= ";Login_timeout=" . (int)$options['loginTimeout'];
+            $dsn .= ";Login_timeout=" . (int) $options['loginTimeout'];
         }
 
         if (isset($options['networkTimeout'])) {
-            $dsn .= ";Network_timeout=" . (int)$options['networkTimeout'];
+            $dsn .= ";Network_timeout=" . (int) $options['networkTimeout'];
         }
 
         if (isset($options['queryTimeout'])) {
-            $dsn .= ";Query_timeout=" . (int)$options['queryTimeout'];
+            $dsn .= ";Query_timeout=" . (int) $options['queryTimeout'];
         }
 
         if (isset($options['database'])) {
