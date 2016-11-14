@@ -75,7 +75,7 @@ class Connection
         $attemptNumber = 0;
         do {
             if ($attemptNumber > 0) {
-                sleep(pow(2,$attemptNumber));
+                sleep(pow(2, $attemptNumber));
             }
             try {
                 $this->connection = odbc_connect($dsn, $options['user'], $options['password']);
