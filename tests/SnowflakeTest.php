@@ -156,7 +156,9 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
     public function testFullImport($sourceData, $columns, $expected, $tableName, $type = 'csv', $importOptions = ['useTimestamp' => true])
     {
         $import = $this->getImport($type);
-        $import->setIgnoreLines(1);
+        if ($type !== 'manifest') {
+            $import->setIgnoreLines(1);
+        }
         $import->import($tableName, $columns, $sourceData, $importOptions);
 
 
@@ -301,6 +303,10 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
         return [
+            [[new CsvFile("s3://{$s3bucket}/manifests/accounts/tw_accounts.csvmanifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
+        ];
+
+        return [
             // full imports
             [[new CsvFile("s3://{$s3bucket}/empty.manifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],
             [[new CsvFile("s3://{$s3bucket}/lemma.csv")], $lemmaHeader, $expectedLemma, 'out.lemma'],
@@ -312,7 +318,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts-3'],
 
             // manifests
-            [[new CsvFile("s3://{$s3bucket}/01_tw_accounts.csv.manifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/manifests/accounts/tw_accounts.csvmanifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
             [[new CsvFile("s3://{$s3bucket}/03_tw_accounts.csv.gzip.manifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
 
             // copy from table
