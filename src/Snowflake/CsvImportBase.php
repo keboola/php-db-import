@@ -54,7 +54,11 @@ abstract class CsvImportBase extends ImportBase
             }
             $this->addTimer($timerName, Debugger::timer($timerName));
         } catch (\Exception $e) {
-            throw new Exception('Load error: ' . $e->getMessage(), Exception::INVALID_SOURCE_DATA, $e);
+            $stringCode = Exception::INVALID_SOURCE_DATA;
+            if (strpos($e->getMessage(), 'was not found') !== false) {
+                $stringCode = Exception::MANDATORY_FILE_NOT_FOUND;
+            }
+            throw new Exception('Load error: ' . $e->getMessage(), $stringCode, $e);
         }
     }
 
