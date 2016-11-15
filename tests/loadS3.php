@@ -57,10 +57,16 @@ $manager = new \Aws\S3\Transfer($client, $source, $dest, [
 $manager->transfer();
 
 // Create manifests
+
+// 1. not compressed manifest
 $manifest = [
     'entries' => [
         [
-            'url' => sprintf("s3://%s/tw_accounts.csv", $bucket),
+            'url' => sprintf("s3://%s/manifests/accounts/tw_accounts.csv0000_part_00", $bucket),
+            'mandatory' => true,
+        ],
+        [
+            'url' => sprintf("s3://%s/manifests/accounts/tw_accounts.csv0001_part_00", $bucket),
             'mandatory' => true,
         ]
     ]
@@ -68,14 +74,19 @@ $manifest = [
 
 $client->putObject([
     'Bucket' => $bucket,
-    'Key' => '01_tw_accounts.csv.manifest',
+    'Key' => 'manifests/accounts/tw_accounts.csvmanifest',
     'Body' => json_encode($manifest),
 ]);
 
+// 2. compressed manifest
 $manifest = [
     'entries' => [
         [
-            'url' => sprintf("s3://%s/04_tw_accounts.csv.gz", $bucket),
+            'url' => sprintf("s3://%s/manifests/accounts-gzip/tw_accounts.csv.gz0000_part_00.gz", $bucket),
+            'mandatory' => true,
+        ],
+        [
+            'url' => sprintf("s3://%s/manifests/accounts-gzip/tw_accounts.csv.gz0001_part_00.gz", $bucket),
             'mandatory' => true,
         ]
     ]
@@ -83,11 +94,12 @@ $manifest = [
 
 $client->putObject([
     'Bucket' => $bucket,
-    'Key' => '03_tw_accounts.csv.gzip.manifest',
+    'Key' => 'manifests/accounts-gzip/tw_accounts.csv.gzmanifest',
     'Body' => json_encode($manifest),
 ]);
 
-    
+
+// 3. invalid manifest
 $manifest = [
     'entries' => [
         [

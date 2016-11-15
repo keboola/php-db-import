@@ -17,6 +17,6 @@ install:
   - docker-compose build
 
 script:
- - docker-compose run --rm tests php ./vendor/bin/phpunit tests/CsvImportMysqlTest.php
- - docker-compose run --rm tests php ./vendor/bin/phpunit tests/CsvImportRedshiftTest.php
+ - docker-compose run --rm tests php ./vendor/bin/phpunit tests/MysqlTest.php
+ - docker-compose run --rm tests php ./vendor/bin/phpunit tests/RedshiftTest.php
  - docker-compose run --rm tests php ./vendor/bin/phpunit tests/SnowflakeTest.php
