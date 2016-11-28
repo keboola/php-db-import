@@ -579,7 +579,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         ));
 
         $this->connection->query(sprintf(
-           'CREATE TABLE "%s"."multi-pk" (
+            'CREATE TABLE "%s"."multi-pk" (
             "VisitID" VARCHAR NOT NULL DEFAULT \'\',
             "Value" VARCHAR NOT NULL DEFAULT \'\',
             "MenuItem" VARCHAR NOT NULL DEFAULT \'\',
@@ -587,7 +587,8 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             "Other" VARCHAR NOT NULL DEFAULT \'\',
             "_timestamp" TIMESTAMP_NTZ,
             PRIMARY KEY("VisitID","Value","MenuItem")
-           );', $this->destSchemaName
+            );',
+            $this->destSchemaName
         ));
     }
 
