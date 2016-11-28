@@ -88,7 +88,8 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         $command = "COPY $tableNameEscaped ($columnsSql) "
             . " FROM {$this->connection->quote($csvFile->getPathname())}"
             . " CREDENTIALS 'aws_access_key_id={$this->s3key};aws_secret_access_key={$this->s3secret}' "
-            . " DELIMITER '{$csvFile->getDelimiter()}' ";
+            . " DELIMITER '{$csvFile->getDelimiter()}' "
+            . " REGION '{$this->s3region}'";
 
         if ($csvFile->getEnclosure()) {
             $command .= "QUOTE {$this->connection->quote($csvFile->getEnclosure())} ";
