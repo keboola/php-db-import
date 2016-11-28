@@ -197,14 +197,8 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $columns,
         $expected,
         $tableName,
-        $rowsShouldBeUpdated,
         $importOptions = ['useTimestamp' => true]
     ) {
-        $diffColumn = ($importOptions['useTimestamp']) ? '_timestamp' : (isset($importOptions['diffColumn']) ? $importOptions['diffColumn'] : null);
-
-        if (is_null($diffColumn)) {
-            throw new Exception("If you don't want to use timestamp, please specify an alternate column to use");
-        }
 
         // initial import
         $import = $this->getImport();
@@ -213,13 +207,6 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             ->setIncremental(false)
             ->import($tableName, $columns, [$initialImportFile], $importOptions);
 
-        $rowsByIdsAfterFullLoad = [];
-        foreach ($this->fetchAll($this->destSchemaName, $tableName, ['id', $diffColumn]) as $row) {
-            $rowsByIdsAfterFullLoad[$row[0]] = $row[1];
-        }
-
-
-        sleep(2);
         $import
             ->setIncremental(true)
             ->import($tableName, $columns, [$incrementFile], $importOptions);
@@ -236,38 +223,43 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             return $column !== '_timestamp';
         });
         
-        $rowsByIdsAfterIncrement = [];
-        foreach ($this->fetchAll($this->destSchemaName, $tableName, ['id', $diffColumn]) as $row) {
-            $rowsByIdsAfterIncrement[$row[0]] = $row[1];
-        }
-
-        $changedRows = array_diff($rowsByIdsAfterIncrement, $rowsByIdsAfterFullLoad);
-        $updatedRows = array_keys($changedRows);
-        sort($updatedRows);
-        sort($rowsShouldBeUpdated);
-        $this->assertEquals($rowsShouldBeUpdated, $updatedRows);
-
         $importedData = $this->fetchAll($this->destSchemaName, $tableName, $tableColumns);
+
         $this->assertArrayEqualsSorted($expected, $importedData, 0);
     }
 
     public function incrementalImportData()
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $initialFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
-        $incrementFile = new CsvFile("s3://{$s3bucket}/tw_accounts.increment.csv");
 
-        $expectationFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.tw_accounts.increment.csv');
-        $expectedRows = [];
-        foreach ($expectationFile as $row) {
-            $expectedRows[] = $row;
+        // accounts
+        $initialAccountsFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+        $incrementAccountsFile = new CsvFile("s3://{$s3bucket}/tw_accounts.increment.csv");
+
+        $expectationAccountsFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.tw_accounts.increment.csv');
+        $expectedAccountsRows = [];
+        foreach ($expectationAccountsFile as $row) {
+            $expectedAccountsRows[] = $row;
         }
-        $columns = array_shift($expectedRows);
-        $expectedRows = array_values($expectedRows);
+        $accountColumns = array_shift($expectedAccountsRows);
+        $expectedAccountsRows = array_values($expectedAccountsRows);
+
+        // multi pk
+        $initialMultiPkFile = new CsvFile("s3://{$s3bucket}/multi-pk.csv");
+        $incrementMultiPkFile = new CsvFile("s3://{$s3bucket}/multi-pk.increment.csv");
+
+        $expectationMultiPkFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.multi-pk.increment.csv');
+        $expectedMultiPkRows = [];
+        foreach ($expectationMultiPkFile as $row) {
+            $expectedMultiPkRows[] = $row;
+        }
+        $multiPkColumns = array_shift($expectedMultiPkRows);
+        $expectedMultiPkRows = array_values($expectedMultiPkRows);
 
         return [
-            [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts-3', [15, 24]],
-            [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts-bez-ts', [15, 24], ['useTimestamp' => false, 'diffColumn' => 'name']],
+            [$initialAccountsFile, $incrementAccountsFile, $accountColumns, $expectedAccountsRows, 'accounts-3'],
+            [$initialAccountsFile, $incrementAccountsFile, $accountColumns, $expectedAccountsRows, 'accounts-bez-ts', ['useTimestamp' => false]],
+            [$initialMultiPkFile, $incrementMultiPkFile, $multiPkColumns, $expectedMultiPkRows, 'multi-pk']
         ];
     }
 
@@ -584,6 +576,18 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
               PRIMARY KEY("id")
             );',
             $this->destSchemaName
+        ));
+
+        $this->connection->query(sprintf(
+           'CREATE TABLE "%s"."multi-pk" (
+            "VisitID" VARCHAR NOT NULL DEFAULT \'\',
+            "Value" VARCHAR NOT NULL DEFAULT \'\',
+            "MenuItem" VARCHAR NOT NULL DEFAULT \'\',
+            "Something" VARCHAR NOT NULL DEFAULT \'\',
+            "Other" VARCHAR NOT NULL DEFAULT \'\',
+            "_timestamp" TIMESTAMP_NTZ,
+            PRIMARY KEY("VisitID","Value","MenuItem")
+           );', $this->destSchemaName
         ));
     }
 

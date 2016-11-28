@@ -53,6 +53,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 'out.no_timestamp_table',
                 'accounts_bez_ts',
                 'column_name_row_number',
+                'multi-pk',
             ];
             foreach ($tablesToDelete as $tableToDelete) {
                 $stmt = $this->connection
@@ -188,6 +189,17 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 );
         ";
 
+        $commands[] = "
+            CREATE TABLE  \"{$this->destSchemaName}\".\"multi-pk\" (
+            \"VisitID\" VARCHAR NOT NULL,
+            \"Value\" VARCHAR NOT NULL,
+            \"MenuItem\" VARCHAR NOT NULL,
+            \"Something\" VARCHAR NOT NULL,
+            \"Other\" VARCHAR NOT NULL,
+              _timestamp TIMESTAMP,
+            PRIMARY KEY(\"VisitID\",\"Value\",\"MenuItem\")
+           );";
+
         foreach ($commands as $command) {
             $this->connection->query($command);
         }
@@ -261,17 +273,8 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $columns,
         $expected,
         $tableName,
-        $rowsShouldBeUpdated,
         $importOptions = ['useTimestamp' => true]
     ) {
-        if ($importOptions['useTimestamp']) {
-            $diffColumn = '_timestamp';
-        } else {
-            if (!isset($importOptions['diffColumn'])) {
-                throw new Exception("If not using timestamps, need to set option diffColumn for column to check for updated row differences");
-            }
-            $diffColumn = $importOptions['diffColumn'];
-        }
         // initial import
         $import = $this->getImport();
         $import
@@ -279,12 +282,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
             ->setIncremental(false)
             ->import($tableName, $columns, [$initialImportFile], $importOptions);
 
-        $rowsByIdsAfterFullLoad = [];
-        foreach ($this->connection->query("SELECT * FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll() as $row) {
-            $rowsByIdsAfterFullLoad[$row['id']] = $row[$diffColumn];
-        }
-
-        sleep(2);
         $import
             ->setIncremental(true)
             ->import($tableName, $columns, [$incrementFile], $importOptions);
@@ -300,18 +297,6 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $columnsSql = implode(", ", array_map(function ($column) {
             return '"' . $column . '"';
         }, array_keys($tableColumns)));
-
-
-        $rowsByIdsAfterIncrement = [];
-        foreach ($this->connection->query("SELECT * FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll() as $row) {
-            $rowsByIdsAfterIncrement[$row['id']] = $row[$diffColumn];
-        }
-
-        $changedRows = array_diff($rowsByIdsAfterIncrement, $rowsByIdsAfterFullLoad);
-        $updatedRows = array_keys($changedRows);
-        sort($updatedRows);
-        sort($rowsShouldBeUpdated);
-        $this->assertEquals($rowsShouldBeUpdated, $updatedRows);
 
         $importedData = $this->connection->query("SELECT $columnsSql FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll(\PDO::FETCH_NUM);
         $this->assertArrayEqualsSorted($expected, $importedData, 0);
@@ -496,20 +481,35 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     public function tablesIncremental()
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $initialFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
-        $incrementFile = new CsvFile("s3://{$s3bucket}/tw_accounts.increment.csv");
 
-        $expectationFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.tw_accounts.increment.csv');
-        $expectedRows = [];
-        foreach ($expectationFile as $row) {
-            $expectedRows[] = $row;
+        // accounts
+        $initialAccountsFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+        $incrementAccountsFile = new CsvFile("s3://{$s3bucket}/tw_accounts.increment.csv");
+
+        $expectationAccountsFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.tw_accounts.increment.csv');
+        $expectedAccountsRows = [];
+        foreach ($expectationAccountsFile as $row) {
+            $expectedAccountsRows[] = $row;
         }
-        $columns = array_shift($expectedRows);
-        $expectedRows = array_values($expectedRows);
+        $accountColumns = array_shift($expectedAccountsRows);
+        $expectedAccountsRows = array_values($expectedAccountsRows);
+
+        // multi pk
+        $initialMultiPkFile = new CsvFile("s3://{$s3bucket}/multi-pk.csv");
+        $incrementMultiPkFile = new CsvFile("s3://{$s3bucket}/multi-pk.increment.csv");
+
+        $expectationMultiPkFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.multi-pk.increment.csv');
+        $expectedMultiPkRows = [];
+        foreach ($expectationMultiPkFile as $row) {
+            $expectedMultiPkRows[] = $row;
+        }
+        $multiPkColumns = array_shift($expectedMultiPkRows);
+        $expectedMultiPkRows = array_values($expectedMultiPkRows);
 
         return [
-            [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts', [15, 24]],
-            [$initialFile, $incrementFile, $columns, $expectedRows, 'accounts_bez_ts', [15, 24], ['useTimestamp' => false, 'diffColumn' => "name"]]
+            [$initialAccountsFile, $incrementAccountsFile, $accountColumns, $expectedAccountsRows, 'accounts'],
+            [$initialAccountsFile, $incrementAccountsFile, $accountColumns, $expectedAccountsRows, 'accounts_bez_ts', ['useTimestamp' => false]],
+            [$initialMultiPkFile, $incrementMultiPkFile, $multiPkColumns, $expectedMultiPkRows, 'multi-pk']
         ];
     }
 

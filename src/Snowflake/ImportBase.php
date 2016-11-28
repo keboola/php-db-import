@@ -187,7 +187,7 @@ abstract class ImportBase implements ImportInterface
             $pkWhereSql = [];
             foreach ($primaryKey as $pkColumn) {
                 $pkWhereSql[] = sprintf(
-                    '"dest".%s = "src".%s',
+                    '"dest".%s = COALESCE("src".%s, \'\')',
                     $this->quoteIdentifier($pkColumn),
                     $this->quoteIdentifier($pkColumn)
                 );

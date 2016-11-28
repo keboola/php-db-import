@@ -1,0 +1,7 @@
+VisitID,Value,MenuItem,Something,Other
+134,"nothing","","abc","def"
+134,"nothing","","abcd","def"
+136,"other","ddd","abc","rest"
+139,"other","ddd","abc","rest"
+200,,"ukulele","abc","def"
+200,,"ukulele","valid","234"
