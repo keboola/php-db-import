@@ -627,6 +627,54 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testNullableCsv()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR, \"_timestamp\" TIMESTAMP)");
+
+        $import = $this->getImport('csv');
+        $import->setIgnoreLines(1);
+        $import->import(
+            'nullable',
+            ['id', 'name', 'price'],
+            [
+                new CsvFile("s3://{$s3bucket}/nullable.csv"),
+            ]
+        );
+
+        $importedData = $this->fetchAll($this->destSchemaName, "nullable", ["id", "name", "price"]);
+        $this->assertCount(3, $importedData);
+        $this->assertTrue(null === $importedData[1][1]);
+        $this->assertTrue(null === $importedData[2][2]);
+    }
+
+    public function testNullableCopy()
+    {
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR, \"_timestamp\" TIMESTAMP)");
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable_src\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable_src\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullable_src\" VALUES(4500, '', 50), (5500, NULL, 500)");
+
+        $import = $this->getImport('copy');
+        $import->setIgnoreLines(1);
+        $import->import(
+            'nullable',
+            ['id', 'name', 'price'],
+            [
+                "tableName" => "nullable_src",
+                "schemaName" => $this->destSchemaName
+            ]
+        );
+
+        $importedData = $this->fetchAll($this->destSchemaName, "nullable", ["id", "name", "price"]);
+        $this->assertCount(2, $importedData);
+        $this->assertTrue(null === $importedData[0][1]);
+        $this->assertTrue(null === $importedData[1][1]);
+    }
+
+
     private function fetchAll($schemaName, $tableName, $columns)
     {
         // temporary fix of client charset handling
