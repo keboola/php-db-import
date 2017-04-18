@@ -631,7 +631,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR, \"_timestamp\" TIMESTAMP)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
 
         $import = $this->getImport('csv');
         $import->setIgnoreLines(1);
@@ -640,22 +640,56 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 new CsvFile("s3://{$s3bucket}/nullable.csv"),
+            ],
+            [
+                "useTimestamp" => false,
+                "nullable" => ["name", "price"]
             ]
         );
 
-        $importedData = $this->fetchAll($this->destSchemaName, "nullable", ["id", "name", "price"]);
+        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullable\" ORDER BY \"id\" ASC");
         $this->assertCount(3, $importedData);
-        $this->assertTrue(null === $importedData[1][1]);
-        $this->assertTrue(null === $importedData[2][2]);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["price"]);
+    }
+
+
+    public function testNullableCsvIncremental()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullable\" VALUES('4', NULL, 50)");
+
+        $import = $this->getImport('csv');
+        $import->setIgnoreLines(1);
+        $import->setIncremental(true);
+        $import->import(
+            'nullable',
+            ['id', 'name', 'price'],
+            [
+                new CsvFile("s3://{$s3bucket}/nullable.csv"),
+            ],
+            [
+                "useTimestamp" => false,
+                "nullable" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullable\" ORDER BY \"id\" ASC");
+        $this->assertCount(4, $importedData);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["price"]);
+        $this->assertTrue(null === $importedData[3]["name"]);
     }
 
     public function testNullableCopy()
     {
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR, \"_timestamp\" TIMESTAMP)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable_src\" ");
         $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable_src\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
-        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullable_src\" VALUES(4500, '', 50), (5500, NULL, 500)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullable_src\" VALUES('1', '', 50), ('2', NULL, 500)");
 
         $import = $this->getImport('copy');
         $import->setIgnoreLines(1);
@@ -665,13 +699,49 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             [
                 "tableName" => "nullable_src",
                 "schemaName" => $this->destSchemaName
+            ],
+            [
+                "useTimestamp" => false,
+                "nullable" => ["name", "price"]
             ]
         );
 
-        $importedData = $this->fetchAll($this->destSchemaName, "nullable", ["id", "name", "price"]);
+        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullable\" ORDER BY \"id\" ASC");
         $this->assertCount(2, $importedData);
-        $this->assertTrue(null === $importedData[0][1]);
-        $this->assertTrue(null === $importedData[1][1]);
+        $this->assertTrue(null === $importedData[0]["name"]);
+        $this->assertTrue(null === $importedData[1]["name"]);
+    }
+
+    public function testNullableCopyIncremental()
+    {
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullable\" VALUES('4', NULL, 50)");
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable_src\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable_src\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullable_src\" VALUES('1', '', 50), ('2', NULL, 500)");
+
+        $import = $this->getImport('copy');
+        $import->setIgnoreLines(1);
+        $import->setIncremental(true);
+        $import->import(
+            'nullable',
+            ['id', 'name', 'price'],
+            [
+                "tableName" => "nullable_src",
+                "schemaName" => $this->destSchemaName
+            ],
+            [
+                "useTimestamp" => false,
+                "nullable" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullable\" ORDER BY \"id\" ASC");
+        $this->assertCount(3, $importedData);
+        $this->assertTrue(null === $importedData[0]["name"]);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["name"]);
     }
 
 

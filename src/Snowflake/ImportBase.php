@@ -46,10 +46,12 @@ abstract class ImportBase implements ImportInterface
     /**
      * @param $tableName
      * @param $columns
-     * @param array CsvFile $csvFiles
-     * @return mixed
+     * @param array $sourceData
+     * @param array $options
+     * @return Result
+     * @throws \Exception
      */
-    public function import($tableName, $columns, array $sourceData, array $options = ['useTimestamp' => true])
+    public function import($tableName, $columns, array $sourceData, array $options = ['useTimestamp' => true, 'nullable' => []])
     {
         $this->validateColumns($tableName, $columns);
         $stagingTableName = $this->createStagingTable($columns);
@@ -62,7 +64,8 @@ abstract class ImportBase implements ImportInterface
                     $stagingTableName,
                     $tableName,
                     $columns,
-                    $options['useTimestamp']
+                    $options['useTimestamp'],
+                    isset($options["nullable"]) ? $options["nullable"] : []
                 );
             } else {
                 Debugger::timer('dedup');
@@ -72,7 +75,13 @@ abstract class ImportBase implements ImportInterface
                     $this->connection->getTablePrimaryKey($this->schemaName, $tableName)
                 );
                 $this->addTimer('dedup', Debugger::timer('dedup'));
-                $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns, $options['useTimestamp']);
+                $this->insertAllIntoTargetTable(
+                    $stagingTableName,
+                    $tableName,
+                    $columns,
+                    $options['useTimestamp'],
+                    isset($options["nullable"]) ? $options["nullable"] : []
+                );
             }
             $this->dropTable($stagingTableName);
             $this->importedColumns = $columns;
@@ -113,7 +122,7 @@ abstract class ImportBase implements ImportInterface
         }
     }
 
-    private function insertAllIntoTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true)
+    private function insertAllIntoTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $nullable = [])
     {
         $this->connection->query('BEGIN TRANSACTION');
 
@@ -134,11 +143,27 @@ abstract class ImportBase implements ImportInterface
             );
         }, $columns));
 
+        $columnsSetSqlSelect = implode(', ', array_map(function ($column) use ($nullable) {
+            if (in_array($column, $nullable)) {
+                return sprintf(
+                    'IFF(%s = \'\', NULL, %s)',
+                    $this->quoteIdentifier($column),
+                    $this->quoteIdentifier($column)
+                );
+            }
+
+            return sprintf(
+                "COALESCE(%s, '') AS %s",
+                $this->quoteIdentifier($column),
+                $this->quoteIdentifier($column)
+            );
+        }, $columns));
+
         $now = $this->getNowFormatted();
         if (in_array(self::TIMESTAMP_COLUMN_NAME, $columns) || $useTimestamp === false) {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSetSql FROM $stagingTableNameWithSchema)";
+            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSetSqlSelect FROM $stagingTableNameWithSchema)";
         } else {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, \"" . self::TIMESTAMP_COLUMN_NAME . "\") (SELECT $columnsSetSql, '{$now}' FROM $stagingTableNameWithSchema)";
+            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, \"" . self::TIMESTAMP_COLUMN_NAME . "\") (SELECT $columnsSetSqlSelect, '{$now}' FROM $stagingTableNameWithSchema)";
         }
 
         Debugger::timer('copyFromStagingToTarget');
@@ -153,8 +178,10 @@ abstract class ImportBase implements ImportInterface
      * @param $stagingTableName
      * @param $targetTableName
      * @param $columns
+     * @param bool $useTimestamp
+     * @param array $nullable
      */
-    private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true)
+    private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $nullable = [])
     {
         $this->connection->query('BEGIN TRANSACTION');
         $nowFormatted = $this->getNowFormatted();
@@ -233,18 +260,27 @@ abstract class ImportBase implements ImportInterface
         $columnsSetSql = [];
 
         foreach ($columns as $columnName) {
-            $columnsSetSql[] = sprintf(
-                'COALESCE("src".%s, \'\')',
-                $this->quoteIdentifier($columnName)
-            );
+            if (in_array($columnName, $nullable)) {
+                $columnsSetSql[] = sprintf(
+                    'IFF("src".%s = \'\', NULL, %s)',
+                    $this->quoteIdentifier($columnName),
+                    $this->quoteIdentifier($columnName)
+                );
+            } else {
+                $columnsSetSql[] = sprintf(
+                    'COALESCE("src".%s, \'\')',
+                    $this->quoteIdentifier($columnName)
+                );
+            }
         }
 
         $sql .= " SELECT " . implode(',', $columnsSetSql);
         if ($useTimestamp) {
             $sql .= ", '{$nowFormatted}' ";
         }
-        $sql .= "FROM " . $stagingTableNameWithSchema . ' AS "src"';
+        $sql .= " FROM " . $stagingTableNameWithSchema . ' AS "src"';
         Debugger::timer('insertIntoTargetFromStaging');
+
         $this->connection->query($sql);
         $this->addTimer('insertIntoTargetFromStaging', Debugger::timer('insertIntoTargetFromStaging'));
 
