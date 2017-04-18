@@ -51,7 +51,7 @@ abstract class ImportBase implements ImportInterface
      * @return Result
      * @throws \Exception
      */
-    public function import($tableName, $columns, array $sourceData, array $options = ['useTimestamp' => true, 'nullable' => []])
+    public function import($tableName, $columns, array $sourceData, array $options = ['useTimestamp' => true, 'nullify' => []])
     {
         $this->validateColumns($tableName, $columns);
         $stagingTableName = $this->createStagingTable($columns);
@@ -65,7 +65,7 @@ abstract class ImportBase implements ImportInterface
                     $tableName,
                     $columns,
                     $options['useTimestamp'],
-                    isset($options["nullable"]) ? $options["nullable"] : []
+                    isset($options["nullify"]) ? $options["nullify"] : []
                 );
             } else {
                 Debugger::timer('dedup');
@@ -80,7 +80,7 @@ abstract class ImportBase implements ImportInterface
                     $tableName,
                     $columns,
                     $options['useTimestamp'],
-                    isset($options["nullable"]) ? $options["nullable"] : []
+                    isset($options["nullify"]) ? $options["nullify"] : []
                 );
             }
             $this->dropTable($stagingTableName);
@@ -122,7 +122,7 @@ abstract class ImportBase implements ImportInterface
         }
     }
 
-    private function insertAllIntoTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $nullable = [])
+    private function insertAllIntoTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $nullify = [])
     {
         $this->connection->query('BEGIN TRANSACTION');
 
@@ -143,8 +143,8 @@ abstract class ImportBase implements ImportInterface
             );
         }, $columns));
 
-        $columnsSetSqlSelect = implode(', ', array_map(function ($column) use ($nullable) {
-            if (in_array($column, $nullable)) {
+        $columnsSetSqlSelect = implode(', ', array_map(function ($column) use ($nullify) {
+            if (in_array($column, $nullify)) {
                 return sprintf(
                     'IFF(%s = \'\', NULL, %s)',
                     $this->quoteIdentifier($column),
@@ -179,9 +179,9 @@ abstract class ImportBase implements ImportInterface
      * @param $targetTableName
      * @param $columns
      * @param bool $useTimestamp
-     * @param array $nullable
+     * @param array $nullify
      */
-    private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $nullable = [])
+    private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $nullify = [])
     {
         $this->connection->query('BEGIN TRANSACTION');
         $nowFormatted = $this->getNowFormatted();
@@ -260,7 +260,7 @@ abstract class ImportBase implements ImportInterface
         $columnsSetSql = [];
 
         foreach ($columns as $columnName) {
-            if (in_array($columnName, $nullable)) {
+            if (in_array($columnName, $nullify)) {
                 $columnsSetSql[] = sprintf(
                     'IFF("src".%s = \'\', NULL, %s)',
                     $this->quoteIdentifier($columnName),

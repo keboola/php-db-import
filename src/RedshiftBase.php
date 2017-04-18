@@ -54,7 +54,7 @@ abstract class RedshiftBase implements ImportInterface
                 $primaryKey,
                 $columns,
                 $options['useTimestamp'],
-                isset($options["nullable"]) ? $options["nullable"] : []
+                isset($options["nullify"]) ? $options["nullify"] : []
             );
         } else {
             Debugger::timer('dedup');
@@ -65,7 +65,7 @@ abstract class RedshiftBase implements ImportInterface
                 $tableName,
                 $columns,
                 $options['useTimestamp'],
-                isset($options["nullable"]) ? $options["nullable"] : []
+                isset($options["nullify"]) ? $options["nullify"] : []
             );
         }
         $this->dropTempTable($stagingTableName);
@@ -104,9 +104,9 @@ abstract class RedshiftBase implements ImportInterface
      * @param $targetTableName
      * @param $columns
      * @param bool $useTimestamp
-     * @param array $nullable
+     * @param array $nullify
      */
-    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true, array $nullable = [])
+    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true, array $nullify = [])
     {
         $this->connection->beginTransaction();
 
@@ -115,12 +115,12 @@ abstract class RedshiftBase implements ImportInterface
 
         $this->query('TRUNCATE TABLE ' . $targetTableNameWithSchema);
 
-        $columnsSql = implode(', ', array_map(function ($column) use ($nullable) {
+        $columnsSql = implode(', ', array_map(function ($column) use ($nullify) {
             return $this->quoteIdentifier($column);
         }, $columns));
 
-        $columnsSelectSql = implode(', ', array_map(function ($column) use ($nullable) {
-            if (in_array($column, $nullable)) {
+        $columnsSelectSql = implode(', ', array_map(function ($column) use ($nullify) {
+            if (in_array($column, $nullify)) {
                 return "CASE {$this->quoteIdentifier($column)} WHEN '' THEN NULL ELSE {$this->quoteIdentifier($column)} END";
             }
             return $this->quoteIdentifier($column);
@@ -147,7 +147,7 @@ abstract class RedshiftBase implements ImportInterface
      * @param array $primaryKey
      * @param $columns
      * @param bool $useTimestamp
-     * @param array $nullable
+     * @param array $nullify
      */
     private function insertOrUpdateTargetTable(
         $stagingTempTableName,
@@ -155,7 +155,7 @@ abstract class RedshiftBase implements ImportInterface
         array $primaryKey,
         $columns,
         $useTimestamp = true,
-        array $nullable = []
+        array $nullify = []
     ) {
         $this->connection->beginTransaction();
         $nowFormatted = $this->getNowFormatted();
@@ -232,7 +232,7 @@ abstract class RedshiftBase implements ImportInterface
         }
 
         // Insert from staging to target table
-        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) use ($nullable) {
+        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) use ($nullify) {
             return $this->quoteIdentifier($column);
         }, $columns));
 
@@ -241,7 +241,7 @@ abstract class RedshiftBase implements ImportInterface
         $columnsSetSql = [];
 
         foreach ($columns as $columnName) {
-            if (in_array($columnName, $nullable)) {
+            if (in_array($columnName, $nullify)) {
                 $columnsSetSql[] = sprintf(
                     "CASE %s.%s WHEN '' THEN NULL ELSE %s.%s END",
                     $stagingTableNameEscaped,
