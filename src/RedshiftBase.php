@@ -258,8 +258,8 @@ abstract class RedshiftBase implements ImportInterface
             }
         }
         $sql .= "SELECT " . implode(', ', $columnsSetSql);
-        $sql .= ($useTimestamp) ? ", '{$nowFormatted}' " : "";
-        $sql .= "FROM " . $stagingTableNameEscaped;
+        $sql .= ($useTimestamp) ? ", '{$nowFormatted}'" : "";
+        $sql .= " FROM " . $stagingTableNameEscaped;
         Debugger::timer('insertIntoTargetFromStaging');
         $this->query($sql);
         $this->addTimer('insertIntoTargetFromStaging', Debugger::timer('insertIntoTargetFromStaging'));

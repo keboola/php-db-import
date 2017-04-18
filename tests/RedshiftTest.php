@@ -414,7 +414,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (id VARCHAR, name VARCHAR, price VARCHAR, _timestamp TIMESTAMP)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (id VARCHAR, name VARCHAR, price VARCHAR)");
 
         $import = $this->getImport('csv');
         $import->setIgnoreLines(1);
@@ -425,7 +425,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 new CsvFile("s3://{$s3bucket}/nullable.csv"),
             ],
             [
-                "useTimestamp" => true,
+                "useTimestamp" => false,
                 "nullable" => ["name", "price"]
             ]
         );
@@ -440,7 +440,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (id VARCHAR, name VARCHAR, price VARCHAR, _timestamp TIMESTAMP)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (id VARCHAR, name VARCHAR, price VARCHAR)");
         $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullable\" VALUES('4', NULL, 5)");
 
         $import = $this->getImport('csv');
@@ -453,7 +453,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 new CsvFile("s3://{$s3bucket}/nullable.csv"),
             ],
             [
-                "useTimestamp" => true,
+                "useTimestamp" => false,
                 "nullable" => ["name", "price"]
             ]
         );
@@ -468,7 +468,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     public function testNullableCopy()
     {
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (id VARCHAR, name VARCHAR, price VARCHAR, _timestamp TIMESTAMP)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (id VARCHAR, name VARCHAR, price VARCHAR)");
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable_src\" ");
         $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable_src\" (id VARCHAR, name VARCHAR, price VARCHAR)");
         $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullable_src\" VALUES('1', '', 50), ('2', NULL, 500)");
@@ -483,7 +483,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 "schemaName" => $this->destSchemaName
             ],
             [
-                "useTimestamp" => true,
+                "useTimestamp" => false,
                 "nullable" => ["name", "price"]
             ]
         );
@@ -497,7 +497,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     public function testNullableCopyIncremental()
     {
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (id VARCHAR, name VARCHAR, price VARCHAR, _timestamp TIMESTAMP)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable\" (id VARCHAR, name VARCHAR, price VARCHAR)");
         $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullable\" VALUES('3', NULL, 5)");
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullable_src\" ");
         $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullable_src\" (id VARCHAR, name VARCHAR, price VARCHAR)");
@@ -514,7 +514,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
                 "schemaName" => $this->destSchemaName
             ],
             [
-                "useTimestamp" => true,
+                "useTimestamp" => false,
                 "nullable" => ["name", "price"]
             ]
         );
