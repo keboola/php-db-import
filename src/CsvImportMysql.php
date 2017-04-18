@@ -111,11 +111,11 @@ class CsvImportMysql implements ImportInterface
             }
         }
 
-        $stgTable = $this->createStagingTable($tableName, true);
+        $stagingTableName = $this->createStagingTable($tableName, true);
 
         $sql = '
 			LOAD DATA LOCAL INFILE ' . $this->connection->quote($csvFile) . '
-			REPLACE INTO TABLE ' . $this->quoteIdentifier($stgTable) . '
+			REPLACE INTO TABLE ' . $this->quoteIdentifier($stagingTableName) . '
 			FIELDS TERMINATED BY ' . $this->connection->quote($csvFile->getDelimiter()) . '
 			OPTIONALLY ENCLOSED BY ' . $this->connection->quote($csvFile->getEnclosure()) . '
 			ESCAPED BY ' . $this->connection->quote($csvFile->getEscapedBy()) . '
@@ -162,7 +162,7 @@ class CsvImportMysql implements ImportInterface
         $sql .= $columnsListEscaped($importColumns);
         $sql .= ') ';
         $sql .= 'SELECT ' . $columnsListEscapedSelect($importColumns,
-                't', $nullify) . ' FROM ' . $this->quoteIdentifier($stgTable) . ' t ';
+                't', $nullify) . ' FROM ' . $this->quoteIdentifier($stagingTableName) . ' t ';
         $this->query($sql);
     }
 
