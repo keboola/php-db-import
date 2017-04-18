@@ -51,7 +51,7 @@ abstract class ImportBase implements ImportInterface
      * @return Result
      * @throws \Exception
      */
-    public function import($tableName, $columns, array $sourceData, array $options = ['useTimestamp' => true, 'nullify' => []])
+    public function import($tableName, $columns, array $sourceData, array $options = [])
     {
         $this->validateColumns($tableName, $columns);
         $stagingTableName = $this->createStagingTable($columns);
@@ -64,7 +64,7 @@ abstract class ImportBase implements ImportInterface
                     $stagingTableName,
                     $tableName,
                     $columns,
-                    $options['useTimestamp'],
+                    isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
                     isset($options["nullify"]) ? $options["nullify"] : []
                 );
             } else {
@@ -79,7 +79,7 @@ abstract class ImportBase implements ImportInterface
                     $stagingTableName,
                     $tableName,
                     $columns,
-                    $options['useTimestamp'],
+                    isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
                     isset($options["nullify"]) ? $options["nullify"] : []
                 );
             }

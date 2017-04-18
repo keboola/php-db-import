@@ -37,9 +37,10 @@ abstract class RedshiftBase implements ImportInterface
      * @param array $options
      *  - useTimestamp - update and use timestamp column. default true
      *  - copyOptions - additional copy options for import command
+     *  - nullify - convert empty values to NULL
      * @return mixed
      */
-    public function import($tableName, $columns, array $sourceData, array $options = ["useTimestamp" => true, "copyOptions" => []])
+    public function import($tableName, $columns, array $sourceData, array $options = [])
     {
         $this->validateColumns($tableName, $columns);
         $primaryKey = $this->getTablePrimaryKey($tableName);
@@ -53,7 +54,7 @@ abstract class RedshiftBase implements ImportInterface
                 $tableName,
                 $primaryKey,
                 $columns,
-                $options['useTimestamp'],
+                isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
                 isset($options["nullify"]) ? $options["nullify"] : []
             );
         } else {
@@ -64,7 +65,7 @@ abstract class RedshiftBase implements ImportInterface
                 $stagingTableName,
                 $tableName,
                 $columns,
-                $options['useTimestamp'],
+                isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
                 isset($options["nullify"]) ? $options["nullify"] : []
             );
         }
