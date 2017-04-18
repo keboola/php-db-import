@@ -34,7 +34,9 @@ class CsvImportMysql implements ImportInterface
     /**
      * @param $tableName
      * @param $columns
-     * @param @CsvFile[] $sourceData
+     * @param CsvFile[] $sourceData
+     * @param array $options
+     * @return Result
      */
     public function import($tableName, $columns, array $sourceData, array $options = [])
     {
@@ -47,12 +49,22 @@ class CsvImportMysql implements ImportInterface
 
         $stagingTableName = $this->createStagingTable($tableName, $this->getIncremental());
         foreach ($sourceData as $csvFile) {
-            $this->importTableColumnsAll($stagingTableName, $columns, $csvFile);
+            $this->importTableColumnsAll(
+                $stagingTableName,
+                $columns,
+                $csvFile,
+                isset($options["nullify"]) ? $options["nullify"] : []
+            );
         }
 
         if ($this->getIncremental()) {
             $importColumns = array_uintersect($this->tableColumns($tableName), $columns, 'strcasecmp');
-            $this->insertOrUpdateTargetTable($stagingTableName, $tableName, $importColumns);
+            $this->insertOrUpdateTargetTable(
+                $stagingTableName,
+                $tableName,
+                $importColumns,
+                isset($options["nullify"]) ? $options["nullify"] : []
+            );
         } else {
             $this->swapTables($stagingTableName, $tableName);
         }
@@ -86,7 +98,7 @@ class CsvImportMysql implements ImportInterface
         return str_replace('.', '_', uniqid('csvImport', true));
     }
 
-    protected function importTableColumnsAll($tableName, $columns, CsvFile $csvFile)
+    protected function importTableColumnsAll($tableName, $columns, CsvFile $csvFile, array $nullify = [])
     {
         $importColumns = $this->tableColumns($tableName);
 
@@ -99,9 +111,11 @@ class CsvImportMysql implements ImportInterface
             }
         }
 
+        $stgTable = $this->createStagingTable($tableName, true);
+
         $sql = '
 			LOAD DATA LOCAL INFILE ' . $this->connection->quote($csvFile) . '
-			REPLACE INTO TABLE ' . $this->quoteIdentifier($tableName) . '
+			REPLACE INTO TABLE ' . $this->quoteIdentifier($stgTable) . '
 			FIELDS TERMINATED BY ' . $this->connection->quote($csvFile->getDelimiter()) . '
 			OPTIONALLY ENCLOSED BY ' . $this->connection->quote($csvFile->getEnclosure()) . '
 			ESCAPED BY ' . $this->connection->quote($csvFile->getEscapedBy()) . '
@@ -125,16 +139,51 @@ class CsvImportMysql implements ImportInterface
         Debugger::timer('csvImport.importedRowsCount');
         $this->importedRowsCount = $stmt->rowCount();
         $this->addTimer('importedRowsCount', Debugger::timer('csvImport.importedRowsCount'));
+
+
+        $columnsListEscaped = function ($columns) {
+            return implode(', ', array_map(function ($columnName) {
+                return $this->quoteIdentifier($columnName);
+            }, $columns));
+        };
+
+        $columnsListEscapedSelect = function ($columns, $prefix = null, $nullify = []) {
+            return implode(', ', array_map(function ($columnName) use ($prefix, $nullify) {
+                if (in_array($columnName, $nullify)) {
+                    $column = ($prefix ? $prefix . '.' : '') . $this->quoteIdentifier($columnName);
+                    return "IF({$column} = '', NULL, {$column})";
+                }
+                return ($prefix ? $prefix . '.' : '') . $this->quoteIdentifier($columnName);
+            }, $columns));
+        };
+
+        // nullify
+        $sql = 'INSERT INTO ' . $this->quoteIdentifier($tableName) . ' (';
+        $sql .= $columnsListEscaped($importColumns);
+        $sql .= ') ';
+        $sql .= 'SELECT ' . $columnsListEscapedSelect($importColumns,
+                't', $nullify) . ' FROM ' . $this->quoteIdentifier($stgTable) . ' t ';
+        $this->query($sql);
     }
 
-    protected function insertOrUpdateTargetTable($sourceTable, $targetTable, $importColumns)
+    protected function insertOrUpdateTargetTable($sourceTable, $targetTable, $importColumns, array $nullify = [])
     {
         Debugger::timer('csvImport.insertIntoTargetTable');
 
         $connection = $this->connection;
 
-        $columnsListEscaped = function ($columns, $prefix = null) use ($connection) {
-            return implode(', ', array_map(function ($columnName) use ($connection, $prefix) {
+        $columnsListEscaped = function ($columns, $prefix = null) {
+            return implode(', ', array_map(function ($columnName) use ($prefix) {
+                return ($prefix ? $prefix . '.' : '') . $this->quoteIdentifier($columnName);
+            }, $columns));
+        };
+
+        $columnsListEscapedSelect = function ($columns, $prefix = null, $nullify = []) {
+            return implode(', ', array_map(function ($columnName) use ($prefix, $nullify) {
+                if (in_array($columnName, $nullify)) {
+                    $column = ($prefix ? $prefix . '.' : '') . $this->quoteIdentifier($columnName);
+                    return "IF({$column} = '', NULL, {$column})";
+                }
                 return ($prefix ? $prefix . '.' : '') . $this->quoteIdentifier($columnName);
             }, $columns));
         };
@@ -143,8 +192,8 @@ class CsvImportMysql implements ImportInterface
         $sql .= $columnsListEscaped($importColumns);
         $sql .= ') ';
 
-        $sql .= 'SELECT ' . $columnsListEscaped($importColumns,
-                't') . ' FROM ' . $this->quoteIdentifier($sourceTable) . ' t ';
+        $sql .= 'SELECT ' . $columnsListEscapedSelect($importColumns,
+                't', $nullify) . ' FROM ' . $this->quoteIdentifier($sourceTable) . ' t ';
         $sql .= 'ON DUPLICATE KEY UPDATE ';
 
         $sql .= implode(', ', array_map(function ($columnName) use ($connection) {
