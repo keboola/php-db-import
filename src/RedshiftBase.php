@@ -53,13 +53,20 @@ abstract class RedshiftBase implements ImportInterface
                 $tableName,
                 $primaryKey,
                 $columns,
-                $options['useTimestamp']
+                $options['useTimestamp'],
+                isset($options["nullable"]) ? $options["nullable"] : []
             );
         } else {
             Debugger::timer('dedup');
             $this->dedup($stagingTableName, $columns, $primaryKey);
             $this->addTimer('dedup', Debugger::timer('dedup'));
-            $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns, $options['useTimestamp']);
+            $this->insertAllIntoTargetTable(
+                $stagingTableName,
+                $tableName,
+                $columns,
+                $options['useTimestamp'],
+                isset($options["nullable"]) ? $options["nullable"] : []
+            );
         }
         $this->dropTempTable($stagingTableName);
         $this->importedColumns = $columns;
@@ -92,7 +99,14 @@ abstract class RedshiftBase implements ImportInterface
         }
     }
 
-    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true)
+    /**
+     * @param $stagingTempTableName
+     * @param $targetTableName
+     * @param $columns
+     * @param bool $useTimestamp
+     * @param array $nullable
+     */
+    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true, array $nullable = [])
     {
         $this->connection->beginTransaction();
 
@@ -101,15 +115,22 @@ abstract class RedshiftBase implements ImportInterface
 
         $this->query('TRUNCATE TABLE ' . $targetTableNameWithSchema);
 
-        $columnsSql = implode(', ', array_map(function ($column) {
+        $columnsSql = implode(', ', array_map(function ($column) use ($nullable) {
+            return $this->quoteIdentifier($column);
+        }, $columns));
+
+        $columnsSelectSql = implode(', ', array_map(function ($column) use ($nullable) {
+            if (in_array($column, $nullable)) {
+                return "CASE {$this->quoteIdentifier($column)} WHEN '' THEN NULL ELSE {$this->quoteIdentifier($column)} END";
+            }
             return $this->quoteIdentifier($column);
         }, $columns));
 
         $now = $this->getNowFormatted();
         if (in_array('_timestamp', $columns) || $useTimestamp === false) {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSql FROM $stagingTableNameEscaped)";
+            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSelectSql FROM $stagingTableNameEscaped)";
         } else {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, _timestamp) (SELECT $columnsSql, '{$now}' FROM $stagingTableNameEscaped)";
+            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, _timestamp) (SELECT $columnsSelectSql, '{$now}' FROM $stagingTableNameEscaped)";
         }
 
         Debugger::timer('copyFromStagingToTarget');
@@ -123,15 +144,18 @@ abstract class RedshiftBase implements ImportInterface
      * Performs merge operation according to http://docs.aws.amazon.com/redshift/latest/dg/merge-specify-a-column-list.html
      * @param $stagingTempTableName
      * @param $targetTableName
+     * @param array $primaryKey
      * @param $columns
-     * @param $useTimestamp
+     * @param bool $useTimestamp
+     * @param array $nullable
      */
     private function insertOrUpdateTargetTable(
         $stagingTempTableName,
         $targetTableName,
         array $primaryKey,
         $columns,
-        $useTimestamp = true
+        $useTimestamp = true,
+        array $nullable = []
     ) {
         $this->connection->beginTransaction();
         $nowFormatted = $this->getNowFormatted();
@@ -208,7 +232,7 @@ abstract class RedshiftBase implements ImportInterface
         }
 
         // Insert from staging to target table
-        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) {
+        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) use ($nullable) {
             return $this->quoteIdentifier($column);
         }, $columns));
 
@@ -217,13 +241,23 @@ abstract class RedshiftBase implements ImportInterface
         $columnsSetSql = [];
 
         foreach ($columns as $columnName) {
-            $columnsSetSql[] = sprintf(
-                "%s.%s",
-                $stagingTableNameEscaped,
-                $this->quoteIdentifier($columnName)
-            );
+            if (in_array($columnName, $nullable)) {
+                $columnsSetSql[] = sprintf(
+                    "CASE %s.%s WHEN '' THEN NULL ELSE %s.%s END",
+                    $stagingTableNameEscaped,
+                    $this->quoteIdentifier($columnName),
+                    $stagingTableNameEscaped,
+                    $this->quoteIdentifier($columnName)
+                );
+            } else {
+                $columnsSetSql[] = sprintf(
+                    "%s.%s",
+                    $stagingTableNameEscaped,
+                    $this->quoteIdentifier($columnName)
+                );
+            }
         }
-        $sql .= "SELECT " . implode(',', $columnsSetSql);
+        $sql .= "SELECT " . implode(', ', $columnsSetSql);
         $sql .= ($useTimestamp) ? ", '{$nowFormatted}' " : "";
         $sql .= "FROM " . $stagingTableNameEscaped;
         Debugger::timer('insertIntoTargetFromStaging');
@@ -269,19 +303,19 @@ abstract class RedshiftBase implements ImportInterface
             return;
         }
 
-        $pkSql = implode(',', array_map(function ($column) {
+        $pkSql = implode(', ', array_map(function ($column) {
             return $this->quoteIdentifier($column);
         }, $primaryKey));
 
         $sql = "SELECT ";
 
-        $sql .= implode(",", array_map(function ($column) {
+        $sql .= implode(", ", array_map(function ($column) {
             return "a." . $this->quoteIdentifier($column);
         }, $columns));
 
         $sql .= sprintf(
             " FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"_row_number_\" FROM %s)",
-            implode(",", array_map(function ($column) {
+            implode(", ", array_map(function ($column) {
                 return $this->quoteIdentifier($column);
             }, $columns)),
             $pkSql,
@@ -318,7 +352,7 @@ abstract class RedshiftBase implements ImportInterface
                     ADD PRIMARY KEY (%s)
                 ",
                 $tableIdentifier,
-                implode(',', array_map(function ($columnName) {
+                implode(', ', array_map(function ($columnName) {
                     return $this->quoteIdentifier($columnName);
                 }, $primaryKey))
             ));
