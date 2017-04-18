@@ -184,7 +184,7 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
                 new CsvFile(__DIR__ . "/_data/csv-import/nullify.csv"),
             ],
             [
-                "nullify" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"]
             ]
         );
 
@@ -210,7 +210,7 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
                 new CsvFile(__DIR__ . "/_data/csv-import/nullify.csv"),
             ],
             [
-                "nullify" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"]
             ]
         );
 

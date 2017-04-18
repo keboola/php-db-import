@@ -643,7 +643,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 "useTimestamp" => false,
-                "nullify" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"]
             ]
         );
 
@@ -672,7 +672,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 "useTimestamp" => false,
-                "nullify" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"]
             ]
         );
 
@@ -702,7 +702,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 "useTimestamp" => false,
-                "nullify" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"]
             ]
         );
 
@@ -733,7 +733,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 "useTimestamp" => false,
-                "nullify" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"]
             ]
         );
 

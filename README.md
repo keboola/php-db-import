@@ -13,7 +13,7 @@ Handling of large bulk data into database tables.
 - Full load - destination table is truncated before load
 - Incremental load - data are merged
 - Primary key dedup for all engines
-- Convert empty strings to `NULL` (using `nullify` option)
+- Convert empty values to `NULL` (using `convertEmptyValuesToNull` option)
 
 ### Development
 

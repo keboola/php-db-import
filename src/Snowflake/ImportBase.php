@@ -65,7 +65,7 @@ abstract class ImportBase implements ImportInterface
                     $tableName,
                     $columns,
                     isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                    isset($options["nullify"]) ? $options["nullify"] : []
+                    isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
                 );
             } else {
                 Debugger::timer('dedup');
@@ -80,7 +80,7 @@ abstract class ImportBase implements ImportInterface
                     $tableName,
                     $columns,
                     isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                    isset($options["nullify"]) ? $options["nullify"] : []
+                    isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
                 );
             }
             $this->dropTable($stagingTableName);
@@ -122,7 +122,7 @@ abstract class ImportBase implements ImportInterface
         }
     }
 
-    private function insertAllIntoTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $nullify = [])
+    private function insertAllIntoTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
     {
         $this->connection->query('BEGIN TRANSACTION');
 
@@ -143,8 +143,8 @@ abstract class ImportBase implements ImportInterface
             );
         }, $columns));
 
-        $columnsSetSqlSelect = implode(', ', array_map(function ($column) use ($nullify) {
-            if (in_array($column, $nullify)) {
+        $columnsSetSqlSelect = implode(', ', array_map(function ($column) use ($convertEmptyValuesToNull) {
+            if (in_array($column, $convertEmptyValuesToNull)) {
                 return sprintf(
                     'IFF(%s = \'\', NULL, %s)',
                     $this->quoteIdentifier($column),
@@ -179,9 +179,9 @@ abstract class ImportBase implements ImportInterface
      * @param $targetTableName
      * @param $columns
      * @param bool $useTimestamp
-     * @param array $nullify
+     * @param array $convertEmptyValuesToNull
      */
-    private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $nullify = [])
+    private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
     {
         $this->connection->query('BEGIN TRANSACTION');
         $nowFormatted = $this->getNowFormatted();
@@ -260,7 +260,7 @@ abstract class ImportBase implements ImportInterface
         $columnsSetSql = [];
 
         foreach ($columns as $columnName) {
-            if (in_array($columnName, $nullify)) {
+            if (in_array($columnName, $convertEmptyValuesToNull)) {
                 $columnsSetSql[] = sprintf(
                     'IFF("src".%s = \'\', NULL, %s)',
                     $this->quoteIdentifier($columnName),

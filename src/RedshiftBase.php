@@ -37,7 +37,7 @@ abstract class RedshiftBase implements ImportInterface
      * @param array $options
      *  - useTimestamp - update and use timestamp column. default true
      *  - copyOptions - additional copy options for import command
-     *  - nullify - convert empty values to NULL
+     *  - convertEmptyValuesToNull - convert empty values to NULL
      * @return mixed
      */
     public function import($tableName, $columns, array $sourceData, array $options = [])
@@ -55,7 +55,7 @@ abstract class RedshiftBase implements ImportInterface
                 $primaryKey,
                 $columns,
                 isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                isset($options["nullify"]) ? $options["nullify"] : []
+                isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
             );
         } else {
             Debugger::timer('dedup');
@@ -66,7 +66,7 @@ abstract class RedshiftBase implements ImportInterface
                 $tableName,
                 $columns,
                 isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                isset($options["nullify"]) ? $options["nullify"] : []
+                isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
             );
         }
         $this->dropTempTable($stagingTableName);
@@ -105,9 +105,9 @@ abstract class RedshiftBase implements ImportInterface
      * @param $targetTableName
      * @param $columns
      * @param bool $useTimestamp
-     * @param array $nullify
+     * @param array $convertEmptyValuesToNull
      */
-    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true, array $nullify = [])
+    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
     {
         $this->connection->beginTransaction();
 
@@ -120,8 +120,8 @@ abstract class RedshiftBase implements ImportInterface
             return $this->quoteIdentifier($column);
         }, $columns));
 
-        $columnsSelectSql = implode(', ', array_map(function ($column) use ($nullify) {
-            if (in_array($column, $nullify)) {
+        $columnsSelectSql = implode(', ', array_map(function ($column) use ($convertEmptyValuesToNull) {
+            if (in_array($column, $convertEmptyValuesToNull)) {
                 return "CASE {$this->quoteIdentifier($column)} WHEN '' THEN NULL ELSE {$this->quoteIdentifier($column)} END";
             }
             return $this->quoteIdentifier($column);
@@ -148,7 +148,7 @@ abstract class RedshiftBase implements ImportInterface
      * @param array $primaryKey
      * @param $columns
      * @param bool $useTimestamp
-     * @param array $nullify
+     * @param array $convertEmptyValuesToNull
      */
     private function insertOrUpdateTargetTable(
         $stagingTempTableName,
@@ -156,7 +156,7 @@ abstract class RedshiftBase implements ImportInterface
         array $primaryKey,
         $columns,
         $useTimestamp = true,
-        array $nullify = []
+        array $convertEmptyValuesToNull = []
     ) {
         $this->connection->beginTransaction();
         $nowFormatted = $this->getNowFormatted();
@@ -233,7 +233,7 @@ abstract class RedshiftBase implements ImportInterface
         }
 
         // Insert from staging to target table
-        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) use ($nullify) {
+        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) use ($convertEmptyValuesToNull) {
             return $this->quoteIdentifier($column);
         }, $columns));
 
@@ -242,7 +242,7 @@ abstract class RedshiftBase implements ImportInterface
         $columnsSetSql = [];
 
         foreach ($columns as $columnName) {
-            if (in_array($columnName, $nullify)) {
+            if (in_array($columnName, $convertEmptyValuesToNull)) {
                 $columnsSetSql[] = sprintf(
                     "CASE %s.%s WHEN '' THEN NULL ELSE %s.%s END",
                     $stagingTableNameEscaped,

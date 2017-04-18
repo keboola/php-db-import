@@ -53,7 +53,7 @@ class CsvImportMysql implements ImportInterface
                 $stagingTableName,
                 $columns,
                 $csvFile,
-                isset($options["nullify"]) ? $options["nullify"] : []
+                isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
             );
         }
 
@@ -63,7 +63,7 @@ class CsvImportMysql implements ImportInterface
                 $stagingTableName,
                 $tableName,
                 $importColumns,
-                isset($options["nullify"]) ? $options["nullify"] : []
+                isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
             );
         } else {
             $this->swapTables($stagingTableName, $tableName);
@@ -98,7 +98,7 @@ class CsvImportMysql implements ImportInterface
         return str_replace('.', '_', uniqid('csvImport', true));
     }
 
-    protected function importTableColumnsAll($tableName, $columns, CsvFile $csvFile, array $nullify = [])
+    protected function importTableColumnsAll($tableName, $columns, CsvFile $csvFile, array $convertEmptyValuesToNull = [])
     {
         $importColumns = $this->tableColumns($tableName);
 
@@ -147,9 +147,9 @@ class CsvImportMysql implements ImportInterface
             }, $columns));
         };
 
-        $columnsListEscapedSelect = function ($columns, $prefix = null, $nullify = []) {
-            return implode(', ', array_map(function ($columnName) use ($prefix, $nullify) {
-                if (in_array($columnName, $nullify)) {
+        $columnsListEscapedSelect = function ($columns, $prefix = null, $convertEmptyValuesToNull = []) {
+            return implode(', ', array_map(function ($columnName) use ($prefix, $convertEmptyValuesToNull) {
+                if (in_array($columnName, $convertEmptyValuesToNull)) {
                     $column = ($prefix ? $prefix . '.' : '') . $this->quoteIdentifier($columnName);
                     return "IF({$column} = '', NULL, {$column})";
                 }
@@ -157,16 +157,16 @@ class CsvImportMysql implements ImportInterface
             }, $columns));
         };
 
-        // nullify
+        // convertEmptyValuesToNull
         $sql = 'INSERT INTO ' . $this->quoteIdentifier($tableName) . ' (';
         $sql .= $columnsListEscaped($importColumns);
         $sql .= ') ';
         $sql .= 'SELECT ' . $columnsListEscapedSelect($importColumns,
-                't', $nullify) . ' FROM ' . $this->quoteIdentifier($stagingTableName) . ' t ';
+                't', $convertEmptyValuesToNull) . ' FROM ' . $this->quoteIdentifier($stagingTableName) . ' t ';
         $this->query($sql);
     }
 
-    protected function insertOrUpdateTargetTable($sourceTable, $targetTable, $importColumns, array $nullify = [])
+    protected function insertOrUpdateTargetTable($sourceTable, $targetTable, $importColumns, array $convertEmptyValuesToNull = [])
     {
         Debugger::timer('csvImport.insertIntoTargetTable');
 
@@ -178,9 +178,9 @@ class CsvImportMysql implements ImportInterface
             }, $columns));
         };
 
-        $columnsListEscapedSelect = function ($columns, $prefix = null, $nullify = []) {
-            return implode(', ', array_map(function ($columnName) use ($prefix, $nullify) {
-                if (in_array($columnName, $nullify)) {
+        $columnsListEscapedSelect = function ($columns, $prefix = null, $convertEmptyValuesToNull = []) {
+            return implode(', ', array_map(function ($columnName) use ($prefix, $convertEmptyValuesToNull) {
+                if (in_array($columnName, $convertEmptyValuesToNull)) {
                     $column = ($prefix ? $prefix . '.' : '') . $this->quoteIdentifier($columnName);
                     return "IF({$column} = '', NULL, {$column})";
                 }
@@ -193,7 +193,7 @@ class CsvImportMysql implements ImportInterface
         $sql .= ') ';
 
         $sql .= 'SELECT ' . $columnsListEscapedSelect($importColumns,
-                't', $nullify) . ' FROM ' . $this->quoteIdentifier($sourceTable) . ' t ';
+                't', $convertEmptyValuesToNull) . ' FROM ' . $this->quoteIdentifier($sourceTable) . ' t ';
         $sql .= 'ON DUPLICATE KEY UPDATE ';
 
         $sql .= implode(', ', array_map(function ($columnName) use ($connection) {
