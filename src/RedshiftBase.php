@@ -116,7 +116,7 @@ abstract class RedshiftBase implements ImportInterface
 
         $this->query('TRUNCATE TABLE ' . $targetTableNameWithSchema);
 
-        $columnsSql = implode(', ', array_map(function ($column) use ($nullify) {
+        $columnsSql = implode(', ', array_map(function ($column) {
             return $this->quoteIdentifier($column);
         }, $columns));
 
