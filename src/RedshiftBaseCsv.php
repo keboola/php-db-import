@@ -42,11 +42,11 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         try {
             Debugger::timer('copyToStaging');
             $copyOptions = [
-                'isManifest' => $options['isManifest'],
+                'isManifest' => isset($options['isManifest']) ? $options['isManifest'] : false,
                 'copyOptions' => isset($options['copyOptions']) ? $options['copyOptions'] : [],
             ];
 
-            if ($options['isManifest']) {
+            if (isset($options['isManifest']) && $options['isManifest']) {
                 $manifest = $this->downloadManifest($csvFile->getPathname());
 
                 // empty manifest handling - do nothing
@@ -116,7 +116,9 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         $command .= " IGNOREHEADER " . $this->getIgnoreLines();
 
         // custom options
-        $command .= " " . implode(" ", $options['copyOptions']);
+        if (!empty($options['copyOptions'])) {
+            $command .= " " . implode(" ", $options['copyOptions']);
+        }
 
         return $command;
     }

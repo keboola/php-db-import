@@ -136,7 +136,7 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
     public function testInvalidTableImportShouldThrowException()
     {
         $csvFile = new CsvFile(__DIR__ . "/_data/csv-import/tw_accounts.csv");
-        $this->setExpectedException("Keboola\Db\Import\Exception", '', \Keboola\Db\Import\Exception::TABLE_NOT_EXISTS);
+        $this->setExpectedException("Keboola\\Db\\Import\\Exception", '', \Keboola\Db\Import\Exception::TABLE_NOT_EXISTS);
         $this->import
             ->setIncremental(true)
             ->setIgnoreLines(1)
@@ -146,7 +146,7 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
     public function testEmptyFileShouldThrowsException()
     {
         $csvFile = new CsvFile(__DIR__ . "/_data/csv-import/empty.csv");
-        $this->setExpectedException("Keboola\Db\Import\Exception", '', \Keboola\Db\Import\Exception::NO_COLUMNS);
+        $this->setExpectedException("Keboola\\Db\\Import\\Exception", '', \Keboola\Db\Import\Exception::NO_COLUMNS);
         $this->import
             ->setIgnoreLines(1)
             ->import('csv_accounts', $csvFile->getHeader(), [$csvFile]);
@@ -155,7 +155,7 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
     public function testEmptyFilePartialShouldThrowsException()
     {
         $csvFile = new CsvFile(__DIR__ . "/_data/csv-import/empty.csv");
-        $this->setExpectedException("Keboola\Db\Import\Exception", '', \Keboola\Db\Import\Exception::NO_COLUMNS);
+        $this->setExpectedException("Keboola\\Db\\Import\\Exception", '', \Keboola\Db\Import\Exception::NO_COLUMNS);
         $this->import
             ->import('csv_accounts', $csvFile->getHeader(), [$csvFile]);
     }
@@ -163,9 +163,62 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
     public function testRowTooLongShouldThrowException()
     {
         $csvFile = new CsvFile(__DIR__ . "/_data/csv-import/very-long-row.csv");
-        $this->setExpectedException("Keboola\Db\Import\Exception", '', \Keboola\Db\Import\Exception::ROW_SIZE_TOO_LARGE);
+        $this->setExpectedException("Keboola\\Db\\Import\\Exception", '', \Keboola\Db\Import\Exception::ROW_SIZE_TOO_LARGE);
         $this->import
             ->import('very-long-row', $csvFile->getHeader(), [$csvFile]);
+    }
+
+
+    public function testNullifyCsv()
+    {
+
+        $this->getConnection()->getConnection()->query("DROP TABLE IF EXISTS `nullify`");
+        $this->getConnection()->getConnection()->query("CREATE TABLE `nullify` (id VARCHAR(255), name VARCHAR(255), price VARCHAR(255))");
+
+        $import = $this->import;
+        $import->setIgnoreLines(1);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                new CsvFile(__DIR__ . "/_data/csv-import/nullify.csv"),
+            ],
+            [
+                "convertEmptyValuesToNull" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->getConnection()->getConnection()->query("SELECT id, name, price FROM `nullify` ORDER BY id ASC")->fetchAll();
+        $this->assertCount(3, $importedData);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["price"]);
+    }
+
+    public function testNullifyCsvIncremental()
+    {
+        $this->getConnection()->getConnection()->query("DROP TABLE IF EXISTS `nullify`");
+        $this->getConnection()->getConnection()->query("CREATE TABLE `nullify` (id VARCHAR(255), name VARCHAR(255), price VARCHAR(255))");
+        $this->getConnection()->getConnection()->query("INSERT INTO `nullify` VALUES('4', NULL, 5)");
+
+        $import = $this->import;
+        $import->setIgnoreLines(1);
+        $import->setIncremental(true);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                new CsvFile(__DIR__ . "/_data/csv-import/nullify.csv"),
+            ],
+            [
+                "convertEmptyValuesToNull" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->getConnection()->getConnection()->query("SELECT id, name, price FROM `nullify` ORDER BY id ASC")->fetchAll();
+        $this->assertCount(4, $importedData);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["price"]);
+        $this->assertTrue(null === $importedData[3]["name"]);
     }
 
     public function tables()

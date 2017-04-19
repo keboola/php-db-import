@@ -37,9 +37,10 @@ abstract class RedshiftBase implements ImportInterface
      * @param array $options
      *  - useTimestamp - update and use timestamp column. default true
      *  - copyOptions - additional copy options for import command
+     *  - convertEmptyValuesToNull - convert empty values to NULL
      * @return mixed
      */
-    public function import($tableName, $columns, array $sourceData, array $options = ["useTimestamp" => true, "copyOptions" => []])
+    public function import($tableName, $columns, array $sourceData, array $options = [])
     {
         $this->validateColumns($tableName, $columns);
         $primaryKey = $this->getTablePrimaryKey($tableName);
@@ -53,13 +54,20 @@ abstract class RedshiftBase implements ImportInterface
                 $tableName,
                 $primaryKey,
                 $columns,
-                $options['useTimestamp']
+                isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
+                isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
             );
         } else {
             Debugger::timer('dedup');
             $this->dedup($stagingTableName, $columns, $primaryKey);
             $this->addTimer('dedup', Debugger::timer('dedup'));
-            $this->insertAllIntoTargetTable($stagingTableName, $tableName, $columns, $options['useTimestamp']);
+            $this->insertAllIntoTargetTable(
+                $stagingTableName,
+                $tableName,
+                $columns,
+                isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
+                isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
+            );
         }
         $this->dropTempTable($stagingTableName);
         $this->importedColumns = $columns;
@@ -92,7 +100,14 @@ abstract class RedshiftBase implements ImportInterface
         }
     }
 
-    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true)
+    /**
+     * @param $stagingTempTableName
+     * @param $targetTableName
+     * @param $columns
+     * @param bool $useTimestamp
+     * @param array $convertEmptyValuesToNull
+     */
+    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
     {
         $this->connection->beginTransaction();
 
@@ -105,11 +120,18 @@ abstract class RedshiftBase implements ImportInterface
             return $this->quoteIdentifier($column);
         }, $columns));
 
+        $columnsSelectSql = implode(', ', array_map(function ($column) use ($convertEmptyValuesToNull) {
+            if (in_array($column, $convertEmptyValuesToNull)) {
+                return "CASE {$this->quoteIdentifier($column)} WHEN '' THEN NULL ELSE {$this->quoteIdentifier($column)} END";
+            }
+            return $this->quoteIdentifier($column);
+        }, $columns));
+
         $now = $this->getNowFormatted();
         if (in_array('_timestamp', $columns) || $useTimestamp === false) {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSql FROM $stagingTableNameEscaped)";
+            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSelectSql FROM $stagingTableNameEscaped)";
         } else {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, _timestamp) (SELECT $columnsSql, '{$now}' FROM $stagingTableNameEscaped)";
+            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, _timestamp) (SELECT $columnsSelectSql, '{$now}' FROM $stagingTableNameEscaped)";
         }
 
         Debugger::timer('copyFromStagingToTarget');
@@ -123,15 +145,18 @@ abstract class RedshiftBase implements ImportInterface
      * Performs merge operation according to http://docs.aws.amazon.com/redshift/latest/dg/merge-specify-a-column-list.html
      * @param $stagingTempTableName
      * @param $targetTableName
+     * @param array $primaryKey
      * @param $columns
-     * @param $useTimestamp
+     * @param bool $useTimestamp
+     * @param array $convertEmptyValuesToNull
      */
     private function insertOrUpdateTargetTable(
         $stagingTempTableName,
         $targetTableName,
         array $primaryKey,
         $columns,
-        $useTimestamp = true
+        $useTimestamp = true,
+        array $convertEmptyValuesToNull = []
     ) {
         $this->connection->beginTransaction();
         $nowFormatted = $this->getNowFormatted();
@@ -208,7 +233,7 @@ abstract class RedshiftBase implements ImportInterface
         }
 
         // Insert from staging to target table
-        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) {
+        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) use ($convertEmptyValuesToNull) {
             return $this->quoteIdentifier($column);
         }, $columns));
 
@@ -217,15 +242,25 @@ abstract class RedshiftBase implements ImportInterface
         $columnsSetSql = [];
 
         foreach ($columns as $columnName) {
-            $columnsSetSql[] = sprintf(
-                "%s.%s",
-                $stagingTableNameEscaped,
-                $this->quoteIdentifier($columnName)
-            );
+            if (in_array($columnName, $convertEmptyValuesToNull)) {
+                $columnsSetSql[] = sprintf(
+                    "CASE %s.%s WHEN '' THEN NULL ELSE %s.%s END",
+                    $stagingTableNameEscaped,
+                    $this->quoteIdentifier($columnName),
+                    $stagingTableNameEscaped,
+                    $this->quoteIdentifier($columnName)
+                );
+            } else {
+                $columnsSetSql[] = sprintf(
+                    "%s.%s",
+                    $stagingTableNameEscaped,
+                    $this->quoteIdentifier($columnName)
+                );
+            }
         }
-        $sql .= "SELECT " . implode(',', $columnsSetSql);
-        $sql .= ($useTimestamp) ? ", '{$nowFormatted}' " : "";
-        $sql .= "FROM " . $stagingTableNameEscaped;
+        $sql .= "SELECT " . implode(', ', $columnsSetSql);
+        $sql .= ($useTimestamp) ? ", '{$nowFormatted}'" : "";
+        $sql .= " FROM " . $stagingTableNameEscaped;
         Debugger::timer('insertIntoTargetFromStaging');
         $this->query($sql);
         $this->addTimer('insertIntoTargetFromStaging', Debugger::timer('insertIntoTargetFromStaging'));
@@ -269,19 +304,19 @@ abstract class RedshiftBase implements ImportInterface
             return;
         }
 
-        $pkSql = implode(',', array_map(function ($column) {
+        $pkSql = implode(', ', array_map(function ($column) {
             return $this->quoteIdentifier($column);
         }, $primaryKey));
 
         $sql = "SELECT ";
 
-        $sql .= implode(",", array_map(function ($column) {
+        $sql .= implode(", ", array_map(function ($column) {
             return "a." . $this->quoteIdentifier($column);
         }, $columns));
 
         $sql .= sprintf(
             " FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"_row_number_\" FROM %s)",
-            implode(",", array_map(function ($column) {
+            implode(", ", array_map(function ($column) {
                 return $this->quoteIdentifier($column);
             }, $columns)),
             $pkSql,
@@ -318,7 +353,7 @@ abstract class RedshiftBase implements ImportInterface
                     ADD PRIMARY KEY (%s)
                 ",
                 $tableIdentifier,
-                implode(',', array_map(function ($columnName) {
+                implode(', ', array_map(function ($columnName) {
                     return $this->quoteIdentifier($columnName);
                 }, $primaryKey))
             ));

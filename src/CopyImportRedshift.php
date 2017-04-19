@@ -33,7 +33,11 @@ class CopyImportRedshift extends RedshiftBase
             if ($sourceColumnTypes[$column]['DATA_TYPE'] === 'bool') {
                 return sprintf('DECODE(%s, true, 1, 0) ', $this->quoteIdentifier($column));
             } else {
-                return "COALESCE(CAST({$this->quoteIdentifier($column)} as varchar), '') ";
+                if (isset($options["convertEmptyValuesToNull"]) && in_array($column, $options["convertEmptyValuesToNull"])) {
+                    return "NULLIF(CAST({$this->quoteIdentifier($column)} as varchar), '') ";
+                } else {
+                    return "COALESCE(CAST({$this->quoteIdentifier($column)} as varchar), '') ";
+                }
             }
         }, $columns)) . " FROM " . $this->nameWithSchemaEscaped($sourceData['tableName'], $sourceData['schemaName']);
 

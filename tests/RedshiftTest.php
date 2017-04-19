@@ -410,6 +410,122 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testNullifyCsv()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price VARCHAR)");
+
+        $import = $this->getImport('csv');
+        $import->setIgnoreLines(1);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                new CsvFile("s3://{$s3bucket}/nullify.csv"),
+            ],
+            [
+                "useTimestamp" => false,
+                "convertEmptyValuesToNull" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->connection->query("SELECT id, name, price FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY id ASC")->fetchAll();
+        $this->assertCount(3, $importedData);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["price"]);
+    }
+    
+    public function testNullifyCsvIncremental()
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price VARCHAR)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', NULL, 5)");
+
+        $import = $this->getImport('csv');
+        $import->setIgnoreLines(1);
+        $import->setIncremental(true);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                new CsvFile("s3://{$s3bucket}/nullify.csv"),
+            ],
+            [
+                "useTimestamp" => false,
+                "convertEmptyValuesToNull" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->connection->query("SELECT id, name, price FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY id ASC")->fetchAll();
+        $this->assertCount(4, $importedData);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["price"]);
+        $this->assertTrue(null === $importedData[3]["name"]);
+    }
+
+    public function testNullifyCopy()
+    {
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price VARCHAR)");
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify_src\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (id VARCHAR, name VARCHAR, price VARCHAR)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', 50), ('2', NULL, 500)");
+
+        $import = $this->getImport('copy');
+        $import->setIgnoreLines(1);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                "tableName" => "nullify_src",
+                "schemaName" => $this->destSchemaName
+            ],
+            [
+                "useTimestamp" => false,
+                "convertEmptyValuesToNull" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->connection->query("SELECT id, name, price FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY id ASC")->fetchAll();
+        $this->assertCount(2, $importedData);
+        $this->assertTrue(null === $importedData[0]["name"]);
+        $this->assertTrue(null === $importedData[1]["name"]);
+    }
+
+    public function testNullifyCopyIncremental()
+    {
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price VARCHAR)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('3', NULL, 5)");
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify_src\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (id VARCHAR, name VARCHAR, price VARCHAR)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', 50), ('2', NULL, 500)");
+
+        $import = $this->getImport('copy');
+        $import->setIgnoreLines(1);
+        $import->setIncremental(true);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                "tableName" => "nullify_src",
+                "schemaName" => $this->destSchemaName
+            ],
+            [
+                "useTimestamp" => false,
+                "convertEmptyValuesToNull" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->connection->query("SELECT id, name, price FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY id ASC")->fetchAll();
+        $this->assertCount(3, $importedData);
+        $this->assertTrue(null === $importedData[0]["name"]);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["name"]);
+    }
+
     public function tables()
     {
 
