@@ -122,7 +122,7 @@ abstract class RedshiftBase implements ImportInterface
 
         $columnsSelectSql = implode(', ', array_map(function ($column) use ($convertEmptyValuesToNull) {
             if (in_array($column, $convertEmptyValuesToNull)) {
-                return "CASE {$this->quoteIdentifier($column)} WHEN '' THEN NULL ELSE {$this->quoteIdentifier($column)} END";
+                return "CASE {$this->quoteIdentifier($column)}::VARCHAR WHEN '' THEN NULL ELSE {$this->quoteIdentifier($column)} END";
             }
             return $this->quoteIdentifier($column);
         }, $columns));
@@ -244,7 +244,7 @@ abstract class RedshiftBase implements ImportInterface
         foreach ($columns as $columnName) {
             if (in_array($columnName, $convertEmptyValuesToNull)) {
                 $columnsSetSql[] = sprintf(
-                    "CASE %s.%s WHEN '' THEN NULL ELSE %s.%s END",
+                    "CASE %s.%s::VARCHAR WHEN '' THEN NULL ELSE %s.%s END",
                     $stagingTableNameEscaped,
                     $this->quoteIdentifier($columnName),
                     $stagingTableNameEscaped,
