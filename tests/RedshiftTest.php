@@ -414,7 +414,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price VARCHAR)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price INTEGER)");
 
         $import = $this->getImport('csv');
         $import->setIgnoreLines(1);
@@ -440,8 +440,8 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price VARCHAR)");
-        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', NULL, 5)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price INTEGER)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', NULL, NULL)");
 
         $import = $this->getImport('csv');
         $import->setIgnoreLines(1);
@@ -463,6 +463,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(null === $importedData[1]["name"]);
         $this->assertTrue(null === $importedData[2]["price"]);
         $this->assertTrue(null === $importedData[3]["name"]);
+        $this->assertTrue(null === $importedData[3]["price"]);
     }
 
     public function testNullifyCopy()
@@ -471,7 +472,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price VARCHAR)");
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify_src\" ");
         $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (id VARCHAR, name VARCHAR, price VARCHAR)");
-        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', 50), ('2', NULL, 500)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', NULL), ('2', NULL, 500)");
 
         $import = $this->getImport('copy');
         $import->setIgnoreLines(1);
@@ -491,6 +492,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $importedData = $this->connection->query("SELECT id, name, price FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY id ASC")->fetchAll();
         $this->assertCount(2, $importedData);
         $this->assertTrue(null === $importedData[0]["name"]);
+        $this->assertTrue(null === $importedData[0]["price"]);
         $this->assertTrue(null === $importedData[1]["name"]);
     }
 
@@ -501,7 +503,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('3', NULL, 5)");
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify_src\" ");
         $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (id VARCHAR, name VARCHAR, price VARCHAR)");
-        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', 50), ('2', NULL, 500)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', NULL), ('2', NULL, 500)");
 
         $import = $this->getImport('copy');
         $import->setIgnoreLines(1);
@@ -524,6 +526,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(null === $importedData[0]["name"]);
         $this->assertTrue(null === $importedData[1]["name"]);
         $this->assertTrue(null === $importedData[2]["name"]);
+        $this->assertTrue(null === $importedData[0]["price"]);
     }
 
     public function tables()

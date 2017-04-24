@@ -631,7 +631,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC)");
 
         $import = $this->getImport('csv');
         $import->setIgnoreLines(1);
@@ -658,7 +658,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC)");
         $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', NULL, 50)");
 
         $import = $this->getImport('csv');
@@ -686,10 +686,10 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
     public function testNullifyCopy()
     {
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC)");
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify_src\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
-        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', 50), ('2', NULL, 500)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', NULL), ('2', NULL, 500)");
 
         $import = $this->getImport('copy');
         $import->setIgnoreLines(1);
@@ -709,17 +709,18 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
         $this->assertCount(2, $importedData);
         $this->assertTrue(null === $importedData[0]["name"]);
+        $this->assertTrue(null === $importedData[0]["price"]);
         $this->assertTrue(null === $importedData[1]["name"]);
     }
 
     public function testNullifyCopyIncremental()
     {
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC)");
         $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', NULL, 50)");
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify_src\" ");
-        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" VARCHAR)");
-        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', 50), ('2', NULL, 500)");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC)");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', NULL), ('2', NULL, 500)");
 
         $import = $this->getImport('copy');
         $import->setIgnoreLines(1);
@@ -740,6 +741,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
         $this->assertCount(3, $importedData);
         $this->assertTrue(null === $importedData[0]["name"]);
+        $this->assertTrue(null === $importedData[0]["price"]);
         $this->assertTrue(null === $importedData[1]["name"]);
         $this->assertTrue(null === $importedData[2]["name"]);
     }

@@ -137,7 +137,7 @@ abstract class ImportBase implements ImportInterface
 
         $columnsSetSql = implode(', ', array_map(function ($column) {
             return sprintf(
-                "COALESCE(%s,'') AS %s",
+                "COALESCE(%s, '') AS %s",
                 $this->quoteIdentifier($column),
                 $this->quoteIdentifier($column)
             );
