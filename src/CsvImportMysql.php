@@ -147,13 +147,29 @@ class CsvImportMysql implements ImportInterface
             }, $columns));
         };
 
-        $columnsListEscapedSelect = function ($columns, $prefix = null, $convertEmptyValuesToNull = []) {
+        $columnsListEscapedSelect = function ($columns, $prefix, $convertEmptyValuesToNull) {
             return implode(', ', array_map(function ($columnName) use ($prefix, $convertEmptyValuesToNull) {
                 if (in_array($columnName, $convertEmptyValuesToNull)) {
-                    $column = ($prefix ? $prefix . '.' : '') . $this->quoteIdentifier($columnName);
+                    $column = $prefix . '.' . $this->quoteIdentifier($columnName);
                     return "IF({$column} = '', NULL, {$column})";
                 }
                 return ($prefix ? $prefix . '.' : '') . $this->quoteIdentifier($columnName);
+            }, $columns));
+        };
+
+        $updateDuplicateColumns = function ($columns, $prefix, $convertEmptyValuesToNull) {
+            return implode(', ', array_map(function ($columnName) use($prefix, $convertEmptyValuesToNull) {
+                if (in_array($columnName, $convertEmptyValuesToNull)) {
+                    return sprintf(
+                        "%s = IF(%s.%s = '', NULL, %s.%s)",
+                        $this->quoteIdentifier($columnName),
+                        $prefix,
+                        $this->quoteIdentifier($columnName),
+                        $prefix,
+                        $this->quoteIdentifier($columnName)
+                    );
+                }
+                return $this->quoteIdentifier($columnName) . ' = ' . $prefix . '.' . $this->quoteIdentifier($columnName);
             }, $columns));
         };
 
@@ -163,6 +179,9 @@ class CsvImportMysql implements ImportInterface
         $sql .= ') ';
         $sql .= 'SELECT ' . $columnsListEscapedSelect($importColumns,
                 't', $convertEmptyValuesToNull) . ' FROM ' . $this->quoteIdentifier($stagingTableName) . ' t ';
+        $sql .= 'ON DUPLICATE KEY UPDATE ';
+        $sql .= $updateDuplicateColumns($importColumns, 't', $convertEmptyValuesToNull);
+
         $this->query($sql);
     }
 

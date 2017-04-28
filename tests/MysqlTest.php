@@ -105,6 +105,64 @@ class CsvImportMysqlTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertEquals(7, $result->getImportedRowsCount());
     }
 
+    public function testImportMultipleFilesPrimaryKeyDedupe()
+    {
+        $this->getConnection()->getConnection()->query("DROP TABLE IF EXISTS `pk_test`");
+        $this->getConnection()->getConnection()->query("CREATE TABLE `pk_test` (id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY (`id`))");
+
+        $this->import
+            ->setIgnoreLines(0)
+            ->import(
+                'pk_test',
+                ['id', 'name'],
+                [
+                    new CsvFile(__DIR__ . '/_data/csv-import/pk_test.part-1.csv'),
+                    new CsvFile(__DIR__ . '/_data/csv-import/pk_test.part-2.csv'),
+                ]
+            );
+
+        $importedData = $this->getConnection()->getConnection()->query("SELECT id, name FROM `pk_test` ORDER BY id ASC")->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertCount(5, $importedData);
+
+        $importedDataById = array_reduce($importedData, function ($result, $item) {
+            $result[$item['id']] = $item;
+            return $result;
+        }, []);
+        $this->assertInternalType('string', $importedDataById[4]['name']);
+        $this->assertEmpty($importedDataById[4]['name']);
+        $this->assertInternalType('string', $importedDataById[5]['name']);
+        $this->assertEmpty($importedDataById[5]['name']);
+    }
+
+    public function testImportMultipleFilesPrimaryKeyDedupeAndNullify()
+    {
+        $this->getConnection()->getConnection()->query("DROP TABLE IF EXISTS `pk_test`");
+        $this->getConnection()->getConnection()->query("CREATE TABLE `pk_test` (id VARCHAR(255) NOT NULL, name VARCHAR(255), PRIMARY KEY (`id`))");
+
+        $this->import
+            ->setIgnoreLines(0)
+            ->import(
+                'pk_test',
+                ['id', 'name'],
+                [
+                    new CsvFile(__DIR__ . '/_data/csv-import/pk_test.part-1.csv'),
+                    new CsvFile(__DIR__ . '/_data/csv-import/pk_test.part-2.csv'),
+                ],
+                [
+                    "convertEmptyValuesToNull" => ["name"],
+                ]
+            );
+
+        $importedData = $this->getConnection()->getConnection()->query("SELECT id, name FROM `pk_test` ORDER BY id ASC")->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertCount(5, $importedData);
+        $importedDataById = array_reduce($importedData, function ($result, $item) {
+            $result[$item['id']] = $item;
+            return $result;
+        }, []);
+        $this->assertNull($importedDataById[4]['name']);
+        $this->assertNull($importedDataById[5]['name']);
+    }
+
     /**
      * @TODO fix this, exception should not be thrown
      */
