@@ -158,7 +158,7 @@ class CsvImportMysql implements ImportInterface
         };
 
         $updateDuplicateColumns = function ($columns, $prefix, $convertEmptyValuesToNull) {
-            return implode(', ', array_map(function ($columnName) use($prefix, $convertEmptyValuesToNull) {
+            return implode(', ', array_map(function ($columnName) use ($prefix, $convertEmptyValuesToNull) {
                 if (in_array($columnName, $convertEmptyValuesToNull)) {
                     return sprintf(
                         "%s = IF(%s.%s = '', NULL, %s.%s)",
