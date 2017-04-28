@@ -135,14 +135,6 @@ abstract class ImportBase implements ImportInterface
             return $this->quoteIdentifier($column);
         }, $columns));
 
-        $columnsSetSql = implode(', ', array_map(function ($column) {
-            return sprintf(
-                "COALESCE(%s, '') AS %s",
-                $this->quoteIdentifier($column),
-                $this->quoteIdentifier($column)
-            );
-        }, $columns));
-
         $columnsSetSqlSelect = implode(', ', array_map(function ($column) use ($convertEmptyValuesToNull) {
             if (in_array($column, $convertEmptyValuesToNull)) {
                 return sprintf(
