@@ -62,6 +62,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $connection->query('DROP TABLE "' . $this->destSchemaName . '"."TEST" RESTRICT');
     }
 
+
     public function testConnectionEncoding()
     {
         $connection = new Connection([
@@ -84,6 +85,36 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
                 'COL2' => 'módní doplňky.cz',
             ],
         ], $data);
+    }
+
+    public function testSameConnections()
+    {
+        $connection1 = new Connection([
+            'host' => getenv('SNOWFLAKE_HOST'),
+            'port' => getenv('SNOWFLAKE_PORT'),
+            'database' => getenv('SNOWFLAKE_DATABASE'),
+            'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'user' => getenv('SNOWFLAKE_USER'),
+            'password' => getenv('SNOWFLAKE_PASSWORD'),
+        ]);
+
+        $connection2 = new Connection([
+            'host' => getenv('SNOWFLAKE_HOST'),
+            'port' => getenv('SNOWFLAKE_PORT'),
+            'database' => getenv('SNOWFLAKE_DATABASE'),
+            'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'user' => getenv('SNOWFLAKE_USER'),
+            'password' => getenv('SNOWFLAKE_PASSWORD'),
+        ]);
+
+        $this->assertEquals($connection1->fetchAll('show tables'), $connection2->fetchAll('show tables'));
+
+        // some dummy calls to avoid connection close
+        $connection1->quoteIdentifier('test');
+        $connection1 = null; // destroy
+
+        // this will throw error because odbc resource was destroyed by connection 1
+        $connection2->fetchAll('show tables');
     }
 
     public function testConnectionBinding()
