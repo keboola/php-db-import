@@ -32,6 +32,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->initData();
     }
 
+    protected function tearDown()
+    {
+        $this->connection = null;
+    }
+
     /**
      * This should not exhaust memory
      */
