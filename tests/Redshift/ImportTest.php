@@ -1,11 +1,11 @@
 <?php
 
-namespace Keboola\DbImportTest;
+namespace Keboola\DbImportTest\Redshift;
 
 use Keboola\Csv\CsvFile;
 use Keboola\Db\Import\Exception;
 
-class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
+class ImportTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var \PDO
@@ -397,7 +397,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     public function testInvalidManifestImport()
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/_data/csv-import/tw_accounts.csv");
+        $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/../_data/csv-import/tw_accounts.csv");
         $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/02_tw_accounts.csv.invalid.manifest");
 
         $import = $this->getImport('manifest');
@@ -533,7 +533,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
     {
 
         $expectedEscaping = [];
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/escaping/standard-with-enclosures.csv');
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/escaping/standard-with-enclosures.csv');
         foreach ($file as $row) {
             $expectedEscaping[] = $row;
         }
@@ -542,14 +542,14 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
 
 
         $expectedAccounts = [];
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv');
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.csv');
         foreach ($file as $row) {
             $expectedAccounts[] = $row;
         }
         $accountsHeader = array_shift($expectedAccounts); // remove header
         $expectedAccounts = array_values($expectedAccounts);
 
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.changedColumnsOrder.csv');
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv');
         $accountChangedColumnsOrderHeader = $file->getHeader();
 
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
@@ -605,7 +605,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $initialAccountsFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
         $incrementAccountsFile = new CsvFile("s3://{$s3bucket}/tw_accounts.increment.csv");
 
-        $expectationAccountsFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.tw_accounts.increment.csv');
+        $expectationAccountsFile = new CsvFile(__DIR__ . '/../_data/csv-import/expectation.tw_accounts.increment.csv');
         $expectedAccountsRows = [];
         foreach ($expectationAccountsFile as $row) {
             $expectedAccountsRows[] = $row;
@@ -617,7 +617,7 @@ class CsvImportRedshiftTest extends \PHPUnit_Framework_TestCase
         $initialMultiPkFile = new CsvFile("s3://{$s3bucket}/multi-pk.csv");
         $incrementMultiPkFile = new CsvFile("s3://{$s3bucket}/multi-pk.increment.csv");
 
-        $expectationMultiPkFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.multi-pk.increment.csv');
+        $expectationMultiPkFile = new CsvFile(__DIR__ . '/../_data/csv-import/expectation.multi-pk.increment.csv');
         $expectedMultiPkRows = [];
         foreach ($expectationMultiPkFile as $row) {
             $expectedMultiPkRows[] = $row;

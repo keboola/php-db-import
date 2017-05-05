@@ -1,12 +1,12 @@
 <?php
 
-namespace Keboola\DbImportTest;
+namespace Keboola\DbImportTest\Snowflake;
 
 use Keboola\Csv\CsvFile;
 use Keboola\Db\Import\Exception;
 use Keboola\Db\Import\Snowflake\Connection;
 
-class SnowflakeTest extends \PHPUnit_Framework_TestCase
+class ImportTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var Connection
@@ -32,69 +32,9 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $this->initData();
     }
 
-    public function testConnectionWithoutDbAndWarehouse()
+    protected function tearDown()
     {
-        $connection = new Connection([
-            'host' => getenv('SNOWFLAKE_HOST'),
-            'port' => getenv('SNOWFLAKE_PORT'),
-            'user' => getenv('SNOWFLAKE_WAREHOUSE'),
-            'password' => getenv('SNOWFLAKE_PASSWORD'),
-        ]);
-
-        $databases = $connection->fetchAll('SHOW DATABASES');
-        $this->assertNotEmpty($databases);
-    }
-
-    public function testConnectionWithDefaultDbAndWarehouse()
-    {
-        $connection = new Connection([
-            'host' => getenv('SNOWFLAKE_HOST'),
-            'port' => getenv('SNOWFLAKE_PORT'),
-            'database' => getenv('SNOWFLAKE_DATABASE'),
-            'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
-            'user' => getenv('SNOWFLAKE_WAREHOUSE'),
-            'password' => getenv('SNOWFLAKE_PASSWORD'),
-        ]);
-
-        // test that we are able to create and query tables
-        $connection->query('CREATE TABLE "' . $this->destSchemaName . '"."TEST" (col1 varchar, col2 varchar)');
-        $connection->query('ALTER TABLE "' . $this->destSchemaName . '"."TEST" DROP COLUMN col2');
-        $connection->query('DROP TABLE "' . $this->destSchemaName . '"."TEST" RESTRICT');
-    }
-
-    public function testConnectionEncoding()
-    {
-        $connection = new Connection([
-            'host' => getenv('SNOWFLAKE_HOST'),
-            'port' => getenv('SNOWFLAKE_PORT'),
-            'database' => getenv('SNOWFLAKE_DATABASE'),
-            'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
-            'user' => getenv('SNOWFLAKE_USER'),
-            'password' => getenv('SNOWFLAKE_PASSWORD'),
-        ]);
-
-        $connection->query('CREATE TABLE "' . $this->destSchemaName . '"."TEST" (col1 varchar, col2 varchar)');
-        $connection->query('INSERT INTO  "' . $this->destSchemaName . '"."TEST" VALUES (\'šperky.cz\', \'módní doplňky.cz\')');
-
-        $data = $connection->fetchAll('SELECT * FROM "' . $this->destSchemaName . '"."TEST"');
-
-        $this->assertEquals([
-            [
-                'COL1' => 'šperky.cz',
-                'COL2' => 'módní doplňky.cz',
-            ],
-        ], $data);
-    }
-
-    public function testConnectionBinding()
-    {
-
-        $this->connection->query('CREATE TABLE "' . $this->destSchemaName . '"."Test" (col1 varchar, col2 varchar)');
-        $this->connection->query('INSERT INTO "' . $this->destSchemaName . '"."Test" VALUES (\'\\\'a\\\'\',\'b\')');
-        $this->connection->query('INSERT INTO "' . $this->destSchemaName . '"."Test" VALUES (\'a\',\'b\')');
-
-        $rows = $this->connection->fetchAll('SELECT * FROM "' . $this->destSchemaName . '"."Test" WHERE col1 = ?', ["'a'"]);
-        $this->assertEmpty($rows);
+        $this->connection = null;
     }
 
     /**
@@ -236,7 +176,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $initialAccountsFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
         $incrementAccountsFile = new CsvFile("s3://{$s3bucket}/tw_accounts.increment.csv");
 
-        $expectationAccountsFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.tw_accounts.increment.csv');
+        $expectationAccountsFile = new CsvFile(__DIR__ . '/../_data/csv-import/expectation.tw_accounts.increment.csv');
         $expectedAccountsRows = [];
         foreach ($expectationAccountsFile as $row) {
             $expectedAccountsRows[] = $row;
@@ -248,7 +188,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $initialMultiPkFile = new CsvFile("s3://{$s3bucket}/multi-pk.csv");
         $incrementMultiPkFile = new CsvFile("s3://{$s3bucket}/multi-pk.increment.csv");
 
-        $expectationMultiPkFile = new CsvFile(__DIR__ . '/_data/csv-import/expectation.multi-pk.increment.csv');
+        $expectationMultiPkFile = new CsvFile(__DIR__ . '/../_data/csv-import/expectation.multi-pk.increment.csv');
         $expectedMultiPkRows = [];
         foreach ($expectationMultiPkFile as $row) {
             $expectedMultiPkRows[] = $row;
@@ -266,7 +206,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
     public function fullImportData()
     {
         $expectedEscaping = [];
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/escaping/standard-with-enclosures.csv');
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/escaping/standard-with-enclosures.csv');
         foreach ($file as $row) {
             $expectedEscaping[] = $row;
         }
@@ -274,17 +214,17 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
         $expectedEscaping = array_values($expectedEscaping);
 
         $expectedAccounts = [];
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.csv');
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.csv');
         foreach ($file as $row) {
             $expectedAccounts[] = $row;
         }
         $accountsHeader = array_shift($expectedAccounts); // remove header
         $expectedAccounts = array_values($expectedAccounts);
 
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/tw_accounts.changedColumnsOrder.csv');
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv');
         $accountChangedColumnsOrderHeader = $file->getHeader();
 
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/_data/csv-import/lemma.csv');
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/lemma.csv');
         $expectedLemma = [];
         foreach ($file as $row) {
             $expectedLemma[] = $row;
@@ -381,7 +321,7 @@ class SnowflakeTest extends \PHPUnit_Framework_TestCase
     public function testInvalidManifestImport()
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/_data/csv-import/tw_accounts.csv");
+        $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/../_data/csv-import/tw_accounts.csv");
         $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/02_tw_accounts.csv.invalid.manifest");
 
         $import = $this->getImport('manifest');

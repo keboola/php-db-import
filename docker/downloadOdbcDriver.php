@@ -11,6 +11,7 @@ $basedir = dirname(__DIR__);
 
 require_once $basedir . '/vendor/autoload.php';
 
+
 $client =  new \Aws\S3\S3Client([
     'region' => 'us-east-1',
     'version' => '2006-03-01',
@@ -23,6 +24,6 @@ $client =  new \Aws\S3\S3Client([
 
 $client->getObject([
     'Bucket' => 'keboola-configs',
-    'Key' => 'drivers/snowflake/snowflake_linux_x8664_odbc.2.12.97.tgz',
-    'SaveAs' => './snowflake_linux_x8664_odbc.tgz'
+    'Key' => 'drivers/snowflake/snowflake-odbc.2.12.97.deb',
+    'SaveAs' => './snowflake-odbc.deb'
 ]);
