@@ -62,14 +62,6 @@
           }
         ]
       }
-    },
-    "AccessKey": {
-      "Type": "AWS::IAM::AccessKey",
-      "Properties": {
-        "UserName": {
-          "Ref": "User"
-        }
-      }
     }
   },
   "Outputs": {
@@ -83,14 +75,9 @@
         "Ref": "S3FilesBucket"
       }
     },
-    "awsKey": {
+    "user": {
       "Value": {
-        "Ref": "AccessKey"
-      }
-    },
-    "awsSecret": {
-      "Value": {
-        "Fn::GetAtt": [ "AccessKey", "SecretAccessKey" ]
+        "Ref": "User"
       }
     }
   }
