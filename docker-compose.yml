@@ -38,10 +38,10 @@ services:
       MYSQL_DATABASE: tests
       MYSQL_ROOT_PASSWORD: password
 
-  php:
-    image: keboola/docker-php56-all-db
-    volumes:
-        - .:/code
+  drivers-download:
+    build:
+      context: .
+      dockerfile: Dockerfile-DriversDownload
     working_dir: /code
     environment:
       - AWS_ACCESS_KEY

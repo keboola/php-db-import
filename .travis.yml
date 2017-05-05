@@ -10,13 +10,12 @@ before_install:
 
 install:
   - docker-compose up -d mysql # boot mysql now to be ready when tests are started
-  - docker-compose run --rm php composer install -n
-  - docker-compose run --rm php ./vendor/bin/phpcs --standard=psr2 --ignore=vendor -n .
-  - docker-compose run --rm -e AWS_ACCESS_KEY=$AWS_ODBC_KEY -e AWS_SECRET_KEY=$AWS_ODBC_SECRET php php docker/downloadOdbcDriver.php
-  - docker-compose run --rm php php ./tests/loadS3.php
-  - docker-compose build
+  - docker-compose run --rm -e AWS_ACCESS_KEY=$AWS_ODBC_KEY -e AWS_SECRET_KEY=$AWS_ODBC_SECRET drivers-download php docker/downloadOdbcDriver.php
+  - docker-compose build tests
+  - docker-compose run --rm tests php ./tests/loadS3.php
 
 script:
+ - docker-compose run --rm tests ./vendor/bin/phpcs --standard=psr2 --ignore=vendor -n .
  - docker-compose run --rm tests php ./vendor/bin/phpunit tests/Mysql
  - docker-compose run --rm tests php ./vendor/bin/phpunit tests/Redshift
  - docker-compose run --rm tests php ./vendor/bin/phpunit tests/Snowflake
