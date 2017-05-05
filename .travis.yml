@@ -10,6 +10,7 @@ before_install:
 
 install:
   - docker-compose up -d mysql # boot mysql now to be ready when tests are started
+  - docker-compose build drivers-download
   - docker-compose run --rm -e AWS_ACCESS_KEY=$AWS_ODBC_KEY -e AWS_SECRET_KEY=$AWS_ODBC_SECRET drivers-download php docker/downloadOdbcDriver.php
   - docker-compose build tests
   - docker-compose run --rm tests php ./tests/loadS3.php
