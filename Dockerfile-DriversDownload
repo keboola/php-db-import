@@ -13,4 +13,3 @@ RUN cd \
 ADD ./ /code
 
 WORKDIR /code
-RUN composer install --prefer-dist --no-interaction

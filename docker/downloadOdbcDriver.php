@@ -11,6 +11,7 @@ $basedir = dirname(__DIR__);
 
 require_once $basedir . '/vendor/autoload.php';
 
+
 $client =  new \Aws\S3\S3Client([
     'region' => 'us-east-1',
     'version' => '2006-03-01',
