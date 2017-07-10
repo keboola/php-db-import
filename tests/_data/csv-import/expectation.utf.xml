@@ -4,7 +4,7 @@
 		<table_data name="csv_2cols">
 			<row>
 				<field name="col1">ěščř</field>
-				<field name="col2">ahoj😀</field>
+				<field name="col2">ahoj</field>
 			</row>
 
 		</table_data>

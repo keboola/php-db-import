@@ -182,6 +182,18 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertCount(1, $result->getWarnings());
     }
 
+    public function testImportWithWarnings()
+    {
+        $csvFile = new CsvFile(__DIR__ . '/../_data/csv-import/utf.csv');
+        $result = $this->import
+            ->setIncremental(false)
+            ->setIgnoreLines(1)
+            ->import('csv_2cols', $csvFile->getHeader(), [$csvFile]);
+
+        $this->assertArrayHasKey('utf.csv', $result->getWarnings());
+        $this->assertCount(1, $result->getWarnings()['utf.csv']);
+        $this->assertStringStartsWith('Incorrect string value', $result->getWarnings()['utf.csv'][0]['Message']);
+    }
 
     public function duplicateColumnsData()
     {
@@ -293,7 +305,6 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
             [new CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv'), 'expectation.fullImport.xml', 'csv_accounts', false, []],
             [new CsvFile(__DIR__ . '/../_data/csv-import/escaping/standard.csv'), 'escaping/expectation.standard.xml', 'csv_2cols', false, []],
             [new CsvFile(__DIR__ . '/../_data/csv-import/escaping/raw.csv', "\t", "", "\\"), 'escaping/expectation.standard.xml', 'csv_2cols', false, []],
-            [new CsvFile(__DIR__ . '/../_data/csv-import/utf.csv'), 'expectation.utf.xml', 'csv_2cols', false, []],
 
             // line breaks
             [new CsvFile(__DIR__ . '/../_data/csv-import/csv_breaks.win.csv'), 'expectation.fullImport.xml', 'csv_breaks', false, []],
