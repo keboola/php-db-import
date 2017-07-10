@@ -17,7 +17,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     public function getConnection()
     {
         $pdo = new \PDO(
-            sprintf('mysql:host=%s;dbname=%s', getenv('MYSQL_HOST'), getenv('MYSQL_DATABASE')),
+            sprintf('mysql:host=%s;dbname=%s;charset=utf8', getenv('MYSQL_HOST'), getenv('MYSQL_DATABASE')),
             'root',
             getenv('MYSQL_PASSWORD'),
             [
@@ -51,7 +51,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     /**
      * @dataProvider tables
      */
-    public function testImport(CsvFile $csvFile, $expectationsFile, $tableName, $incremental)
+    public function testImportFull(CsvFile $csvFile, $expectationsFile, $tableName, $incremental)
     {
         $result = $this->import
             ->setIncremental($incremental)

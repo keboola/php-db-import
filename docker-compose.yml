@@ -33,10 +33,12 @@ services:
       - MYSQL_PASSWORD=password
 
   mysql:
-    image: mysql:5.5
+    image: mysql:5.6.34
     environment:
       MYSQL_DATABASE: tests
       MYSQL_ROOT_PASSWORD: password
+    ports:
+      - "9999:3306"
 
   drivers-download:
     build:

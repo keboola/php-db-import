@@ -23,6 +23,7 @@ CREATE TABLE `csv_breaks` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+
 DROP TABLE IF EXISTS `csv_2cols`;
 CREATE TABLE `csv_2cols` (
   `col1`  text NOT NULL,

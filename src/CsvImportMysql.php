@@ -116,6 +116,7 @@ class CsvImportMysql implements ImportInterface
         $sql = '
 			LOAD DATA LOCAL INFILE ' . $this->connection->quote($csvFile) . '
 			REPLACE INTO TABLE ' . $this->quoteIdentifier($stagingTableName) . '
+			CHARACTER SET UTF8
 			FIELDS TERMINATED BY ' . $this->connection->quote($csvFile->getDelimiter()) . '
 			OPTIONALLY ENCLOSED BY ' . $this->connection->quote($csvFile->getEnclosure()) . '
 			ESCAPED BY ' . $this->connection->quote($csvFile->getEscapedBy()) . '
