@@ -35,6 +35,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
 
         parent::setUp();
 
+        $this->getConnection()->getConnection()->query("set global sql_mode = 'NO_ENGINE_SUBSTITUTION'");
         $this->import = new CsvImportMysql($this->getConnection()->getConnection());
     }
 
