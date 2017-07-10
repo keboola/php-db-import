@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<mysqldump xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<database name="martin_bi_twitter_test">
+		<table_data name="csv_2cols">
+			<row>
+				<field name="col1">ěščř</field>
+				<field name="col2">ahoj😀</field>
+			</row>
+
+		</table_data>
+	</database>
+</mysqldump>

@@ -293,6 +293,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
             [new CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv'), 'expectation.fullImport.xml', 'csv_accounts', false, []],
             [new CsvFile(__DIR__ . '/../_data/csv-import/escaping/standard.csv'), 'escaping/expectation.standard.xml', 'csv_2cols', false, []],
             [new CsvFile(__DIR__ . '/../_data/csv-import/escaping/raw.csv', "\t", "", "\\"), 'escaping/expectation.standard.xml', 'csv_2cols', false, []],
+            [new CsvFile(__DIR__ . '/../_data/csv-import/utf.csv'), 'expectation.utf.xml', 'csv_2cols', false, []],
 
             // line breaks
             [new CsvFile(__DIR__ . '/../_data/csv-import/csv_breaks.win.csv'), 'expectation.fullImport.xml', 'csv_breaks', false, []],
