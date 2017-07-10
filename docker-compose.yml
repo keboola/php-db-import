@@ -33,7 +33,7 @@ services:
       - MYSQL_PASSWORD=password
 
   mysql:
-    image: mysql:5.6.34
+    image: mysql:5.6.20
     environment:
       MYSQL_DATABASE: tests
       MYSQL_ROOT_PASSWORD: password
