@@ -24,10 +24,13 @@ abstract class RedshiftBase implements ImportInterface
 
     private $schemaName;
 
-    public function __construct(\PDO $connection, $schemaName)
+    private $legacyFullImport = false;
+
+    public function __construct(\PDO $connection, $schemaName, $legacyFullImport = false)
     {
         $this->connection = $connection;
         $this->schemaName = $schemaName;
+        $this->legacyFullImport = (bool) $legacyFullImport;
     }
 
     /**
@@ -61,13 +64,23 @@ abstract class RedshiftBase implements ImportInterface
             Debugger::timer('dedup');
             $this->dedup($stagingTableName, $columns, $primaryKey);
             $this->addTimer('dedup', Debugger::timer('dedup'));
-            $this->insertAllIntoTargetTable(
-                $stagingTableName,
-                $tableName,
-                $columns,
-                isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
-            );
+            if ($this->legacyFullImport) {
+                $this->insertAllIntoTargetTableLegacy(
+                    $stagingTableName,
+                    $tableName,
+                    $columns,
+                    isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
+                    isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
+                );
+            } else {
+                $this->insertAllIntoTargetTable(
+                    $stagingTableName,
+                    $tableName,
+                    $columns,
+                    isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
+                    isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
+                );
+            }
         }
         $this->dropTempTable($stagingTableName);
         $this->importedColumns = $columns;
@@ -100,6 +113,46 @@ abstract class RedshiftBase implements ImportInterface
         }
     }
 
+    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
+    {
+        // create table same as target table
+
+        // insert data to new table from staging table
+
+        // swap tables in transaction
+
+        $this->connection->beginTransaction();
+
+        $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
+        $stagingTableNameEscaped = $this->tableNameEscaped($stagingTempTableName);
+
+        $this->query('TRUNCATE TABLE ' . $targetTableNameWithSchema);
+
+        $columnsSql = implode(', ', array_map(function ($column) {
+            return $this->quoteIdentifier($column);
+        }, $columns));
+
+        $columnsSelectSql = implode(', ', array_map(function ($column) use ($convertEmptyValuesToNull) {
+            if (in_array($column, $convertEmptyValuesToNull)) {
+                return "CASE {$this->quoteIdentifier($column)}::VARCHAR WHEN '' THEN NULL ELSE {$this->quoteIdentifier($column)} END";
+            }
+            return $this->quoteIdentifier($column);
+        }, $columns));
+
+        $now = $this->getNowFormatted();
+        if (in_array('_timestamp', $columns) || $useTimestamp === false) {
+            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSelectSql FROM $stagingTableNameEscaped)";
+        } else {
+            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, _timestamp) (SELECT $columnsSelectSql, '{$now}' FROM $stagingTableNameEscaped)";
+        }
+
+        Debugger::timer('copyFromStagingToTarget');
+        $this->query($sql);
+        $this->addTimer('copyFromStagingToTarget', Debugger::timer('copyFromStagingToTarget'));
+
+        $this->connection->commit();
+    }
+
     /**
      * @param $stagingTempTableName
      * @param $targetTableName
@@ -107,7 +160,7 @@ abstract class RedshiftBase implements ImportInterface
      * @param bool $useTimestamp
      * @param array $convertEmptyValuesToNull
      */
-    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
+    private function insertAllIntoTargetTableLegacy($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
     {
         $this->connection->beginTransaction();
 
