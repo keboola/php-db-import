@@ -223,7 +223,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }
 
         $result = $import->import($tableName, $columns, $sourceData, $importOptions);
-        $this->assertEquals(getenv('REDSHIFT_LEGACY_IMPORT'), $result->getKeyValue('legacyFullImport'));
+        $this->assertEquals((bool) getenv('REDSHIFT_LEGACY_IMPORT'), $result->getKeyValue('legacyFullImport'));
 
         $tableColumns = $this->describeTable(strtolower($tableName), strtolower($this->destSchemaName));
 
