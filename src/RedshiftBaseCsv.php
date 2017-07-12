@@ -11,9 +11,9 @@ abstract class RedshiftBaseCsv extends RedshiftBase
     private $s3secret;
     private $s3region;
 
-    public function __construct(\PDO $connection, $s3key, $s3secret, $s3region, $schemaName)
+    public function __construct(\PDO $connection, $s3key, $s3secret, $s3region, $schemaName, $legacyFullImport = false)
     {
-        parent::__construct($connection, $schemaName);
+        parent::__construct($connection, $schemaName, $legacyFullImport);
         $this->s3key = $s3key;
         $this->s3secret = $s3secret;
         $this->s3region = $s3region;
