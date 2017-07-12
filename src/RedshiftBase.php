@@ -76,6 +76,7 @@ abstract class RedshiftBase implements ImportInterface
                 $this->insertAllIntoTargetTable(
                     $stagingTableName,
                     $tableName,
+                    $primaryKey,
                     $columns,
                     isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
                     isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
@@ -89,6 +90,7 @@ abstract class RedshiftBase implements ImportInterface
             'timers' => $this->timers,
             'importedRowsCount' => $this->importedRowsCount,
             'importedColumns' => $this->importedColumns,
+            'legacyFullImport' => $this->legacyFullImport,
         ]);
     }
 
@@ -113,21 +115,12 @@ abstract class RedshiftBase implements ImportInterface
         }
     }
 
-    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
+    private function insertAllIntoTargetTable($stagingTempTableName, $targetTableName, $primaryKey, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
     {
         // create table same as target table
+        $newTargetTableName = $this->createTableFromSourceTable($targetTableName, $primaryKey, $this->schemaName);
 
         // insert data to new table from staging table
-
-        // swap tables in transaction
-
-        $this->connection->beginTransaction();
-
-        $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
-        $stagingTableNameEscaped = $this->tableNameEscaped($stagingTempTableName);
-
-        $this->query('TRUNCATE TABLE ' . $targetTableNameWithSchema);
-
         $columnsSql = implode(', ', array_map(function ($column) {
             return $this->quoteIdentifier($column);
         }, $columns));
@@ -140,16 +133,28 @@ abstract class RedshiftBase implements ImportInterface
         }, $columns));
 
         $now = $this->getNowFormatted();
+        $newTargetTableNameWithSchema = $this->nameWithSchemaEscaped($newTargetTableName);
+        $stagingTableNameEscaped = $this->tableNameEscaped($stagingTempTableName);
         if (in_array('_timestamp', $columns) || $useTimestamp === false) {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSelectSql FROM $stagingTableNameEscaped)";
+            $sql = "INSERT INTO {$newTargetTableNameWithSchema} ($columnsSql) (SELECT $columnsSelectSql FROM $stagingTableNameEscaped)";
         } else {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, _timestamp) (SELECT $columnsSelectSql, '{$now}' FROM $stagingTableNameEscaped)";
+            $sql = "INSERT INTO {$newTargetTableNameWithSchema} ($columnsSql, _timestamp) (SELECT $columnsSelectSql, '{$now}' FROM $stagingTableNameEscaped)";
         }
 
         Debugger::timer('copyFromStagingToTarget');
         $this->query($sql);
         $this->addTimer('copyFromStagingToTarget', Debugger::timer('copyFromStagingToTarget'));
 
+        // swap tables in transaction
+        $this->connection->beginTransaction();
+
+        $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
+        $this->query(sprintf('DROP TABLE %s', $targetTableNameWithSchema));
+        $this->query(sprintf(
+            "ALTER TABLE %s RENAME TO %s",
+            $newTargetTableNameWithSchema,
+            $this->tableNameEscaped($targetTableName)
+        ));
         $this->connection->commit();
     }
 
@@ -414,6 +419,34 @@ abstract class RedshiftBase implements ImportInterface
 
         return $tempName;
     }
+
+    private function createTableFromSourceTable($sourceTableName, array $primaryKey, $schemaName)
+    {
+        $tempName = '__temp_' . $this->uniqueValue();
+        $this->query(sprintf(
+            'CREATE TABLE %s (LIKE %s)',
+            $this->nameWithSchemaEscaped($tempName, $schemaName),
+            $this->nameWithSchemaEscaped($sourceTableName, $schemaName)
+        ));
+
+        // PK is not copied - add it to the table
+        $tableIdentifier = $this->nameWithSchemaEscaped($tempName, $schemaName);
+        if (!empty($primaryKey)) {
+            $this->query(sprintf(
+                "
+                    ALTER TABLE %s
+                    ADD PRIMARY KEY (%s)
+                ",
+                $tableIdentifier,
+                implode(', ', array_map(function ($columnName) {
+                    return $this->quoteIdentifier($columnName);
+                }, $primaryKey))
+            ));
+        }
+
+        return $tempName;
+    }
+
 
     /**
      * @param $tableName

@@ -32,7 +32,7 @@ class Result
         return (array)$this->getKeyValue('timers', []);
     }
 
-    private function getKeyValue($keyName, $default = null)
+    public function getKeyValue($keyName, $default = null)
     {
         return isset($this->results[$keyName]) ? $this->results[$keyName] : $default;
     }

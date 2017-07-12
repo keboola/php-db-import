@@ -19,4 +19,5 @@ script:
  - docker-compose run --rm tests ./vendor/bin/phpcs --standard=psr2 --ignore=vendor -n .
  - docker-compose run --rm tests php ./vendor/bin/phpunit tests/Mysql
  - docker-compose run --rm tests php ./vendor/bin/phpunit tests/Redshift
+ - docker-compose run --rm -e REDSHIFT_LEGACY_IMPORT=1 tests php ./vendor/bin/phpunit tests/Redshift
  - docker-compose run --rm tests php ./vendor/bin/phpunit tests/Snowflake
