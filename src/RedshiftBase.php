@@ -147,15 +147,19 @@ abstract class RedshiftBase implements ImportInterface
 
         // swap tables in transaction
         $this->connection->beginTransaction();
-
-        $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
-        $this->query(sprintf('DROP TABLE %s', $targetTableNameWithSchema));
-        $this->query(sprintf(
-            "ALTER TABLE %s RENAME TO %s",
-            $newTargetTableNameWithSchema,
-            $this->tableNameEscaped($targetTableName)
-        ));
-        $this->connection->commit();
+        try {
+            $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
+            $this->query(sprintf('DROP TABLE %s', $targetTableNameWithSchema));
+            $this->query(sprintf(
+                "ALTER TABLE %s RENAME TO %s",
+                $newTargetTableNameWithSchema,
+                $this->tableNameEscaped($targetTableName)
+            ));
+            $this->connection->commit();
+        } catch (\Exception $e) {
+            $this->connection->rollBack();
+            throw $e;
+        }
     }
 
     /**
