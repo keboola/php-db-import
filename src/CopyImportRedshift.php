@@ -29,7 +29,7 @@ class CopyImportRedshift extends RedshiftBase
             }, $columns)
         ) . ") ";
 
-        $sql .= "SELECT " . implode(',', array_map(function ($column) use ($sourceColumnTypes) {
+        $sql .= "SELECT " . implode(',', array_map(function ($column) use ($sourceColumnTypes, $options) {
             if ($sourceColumnTypes[$column]['DATA_TYPE'] === 'bool') {
                 return sprintf('DECODE(%s, true, 1, 0) ', $this->quoteIdentifier($column));
             } else {
