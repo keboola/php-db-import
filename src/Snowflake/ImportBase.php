@@ -189,11 +189,20 @@ abstract class ImportBase implements ImportInterface
 
             $columnsSet = [];
             foreach ($columns as $columnName) {
-                $columnsSet[] = sprintf(
-                    '%s = COALESCE("src".%s, \'\')',
-                    $this->quoteIdentifier($columnName),
-                    $this->quoteIdentifier($columnName)
-                );
+                if (in_array($columnName, $convertEmptyValuesToNull)) {
+                    $columnsSet[] = sprintf(
+                        '%s = IFF("src".%s = \'\', NULL, "src".%s)',
+                        $this->quoteIdentifier($columnName),
+                        $this->quoteIdentifier($columnName),
+                        $this->quoteIdentifier($columnName)
+                    );
+                } else {
+                    $columnsSet[] = sprintf(
+                        '%s = COALESCE("src".%s, \'\')',
+                        $this->quoteIdentifier($columnName),
+                        $this->quoteIdentifier($columnName)
+                    );
+                }
             }
 
             $sql .= implode(', ', $columnsSet);
