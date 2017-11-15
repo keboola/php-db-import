@@ -47,6 +47,15 @@ Upload test fixtures to S3:
 docker-compose run php php ./tests/loadS3.php
 ```
 
+### Redshift settings
+User and database are required for tests. You can create them:
+```
+CREATE USE keboola_db_import PASSWORD 'YOUR_PASSWORD';
+CREATE DATABASE keboola_db_import;
+GRANT ALL ON DATABASE keboola_db_import TO keboola_db_import;
+```
+
+
 #### Snowflake settings
 Role, user, database and warehouse are required for tests. You can create them:
 ```
