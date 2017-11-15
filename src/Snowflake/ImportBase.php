@@ -226,7 +226,7 @@ abstract class ImportBase implements ImportInterface
             // update only changed rows - mysql TIMESTAMP ON UPDATE behaviour simulation
             $columnsComparsionSql = array_map(function ($columnName) {
                 return sprintf(
-                    '"dest".%s != COALESCE("src".%s, \'\')',
+                    'COALESCE(TO_VARCHAR("dest".%s), \'\') != COALESCE("src".%s, \'\')',
                     $this->quoteIdentifier($columnName),
                     $this->quoteIdentifier($columnName)
                 );
