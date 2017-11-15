@@ -266,7 +266,7 @@ abstract class RedshiftBase implements ImportInterface
                 $stagingTableNameEscaped
             ) {
                 return sprintf(
-                    "%s.%s != %s.%s",
+                    "COALESCE(CAST(%s.%s as varchar), '') != COALESCE(CAST(%s.%s as varchar), '')",
                     $targetTableNameWithSchema,
                     $this->quoteIdentifier($columnName),
                     $stagingTableNameEscaped,
