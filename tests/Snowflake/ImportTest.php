@@ -714,6 +714,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
         $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
         $this->assertCount(3, $importedData);
+
         $this->assertTrue(null === $importedData[0]["name"]);
         $this->assertTrue(null === $importedData[0]["price"]);
         $this->assertTrue(null === $importedData[1]["name"]);
