@@ -47,7 +47,7 @@ abstract class RedshiftBase implements ImportInterface
     {
         $this->validateColumns($tableName, $columns);
         $primaryKey = $this->getTablePrimaryKey($tableName);
-        $stagingTableName = $this->createTemporaryTableFromSourceTable($tableName, $primaryKey, $this->schemaName);
+        $stagingTableName = $this->createTemporaryTableFromDestinationTable($tableName, $primaryKey, $this->schemaName);
 
         $this->importDataToStagingTable($stagingTableName, $columns, $sourceData, $options);
 
@@ -391,19 +391,19 @@ abstract class RedshiftBase implements ImportInterface
             return $this->quoteIdentifier($column);
         }, $columns));
 
-        $tempTable = $this->createTemporaryTableFromSourceTable($inputTempTableName, $primaryKey);
+        $tempTable = $this->createTemporaryTableFromDestinationTable($inputTempTableName, $primaryKey);
 
         $this->query("INSERT INTO {$this->tableNameEscaped($tempTable)} ($columnsSql) " . $sql);
         $this->replaceTempTables($tempTable, $inputTempTableName);
     }
 
-    private function createTemporaryTableFromSourceTable($sourceTableName, array $primaryKey, $schemaName = null)
+    private function createTemporaryTableFromDestinationTable($targetTableName, array $primaryKey, $schemaName = null)
     {
         $tempName = '__temp_' . $this->uniqueValue();
         $this->query(sprintf(
             'CREATE TEMPORARY TABLE %s (LIKE %s)',
             $this->tableNameEscaped($tempName),
-            $schemaName ? $this->nameWithSchemaEscaped($sourceTableName, $schemaName) : $this->tableNameEscaped($sourceTableName)
+            $schemaName ? $this->nameWithSchemaEscaped($targetTableName, $schemaName) : $this->tableNameEscaped($targetTableName)
         ));
 
         // PK is not copied - add it to the table
