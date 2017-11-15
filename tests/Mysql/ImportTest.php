@@ -195,7 +195,10 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     public function testInvalidTableImportShouldThrowException()
     {
         $csvFile = new CsvFile(__DIR__ . "/../_data/csv-import/tw_accounts.csv");
-        $this->setExpectedException("Keboola\\Db\\Import\\Exception", '', \Keboola\Db\Import\Exception::TABLE_NOT_EXISTS);
+
+        $this->expectException("Keboola\\Db\\Import\\Exception");
+        $this->expectExceptionCode(\Keboola\Db\Import\Exception::TABLE_NOT_EXISTS);
+
         $this->import
             ->setIncremental(true)
             ->setIgnoreLines(1)
@@ -205,7 +208,10 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     public function testEmptyFileShouldThrowsException()
     {
         $csvFile = new CsvFile(__DIR__ . "/../_data/csv-import/empty.csv");
-        $this->setExpectedException("Keboola\\Db\\Import\\Exception", '', \Keboola\Db\Import\Exception::NO_COLUMNS);
+
+        $this->expectException("Keboola\\Db\\Import\\Exception");
+        $this->expectExceptionCode(\Keboola\Db\Import\Exception::NO_COLUMNS);
+
         $this->import
             ->setIgnoreLines(1)
             ->import('csv_accounts', $csvFile->getHeader(), [$csvFile]);
@@ -214,7 +220,10 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     public function testEmptyFilePartialShouldThrowsException()
     {
         $csvFile = new CsvFile(__DIR__ . "/../_data/csv-import/empty.csv");
-        $this->setExpectedException("Keboola\\Db\\Import\\Exception", '', \Keboola\Db\Import\Exception::NO_COLUMNS);
+
+        $this->expectException("Keboola\\Db\\Import\\Exception");
+        $this->expectExceptionCode(\Keboola\Db\Import\Exception::NO_COLUMNS);
+
         $this->import
             ->import('csv_accounts', $csvFile->getHeader(), [$csvFile]);
     }
@@ -222,7 +231,10 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     public function testRowTooLongShouldThrowException()
     {
         $csvFile = new CsvFile(__DIR__ . "/../_data/csv-import/very-long-row.csv");
-        $this->setExpectedException("Keboola\\Db\\Import\\Exception", '', \Keboola\Db\Import\Exception::ROW_SIZE_TOO_LARGE);
+
+        $this->expectException("Keboola\\Db\\Import\\Exception");
+        $this->expectExceptionCode(\Keboola\Db\Import\Exception::ROW_SIZE_TOO_LARGE);
+
         $this->import
             ->import('very-long-row', $csvFile->getHeader(), [$csvFile]);
     }
