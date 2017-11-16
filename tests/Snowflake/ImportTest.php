@@ -688,7 +688,6 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
     public function testNullifyCopyIncrementalWithPk()
     {
-        // test convertEmptyValuesToNull
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
         $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC, PRIMARY KEY(\"id\"))");
         $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', '3', 2)");
@@ -712,16 +711,32 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
-        $this->assertCount(3, $importedData);
+        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\"");
 
-        $this->assertTrue(null === $importedData[0]["name"]);
-        $this->assertTrue(null === $importedData[0]["price"]);
-        $this->assertTrue(null === $importedData[1]["name"]);
-        $this->assertTrue(null === $importedData[2]["name"]);
-        $this->assertTrue(null === $importedData[2]["price"]);
+        $expectedData = [
+            [
+                'id' => '1',
+                'name' => null,
+                'price' => null,
+            ],
+            [
+                'id' => '2',
+                'name' => null,
+                'price' => '500',
+            ],
+            [
+                'id' => '4',
+                'name' => null,
+                'price' => null,
+            ],
 
-        // test apply change if destination contains null
+        ];
+
+        $this->assertArrayEqualsSorted($expectedData, $importedData, 'id');
+    }
+
+    public function testNullifyCopyIncrementalWithPkDestinationWithNull()
+    {
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
         $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC, PRIMARY KEY(\"id\"))");
         $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', NULL, NULL)");
@@ -745,14 +760,28 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
-        $this->assertCount(3, $importedData);
+        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\"");
 
-        $this->assertTrue(null === $importedData[0]["name"]);
-        $this->assertTrue(null === $importedData[0]["price"]);
-        $this->assertTrue(null === $importedData[1]["name"]);
-        $this->assertTrue(null === $importedData[2]["name"]);
-        $this->assertTrue(null !== $importedData[2]["price"]);
+        $expectedData = [
+            [
+                'id' => '1',
+                'name' => null,
+                'price' => null,
+            ],
+            [
+                'id' => '2',
+                'name' => null,
+                'price' => '500',
+            ],
+            [
+                'id' => '4',
+                'name' => null,
+                'price' => '500',
+            ],
+
+        ];
+
+        $this->assertArrayEqualsSorted($expectedData, $importedData, 'id');
     }
 
     private function fetchAll($schemaName, $tableName, $columns)
