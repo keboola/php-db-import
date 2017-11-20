@@ -534,6 +534,74 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(null === $importedData[0]["price"]);
     }
 
+
+    public function testNullifyCopyIncrementalWithPk()
+    {
+        // test convertEmptyValuesToNull
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC, PRIMARY KEY(\"id\"))");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', '3', 2)");
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify_src\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (\"id\" VARCHAR NOT NULL, \"name\" VARCHAR NOT NULL, \"price\" VARCHAR NOT NULL, PRIMARY KEY(\"id\"))");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', ''), ('2', '', '500'), ('4', '', '')");
+
+        $import = $this->getImport('copy');
+        $import->setIgnoreLines(1);
+        $import->setIncremental(true);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                "tableName" => "nullify_src",
+                "schemaName" => $this->destSchemaName
+            ],
+            [
+                "useTimestamp" => false,
+                "convertEmptyValuesToNull" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->connection->query("SELECT \"id\", \"name\", \"price\" FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY \"id\" ASC")->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertCount(3, $importedData);
+        $this->assertTrue(null === $importedData[0]["name"]);
+        $this->assertTrue(null === $importedData[0]["price"]);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["name"]);
+        $this->assertTrue(null === $importedData[2]["price"]);
+
+        // test apply change if destination contains null
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC, PRIMARY KEY(\"id\"))");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', NULL, NULL)");
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify_src\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (\"id\" VARCHAR NOT NULL, \"name\" VARCHAR NOT NULL, \"price\" VARCHAR NOT NULL, PRIMARY KEY(\"id\"))");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', ''), ('2', '', '500'), ('4', '', '500')");
+
+        $import = $this->getImport('copy');
+        $import->setIgnoreLines(1);
+        $import->setIncremental(true);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                "tableName" => "nullify_src",
+                "schemaName" => $this->destSchemaName
+            ],
+            [
+                "useTimestamp" => false,
+                "convertEmptyValuesToNull" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->connection->query("SELECT \"id\", \"name\", \"price\" FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY \"id\" ASC")->fetchAll(\PDO::FETCH_ASSOC);
+        $this->assertCount(3, $importedData);
+        $this->assertTrue(null === $importedData[0]["name"]);
+        $this->assertTrue(null === $importedData[0]["price"]);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["name"]);
+        $this->assertTrue(null !== $importedData[2]["price"]);
+    }
+
     public function tables()
     {
 
