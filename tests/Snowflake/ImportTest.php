@@ -686,6 +686,103 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(null === $importedData[2]["name"]);
     }
 
+    public function testNullifyCopyIncrementalWithPk()
+    {
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC, PRIMARY KEY(\"id\"))");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', '3', 2)");
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify_src\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (\"id\" VARCHAR NOT NULL, \"name\" VARCHAR NOT NULL, \"price\" VARCHAR NOT NULL, PRIMARY KEY(\"id\"))");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', ''), ('2', '', '500'), ('4', '', '')");
+
+        $import = $this->getImport('copy');
+        $import->setIgnoreLines(1);
+        $import->setIncremental(true);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                "tableName" => "nullify_src",
+                "schemaName" => $this->destSchemaName
+            ],
+            [
+                "useTimestamp" => false,
+                "convertEmptyValuesToNull" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\"");
+
+        $expectedData = [
+            [
+                'id' => '1',
+                'name' => null,
+                'price' => null,
+            ],
+            [
+                'id' => '2',
+                'name' => null,
+                'price' => '500',
+            ],
+            [
+                'id' => '4',
+                'name' => null,
+                'price' => null,
+            ],
+
+        ];
+
+        $this->assertArrayEqualsSorted($expectedData, $importedData, 'id');
+    }
+
+    public function testNullifyCopyIncrementalWithPkDestinationWithNull()
+    {
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC, PRIMARY KEY(\"id\"))");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify\" VALUES('4', NULL, NULL)");
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify_src\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify_src\" (\"id\" VARCHAR NOT NULL, \"name\" VARCHAR NOT NULL, \"price\" VARCHAR NOT NULL, PRIMARY KEY(\"id\"))");
+        $this->connection->query("INSERT INTO \"$this->destSchemaName\".\"nullify_src\" VALUES('1', '', ''), ('2', '', '500'), ('4', '', '500')");
+
+        $import = $this->getImport('copy');
+        $import->setIgnoreLines(1);
+        $import->setIncremental(true);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                "tableName" => "nullify_src",
+                "schemaName" => $this->destSchemaName
+            ],
+            [
+                "useTimestamp" => false,
+                "convertEmptyValuesToNull" => ["name", "price"]
+            ]
+        );
+
+        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\"");
+
+        $expectedData = [
+            [
+                'id' => '1',
+                'name' => null,
+                'price' => null,
+            ],
+            [
+                'id' => '2',
+                'name' => null,
+                'price' => '500',
+            ],
+            [
+                'id' => '4',
+                'name' => null,
+                'price' => '500',
+            ],
+
+        ];
+
+        $this->assertArrayEqualsSorted($expectedData, $importedData, 'id');
+    }
 
     private function fetchAll($schemaName, $tableName, $columns)
     {
