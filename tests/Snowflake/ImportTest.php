@@ -221,6 +221,14 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $accountsHeader = array_shift($expectedAccounts); // remove header
         $expectedAccounts = array_values($expectedAccounts);
 
+        $expectedUtf = [];
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/utf.csv');
+        foreach ($file as $row) {
+            $expectedUtf[] = $row;
+        }
+        array_shift($expectedUtf); // remove header
+        $expectedUtf = array_values($expectedUtf);
+
         $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv');
         $accountChangedColumnsOrderHeader = $file->getHeader();
 
@@ -239,6 +247,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             [[new CsvFile("s3://{$s3bucket}/empty.manifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],
             [[new CsvFile("s3://{$s3bucket}/lemma.csv")], $lemmaHeader, $expectedLemma, 'out.lemma'],
             [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[new CsvFile("s3://{$s3bucket}/utf.csv")], $escapingHeader, $expectedUtf, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
             [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],

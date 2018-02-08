@@ -622,6 +622,14 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $accountsHeader = array_shift($expectedAccounts); // remove header
         $expectedAccounts = array_values($expectedAccounts);
 
+        $expectedUtf = [];
+        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/utf.csv');
+        foreach ($file as $row) {
+            $expectedUtf[] = $row;
+        }
+        array_shift($expectedUtf); // remove header
+        $expectedUtf = array_values($expectedUtf);
+
         $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv');
         $accountChangedColumnsOrderHeader = $file->getHeader();
 
@@ -639,6 +647,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts'],
             [[new CsvFile("s3://{$s3bucket}/manifests/accounts/tw_accounts.csvmanifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
             [[new CsvFile("s3://{$s3bucket}/manifests/accounts-gzip/tw_accounts.csv.gzmanifest")], $accountsHeader, $expectedAccounts, 'accounts', 'manifest'],
+            [[new CsvFile("s3://{$s3bucket}/utf.csv")], $escapingHeader, $expectedUtf, 'out.csv_2Cols'],
+
 
             [['schemaName' => $this->sourceSchemaName, 'tableName' => 'out.csv_2Cols'], $escapingHeader, [['a', 'b'], ['c', 'd']], 'out.csv_2Cols', 'copy'],
             [['schemaName' => $this->sourceSchemaName, 'tableName' => 'types'], $escapingHeader, [['c', '1'], ['d', '0']], 'types', 'copy'],

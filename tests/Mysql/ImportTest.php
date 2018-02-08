@@ -17,7 +17,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     public function getConnection()
     {
         $pdo = new \PDO(
-            sprintf('mysql:host=%s;dbname=%s', getenv('MYSQL_HOST'), getenv('MYSQL_DATABASE')),
+            sprintf('mysql:host=%s;dbname=%s;charset=utf8', getenv('MYSQL_HOST'), getenv('MYSQL_DATABASE')),
             'root',
             getenv('MYSQL_PASSWORD'),
             [
@@ -35,6 +35,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
 
         parent::setUp();
 
+        $this->getConnection()->getConnection()->query("set global sql_mode = 'NO_ENGINE_SUBSTITUTION'");
         $this->import = new CsvImportMysql($this->getConnection()->getConnection());
     }
 
@@ -51,7 +52,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     /**
      * @dataProvider tables
      */
-    public function testImport(CsvFile $csvFile, $expectationsFile, $tableName, $incremental)
+    public function testImportFull(CsvFile $csvFile, $expectationsFile, $tableName, $incremental)
     {
         $result = $this->import
             ->setIncremental($incremental)
@@ -182,6 +183,18 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertCount(1, $result->getWarnings());
     }
 
+    public function testImportWithWarnings()
+    {
+        $csvFile = new CsvFile(__DIR__ . '/../_data/csv-import/utf.csv');
+        $result = $this->import
+            ->setIncremental(false)
+            ->setIgnoreLines(1)
+            ->import('csv_2cols', $csvFile->getHeader(), [$csvFile]);
+
+        $this->assertArrayHasKey('utf.csv', $result->getWarnings());
+        $this->assertCount(1, $result->getWarnings()['utf.csv']);
+        $this->assertStringStartsWith('Incorrect string value', $result->getWarnings()['utf.csv'][0]['Message']);
+    }
 
     public function duplicateColumnsData()
     {
