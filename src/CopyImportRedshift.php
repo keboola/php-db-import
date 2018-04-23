@@ -45,7 +45,7 @@ class CopyImportRedshift extends RedshiftBase
             Debugger::timer('copyToStaging');
             $this->query($sql);
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             if (strpos($e->getMessage(), 'Datatype mismatch') !== false) {
                 throw new Exception($e->getMessage(), Exception::DATA_TYPE_MISMATCH, $e);
             }

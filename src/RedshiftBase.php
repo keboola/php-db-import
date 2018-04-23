@@ -156,7 +156,7 @@ abstract class RedshiftBase implements ImportInterface
                 $this->tableNameEscaped($targetTableName)
             ));
             $this->connection->commit();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->connection->rollBack();
             throw $e;
         }

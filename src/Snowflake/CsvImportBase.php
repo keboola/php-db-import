@@ -53,7 +53,7 @@ abstract class CsvImportBase extends ImportBase
                 $this->importedRowsCount += (int) $result['rows_loaded'];
             }
             $this->addTimer($timerName, Debugger::timer($timerName));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $stringCode = Exception::INVALID_SOURCE_DATA;
             if (strpos($e->getMessage(), 'was not found') !== false) {
                 $stringCode = Exception::MANDATORY_FILE_NOT_FOUND;

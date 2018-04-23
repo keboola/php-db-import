@@ -262,7 +262,7 @@ class CsvImportMysql implements ImportInterface
             $stmt = $this->connection->prepare($query);
             $stmt->execute();
             return $stmt;
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw $this->convertException($e);
         }
     }
@@ -303,7 +303,7 @@ class CsvImportMysql implements ImportInterface
      * @param \Exception $e
      * @return Exception
      */
-    protected function convertException(\Exception $e)
+    protected function convertException(\Throwable $e)
     {
         $code = 0;
         $message = $e->getMessage();

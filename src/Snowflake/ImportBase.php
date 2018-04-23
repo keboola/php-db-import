@@ -92,7 +92,7 @@ abstract class ImportBase implements ImportInterface
                 'importedRowsCount' => $this->importedRowsCount,
                 'importedColumns' => $this->importedColumns,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->dropTable($stagingTableName);
             throw $e;
         }

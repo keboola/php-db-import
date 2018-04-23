@@ -45,7 +45,7 @@ class CopyImport extends ImportBase
             $this->importedRowsCount += (int) $rows[0]['count'];
 
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // everything is user error
             throw new Exception($e->getMessage(), Exception::UNKNOWN_ERROR, $e);
         }

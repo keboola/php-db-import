@@ -62,7 +62,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 
             $this->query($this->generateCopyCommand($tempTableName, $columns, $csvFile, $copyOptions));
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $result = $this->connection->query("SELECT * FROM stl_load_errors WHERE query = pg_last_query_id();")->fetchAll();
             if (!count($result)) {
                 throw $e;
