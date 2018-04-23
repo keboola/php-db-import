@@ -22,6 +22,7 @@
     },
     "scripts": {
         "phpcs": "phpcs -n --ignore=vendor --extensions=php .",
+        "phpcbf": "phpcbf -n --ignore=vendor --extensions=php .",
         "build": [
             "@phpcs"
         ],

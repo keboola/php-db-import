@@ -729,8 +729,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             case 'manifest':
                 return new \Keboola\Db\Import\CsvManifestImportRedshift(
                     $this->connection,
-                    getenv('AWS_ACCESS_KEY'),
-                    getenv('AWS_SECRET_KEY'),
+                    getenv('AWS_ACCESS_KEY_ID'),
+                    getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
                     $this->destSchemaName,
                     getenv('REDSHIFT_LEGACY_IMPORT')
@@ -739,8 +739,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             case 'csv':
                 return new \Keboola\Db\Import\CsvImportRedshift(
                     $this->connection,
-                    getenv('AWS_ACCESS_KEY'),
-                    getenv('AWS_SECRET_KEY'),
+                    getenv('AWS_ACCESS_KEY_ID'),
+                    getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
                     $this->destSchemaName,
                     getenv('REDSHIFT_LEGACY_IMPORT')
