@@ -177,8 +177,10 @@ class CsvImportMysql implements ImportInterface
         $sql = 'INSERT INTO ' . $this->quoteIdentifier($tableName) . ' (';
         $sql .= $columnsListEscaped($importColumns);
         $sql .= ') ';
-        $sql .= 'SELECT ' . $columnsListEscapedSelect($importColumns,
-                't', $convertEmptyValuesToNull
+        $sql .= 'SELECT ' . $columnsListEscapedSelect(
+            $importColumns,
+                't',
+            $convertEmptyValuesToNull
             ) . ' FROM ' . $this->quoteIdentifier($stagingTableName) . ' t ';
         $sql .= 'ON DUPLICATE KEY UPDATE ';
         $sql .= $updateDuplicateColumns($importColumns, 't', $convertEmptyValuesToNull);
@@ -212,8 +214,10 @@ class CsvImportMysql implements ImportInterface
         $sql .= $columnsListEscaped($importColumns);
         $sql .= ') ';
 
-        $sql .= 'SELECT ' . $columnsListEscapedSelect($importColumns,
-                't', $convertEmptyValuesToNull
+        $sql .= 'SELECT ' . $columnsListEscapedSelect(
+            $importColumns,
+                't',
+            $convertEmptyValuesToNull
             ) . ' FROM ' . $this->quoteIdentifier($sourceTable) . ' t ';
         $sql .= 'ON DUPLICATE KEY UPDATE ';
 
