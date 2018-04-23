@@ -14,10 +14,6 @@ require_once $basedir . '/vendor/autoload.php';
 $client =  new \Aws\S3\S3Client([
     'region' => getenv('AWS_REGION'),
     'version' => '2006-03-01',
-    'credentials' => [
-        'key' => getenv('AWS_ACCESS_KEY'),
-        'secret' => getenv('AWS_SECRET_KEY'),
-    ],
 ]);
 
 // Where the files will be source from
@@ -68,8 +64,8 @@ $manifest = [
         [
             'url' => sprintf("s3://%s/manifests/accounts/tw_accounts.csv0001_part_00", $bucket),
             'mandatory' => true,
-        ]
-    ]
+        ],
+    ],
 ];
 
 $client->putObject([
@@ -88,8 +84,8 @@ $manifest = [
         [
             'url' => sprintf("s3://%s/manifests/accounts-gzip/tw_accounts.csv.gz0001_part_00.gz", $bucket),
             'mandatory' => true,
-        ]
-    ]
+        ],
+    ],
 ];
 
 $client->putObject([
@@ -105,8 +101,8 @@ $manifest = [
         [
             'url' => sprintf("s3://%s/not-exists.csv", $bucket),
             'mandatory' => true,
-        ]
-    ]
+        ],
+    ],
 ];
 
 $client->putObject([

@@ -146,6 +146,6 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             'Key' => ltrim($path['path'], '/'),
         ]);
 
-        return json_decode((string)$response['Body'], true);
+        return json_decode((string) $response['Body'], true);
     }
 }

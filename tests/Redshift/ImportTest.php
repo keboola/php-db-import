@@ -20,7 +20,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
     public static function setUpBeforeClass()
     {
-        echo sprintf("\nLegacy mode: %s\n", (bool)  getenv('REDSHIFT_LEGACY_IMPORT') ? 'ON' : 'OFF');
+        echo sprintf("\nLegacy mode: %s\n", (bool) getenv('REDSHIFT_LEGACY_IMPORT') ? 'ON' : 'OFF');
     }
 
     public function setUp()
@@ -328,7 +328,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     'NULL AS \'NULL\'',
                     'ACCEPTANYDATE',
                     'TRUNCATECOLUMNS',
-                ]
+                ],
             ]
         );
 
@@ -371,7 +371,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         try {
             $import->import('out.csv_2Cols', ['col1', 'col2'], [
                 'schemaName' => $this->sourceSchemaName,
-                'tableName' => 'random'
+                'tableName' => 'random',
             ]);
             $this->fail();
         } catch (\Keboola\Db\Import\Exception $e) {
@@ -431,7 +431,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -459,7 +459,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -486,11 +486,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -518,11 +518,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -553,11 +553,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -585,11 +585,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -655,7 +655,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     ['a', 'b', '2014-11-10 13:12:06'],
                     ['c', 'd', '2014-11-10 14:12:06'],
                 ],
-                'out.csv_2Cols'
+                'out.csv_2Cols',
             ],
             // test creating table without _timestamp column
             [
@@ -664,8 +664,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 $expectedEscaping,
                 'out.no_timestamp_table',
                 'csv',
-                ['useTimestamp' => false]
-            ]
+                ['useTimestamp' => false],
+            ],
         ];
     }
 
@@ -701,7 +701,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         return [
             [$initialAccountsFile, $incrementAccountsFile, $accountColumns, $expectedAccountsRows, 'accounts'],
             [$initialAccountsFile, $incrementAccountsFile, $accountColumns, $expectedAccountsRows, 'accounts_bez_ts', ['useTimestamp' => false]],
-            [$initialMultiPkFile, $incrementMultiPkFile, $multiPkColumns, $expectedMultiPkRows, 'multi-pk']
+            [$initialMultiPkFile, $incrementMultiPkFile, $multiPkColumns, $expectedMultiPkRows, 'multi-pk'],
         ];
     }
 
@@ -729,8 +729,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             case 'manifest':
                 return new \Keboola\Db\Import\CsvManifestImportRedshift(
                     $this->connection,
-                    getenv('AWS_ACCESS_KEY'),
-                    getenv('AWS_SECRET_KEY'),
+                    getenv('AWS_ACCESS_KEY_ID'),
+                    getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
                     $this->destSchemaName,
                     getenv('REDSHIFT_LEGACY_IMPORT')
@@ -739,8 +739,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             case 'csv':
                 return new \Keboola\Db\Import\CsvImportRedshift(
                     $this->connection,
-                    getenv('AWS_ACCESS_KEY'),
-                    getenv('AWS_SECRET_KEY'),
+                    getenv('AWS_ACCESS_KEY_ID'),
+                    getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
                     $this->destSchemaName,
                     getenv('REDSHIFT_LEGACY_IMPORT')
@@ -822,7 +822,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             if ($row[$contype] == 'p') {
                 $primary = true;
                 $primaryPosition = array_search($row[$attnum], explode(',', $row[$conkey])) + 1;
-                $identity = (bool)(preg_match('/^nextval/', $row[$default_value]));
+                $identity = (bool) (preg_match('/^nextval/', $row[$default_value]));
             }
             $desc[$row[$colname]] = [
                 'SCHEMA_NAME' => $row[$nspname],
@@ -831,14 +831,14 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 'COLUMN_POSITION' => $row[$attnum],
                 'DATA_TYPE' => $row[$type],
                 'DEFAULT' => $defaultValue,
-                'NULLABLE' => (bool)($row[$notnull] != 't'),
+                'NULLABLE' => (bool) ($row[$notnull] != 't'),
                 'LENGTH' => $row[$length],
                 'SCALE' => null, // @todo
                 'PRECISION' => null, // @todo
                 'UNSIGNED' => null, // @todo
                 'PRIMARY' => $primary,
                 'PRIMARY_POSITION' => $primaryPosition,
-                'IDENTITY' => $identity
+                'IDENTITY' => $identity,
             ];
         }
         return $desc;

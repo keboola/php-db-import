@@ -42,7 +42,7 @@ class CopyImport extends ImportBase
                 $this->connection->quoteIdentifier($this->schemaName),
                 $this->connection->quoteIdentifier($stagingTableName)
             ));
-            $this->importedRowsCount += (int)$rows[0]['count'];
+            $this->importedRowsCount += (int) $rows[0]['count'];
 
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Exception $e) {
