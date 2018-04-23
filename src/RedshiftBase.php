@@ -2,28 +2,36 @@
 
 namespace Keboola\Db\Import;
 
-use Keboola\Csv\CsvFile;
 use Tracy\Debugger;
 
 abstract class RedshiftBase implements ImportInterface
 {
 
+    /** @var \PDO  */
     protected $connection;
 
+    /** @var array  */
     protected $warnings = [];
 
+    /** @var int  */
     private $importedRowsCount = 0;
 
+    /** @var array  */
     private $timers = [];
 
+    /** @var array  */
     private $importedColumns = [];
 
+    /** @var int  */
     private $ignoreLines = 0;
 
+    /** @var bool  */
     private $incremental = false;
 
+    /** @var  */
     private $schemaName;
 
+    /** @var bool  */
     private $legacyFullImport = false;
 
     public function __construct(\PDO $connection, $schemaName, $legacyFullImport = false)

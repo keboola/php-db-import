@@ -13,8 +13,10 @@ class ImportTest extends \PHPUnit_Framework_TestCase
      */
     private $connection;
 
+    /** @var string  */
     private $destSchemaName = 'in.c-tests';
 
+    /** @var string  */
     private $sourceSchemaName = 'some.tests';
 
     private const AWS_S3_BUCKET_ENV = 'AWS_S3_BUCKET';

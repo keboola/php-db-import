@@ -4,7 +4,7 @@ namespace Keboola\Db\Import;
 
 class Result
 {
-
+    /** @var array  */
     private $results;
 
     public function __construct(array $results)

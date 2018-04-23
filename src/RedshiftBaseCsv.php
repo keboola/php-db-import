@@ -7,8 +7,13 @@ use Tracy\Debugger;
 
 abstract class RedshiftBaseCsv extends RedshiftBase
 {
+    /** @var string */
     private $s3key;
+
+    /** @var string */
     private $s3secret;
+
+    /** @var string */
     private $s3region;
 
     public function __construct(\PDO $connection, $s3key, $s3secret, $s3region, $schemaName, $legacyFullImport = false)

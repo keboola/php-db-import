@@ -4,7 +4,6 @@
         <exclude name="SlevomatCodingStandard.TypeHints.DeclareStrictTypes.DeclareStrictTypesMissing" />
         <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint" />
         <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingReturnTypeHint" />
-        <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingPropertyTypeHint" />
         <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.UselessDocComment" />
     </rule>
 </ruleset>

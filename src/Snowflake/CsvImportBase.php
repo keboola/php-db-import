@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: martinhalamicek
- * Date: 27/04/16
- * Time: 12:00
- */
 
 namespace Keboola\Db\Import\Snowflake;
 
@@ -12,12 +6,16 @@ use Keboola\Csv\CsvFile;
 use Keboola\Db\Import\Exception;
 use Tracy\Debugger;
 use Aws\Exception\AwsException;
-use Aws\S3\Exception\S3Exception;
 
 abstract class CsvImportBase extends ImportBase
 {
+    /** @var string */
     protected $s3key;
+
+    /** @var string */
     protected $s3secret;
+
+    /** @var string */
     protected $s3region;
 
     public function __construct($connection, $s3key, $s3secret, $s3region, $schemaName)

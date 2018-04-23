@@ -12,18 +12,22 @@ class CsvImportMysql implements ImportInterface
      */
     protected $connection;
 
-    protected $columnNameFilter;
-
+    /** @var array  */
     protected $warnings = [];
 
+    /** @var array  */
     protected $timers = [];
 
+    /** @var int  */
     protected $importedRowsCount = 0;
 
+    /** @var array  */
     protected $importedColumns = [];
 
+    /** @var bool  */
     protected $incremental = false;
 
+    /** @var int  */
     protected $ignoreLines = 0;
 
     public function __construct(\PDO $connection)

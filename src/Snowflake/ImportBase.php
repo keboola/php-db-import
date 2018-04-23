@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: martinhalamicek
- * Date: 27/04/16
- * Time: 10:05
- */
 
 namespace Keboola\Db\Import\Snowflake;
 
@@ -21,18 +15,25 @@ abstract class ImportBase implements ImportInterface
      */
     protected $connection;
 
+    /** @var string */
     protected $schemaName;
 
+    /** @var array  */
     protected $warnings = [];
 
+    /** @var int  */
     protected $importedRowsCount = 0;
 
+    /** @var array  */
     private $timers = [];
 
+    /** @var array  */
     private $importedColumns = [];
 
+    /** @var int  */
     private $ignoreLines = 0;
 
+    /** @var bool  */
     private $incremental = false;
 
     public const TIMESTAMP_COLUMN_NAME = '_timestamp';
