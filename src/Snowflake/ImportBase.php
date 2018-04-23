@@ -396,7 +396,7 @@ abstract class ImportBase implements ImportInterface
      */
     public function setIncremental($incremental)
     {
-        $this->incremental = (bool)$incremental;
+        $this->incremental = (bool) $incremental;
         return $this;
     }
 
@@ -414,7 +414,7 @@ abstract class ImportBase implements ImportInterface
      */
     public function setIgnoreLines($linesCount)
     {
-        $this->ignoreLines = (int)$linesCount;
+        $this->ignoreLines = (int) $linesCount;
         return $this;
     }
 

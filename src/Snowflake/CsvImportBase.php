@@ -50,7 +50,7 @@ abstract class CsvImportBase extends ImportBase
             Debugger::timer($timerName);
             $results = $this->connection->fetchAll($this->generateCopyCommand($tableName, $csvFile, $options));
             foreach ($results as $result) {
-                $this->importedRowsCount += (int)$result['rows_loaded'];
+                $this->importedRowsCount += (int) $result['rows_loaded'];
             }
             $this->addTimer($timerName, Debugger::timer($timerName));
         } catch (\Exception $e) {
@@ -153,7 +153,7 @@ abstract class CsvImportBase extends ImportBase
             throw new Exception('Unable to download file from S3: ' . $e->getMessage());
         }
 
-        $manifest = json_decode((string)$response['Body'], true);
+        $manifest = json_decode((string) $response['Body'], true);
 
         return array_map(function ($entry) {
             return $entry['url'];

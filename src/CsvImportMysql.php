@@ -120,7 +120,7 @@ class CsvImportMysql implements ImportInterface
 			OPTIONALLY ENCLOSED BY ' . $this->connection->quote($csvFile->getEnclosure()) . '
 			ESCAPED BY ' . $this->connection->quote($csvFile->getEscapedBy()) . '
 			LINES TERMINATED BY ' . $this->connection->quote($csvFile->getLineBreak()) . '
-			IGNORE ' . (int)$this->getIgnoreLines() . ' LINES
+			IGNORE ' . (int) $this->getIgnoreLines() . ' LINES
 			(' . implode(', ', $loadColumnsOrdered) . ')
 		';
 
@@ -332,7 +332,7 @@ class CsvImportMysql implements ImportInterface
      */
     public function setIncremental($incremental)
     {
-        $this->incremental = (bool)$incremental;
+        $this->incremental = (bool) $incremental;
         return $this;
     }
 
@@ -350,7 +350,7 @@ class CsvImportMysql implements ImportInterface
      */
     public function setIgnoreLines($linesCount)
     {
-        $this->ignoreLines = (int)$linesCount;
+        $this->ignoreLines = (int) $linesCount;
         return $this;
     }
 
@@ -433,7 +433,7 @@ class CsvImportMysql implements ImportInterface
                 'COLUMN_POSITION' => $i,
                 'DATA_TYPE' => $row[$type],
                 'DEFAULT' => $row[$default],
-                'NULLABLE' => (bool)($row[$null] == 'YES'),
+                'NULLABLE' => (bool) ($row[$null] == 'YES'),
                 'LENGTH' => $length,
                 'SCALE' => $scale,
                 'PRECISION' => $precision,

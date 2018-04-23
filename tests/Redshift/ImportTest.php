@@ -20,7 +20,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
     public static function setUpBeforeClass()
     {
-        echo sprintf("\nLegacy mode: %s\n", (bool)  getenv('REDSHIFT_LEGACY_IMPORT') ? 'ON' : 'OFF');
+        echo sprintf("\nLegacy mode: %s\n", (bool) getenv('REDSHIFT_LEGACY_IMPORT') ? 'ON' : 'OFF');
     }
 
     public function setUp()
@@ -822,7 +822,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             if ($row[$contype] == 'p') {
                 $primary = true;
                 $primaryPosition = array_search($row[$attnum], explode(',', $row[$conkey])) + 1;
-                $identity = (bool)(preg_match('/^nextval/', $row[$default_value]));
+                $identity = (bool) (preg_match('/^nextval/', $row[$default_value]));
             }
             $desc[$row[$colname]] = [
                 'SCHEMA_NAME' => $row[$nspname],
@@ -831,7 +831,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 'COLUMN_POSITION' => $row[$attnum],
                 'DATA_TYPE' => $row[$type],
                 'DEFAULT' => $defaultValue,
-                'NULLABLE' => (bool)($row[$notnull] != 't'),
+                'NULLABLE' => (bool) ($row[$notnull] != 't'),
                 'LENGTH' => $row[$length],
                 'SCALE' => null, // @todo
                 'PRECISION' => null, // @todo

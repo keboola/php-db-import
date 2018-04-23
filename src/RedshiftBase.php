@@ -535,7 +535,7 @@ abstract class RedshiftBase implements ImportInterface
      */
     public function setIncremental($incremental)
     {
-        $this->incremental = (bool)$incremental;
+        $this->incremental = (bool) $incremental;
         return $this;
     }
 
@@ -553,7 +553,7 @@ abstract class RedshiftBase implements ImportInterface
      */
     public function setIgnoreLines($linesCount)
     {
-        $this->ignoreLines = (int)$linesCount;
+        $this->ignoreLines = (int) $linesCount;
         return $this;
     }
 
@@ -627,7 +627,7 @@ abstract class RedshiftBase implements ImportInterface
             if ($row[$contype] == 'p') {
                 $primary = true;
                 $primaryPosition = array_search($row[$attnum], explode(',', $row[$conkey])) + 1;
-                $identity = (bool)(preg_match('/^nextval/', $row[$default_value]));
+                $identity = (bool) (preg_match('/^nextval/', $row[$default_value]));
             }
             $desc[$row[$colname]] = [
                 'SCHEMA_NAME' => $row[$nspname],
@@ -636,7 +636,7 @@ abstract class RedshiftBase implements ImportInterface
                 'COLUMN_POSITION' => $row[$attnum],
                 'DATA_TYPE' => $row[$type],
                 'DEFAULT' => $defaultValue,
-                'NULLABLE' => (bool)($row[$notnull] != 't'),
+                'NULLABLE' => (bool) ($row[$notnull] != 't'),
                 'LENGTH' => $row[$length],
                 'SCALE' => null, // @todo
                 'PRECISION' => null, // @todo
