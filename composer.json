@@ -12,9 +12,9 @@
         "aws/aws-sdk-php": "^3.11"
     },
     "require-dev": {
+        "keboola/coding-standard": "^2.0",
         "phpunit/phpunit": "^5.0",
-        "phpunit/dbunit": "^2.0",
-        "squizlabs/php_codesniffer": "^2.6"
+        "phpunit/dbunit": "^2.0"
     },
     "autoload": {
         "psr-4": {
@@ -25,5 +25,15 @@
         "psr-4": {
             "Keboola\\DbImportTest\\": "tests/"
         }
+    },
+    "scripts": {
+        "phpcs": "phpcs -n --ignore=vendor --extensions=php .",
+        "build": [
+            "@phpcs"
+        ],
+        "ci": [
+            "@composer validate --no-check-publish --no-check-all",
+            "@build"
+        ]
     }
 }

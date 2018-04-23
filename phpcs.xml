@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<ruleset name="Project">
+    <rule ref="vendor/keboola/coding-standard/src/ruleset.xml">
+        <exclude name="SlevomatCodingStandard.TypeHints.DeclareStrictTypes.DeclareStrictTypesMissing" />
+        <exclude name="SlevomatCodingStandard.Classes.ClassConstantVisibility.MissingConstantVisibility" />
+        <exclude name="SlevomatCodingStandard.Classes.ClassConstantVisibility.MissingConstantVisibility" />
+        <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint" />
+        <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingReturnTypeHint" />
+        <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingPropertyTypeHint" />
+        <exclude name="SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly.ReferencedGeneralException" />
+        <exclude name="SlevomatCodingStandard.Arrays.TrailingArrayComma.MissingTrailingComma" />
+        <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.UselessDocComment" />
+        <exclude name="Generic.Formatting.SpaceAfterCast.NoSpace" />
+        <exclude name="Generic.Formatting.SpaceAfterCast.TooMuchSpace" />
+        <exclude name="PSR2.Methods.FunctionCallSignature.ContentAfterOpenBracket" />
+        <exclude name="PSR2.Methods.FunctionCallSignature.Indent" />
+        <exclude name="PSR2.Methods.FunctionCallSignature.MultipleArguments" />
+        <exclude name="PSR2.Methods.FunctionCallSignature.CloseBracketLine" />
+    </rule>
+</ruleset>
