@@ -25,8 +25,8 @@ services:
       - SNOWFLAKE_PASSWORD
       - SNOWFLAKE_DATABASE
       - SNOWFLAKE_WAREHOUSE
-      - AWS_ACCESS_KEY
-      - AWS_SECRET_KEY
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
       - AWS_S3_BUCKET
       - AWS_REGION
       - MYSQL_HOST=mysql
