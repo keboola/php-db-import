@@ -255,7 +255,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
                 new CsvFile(__DIR__ . "/../_data/csv-import/nullify.csv"),
             ],
             [
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -281,7 +281,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
                 new CsvFile(__DIR__ . "/../_data/csv-import/nullify.csv"),
             ],
             [
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -322,11 +322,11 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
 
             // specified columns import
             [new CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.columnImport.csv'), 'expectation.incrementalImportColumnsList.xml', 'csv_accounts',
-                true, [], true
+                true, [], true,
             ],
             [new CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.columnImportIsImported.csv'), 'expectation.incrementalImportColumnsListIsImported.xml',
-                'csv_accounts', true, [], true
-            ]
+                'csv_accounts', true, [], true,
+            ],
         ];
     }
 }

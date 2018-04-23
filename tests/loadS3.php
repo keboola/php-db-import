@@ -64,8 +64,8 @@ $manifest = [
         [
             'url' => sprintf("s3://%s/manifests/accounts/tw_accounts.csv0001_part_00", $bucket),
             'mandatory' => true,
-        ]
-    ]
+        ],
+    ],
 ];
 
 $client->putObject([
@@ -84,8 +84,8 @@ $manifest = [
         [
             'url' => sprintf("s3://%s/manifests/accounts-gzip/tw_accounts.csv.gz0001_part_00.gz", $bucket),
             'mandatory' => true,
-        ]
-    ]
+        ],
+    ],
 ];
 
 $client->putObject([
@@ -101,8 +101,8 @@ $manifest = [
         [
             'url' => sprintf("s3://%s/not-exists.csv", $bucket),
             'mandatory' => true,
-        ]
-    ]
+        ],
+    ],
 ];
 
 $client->putObject([

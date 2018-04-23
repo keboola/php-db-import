@@ -328,7 +328,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     'NULL AS \'NULL\'',
                     'ACCEPTANYDATE',
                     'TRUNCATECOLUMNS',
-                ]
+                ],
             ]
         );
 
@@ -371,7 +371,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         try {
             $import->import('out.csv_2Cols', ['col1', 'col2'], [
                 'schemaName' => $this->sourceSchemaName,
-                'tableName' => 'random'
+                'tableName' => 'random',
             ]);
             $this->fail();
         } catch (\Keboola\Db\Import\Exception $e) {
@@ -431,7 +431,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -459,7 +459,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -486,11 +486,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -518,11 +518,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -553,11 +553,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -585,11 +585,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -655,7 +655,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     ['a', 'b', '2014-11-10 13:12:06'],
                     ['c', 'd', '2014-11-10 14:12:06'],
                 ],
-                'out.csv_2Cols'
+                'out.csv_2Cols',
             ],
             // test creating table without _timestamp column
             [
@@ -664,8 +664,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 $expectedEscaping,
                 'out.no_timestamp_table',
                 'csv',
-                ['useTimestamp' => false]
-            ]
+                ['useTimestamp' => false],
+            ],
         ];
     }
 
@@ -701,7 +701,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         return [
             [$initialAccountsFile, $incrementAccountsFile, $accountColumns, $expectedAccountsRows, 'accounts'],
             [$initialAccountsFile, $incrementAccountsFile, $accountColumns, $expectedAccountsRows, 'accounts_bez_ts', ['useTimestamp' => false]],
-            [$initialMultiPkFile, $incrementMultiPkFile, $multiPkColumns, $expectedMultiPkRows, 'multi-pk']
+            [$initialMultiPkFile, $incrementMultiPkFile, $multiPkColumns, $expectedMultiPkRows, 'multi-pk'],
         ];
     }
 
@@ -838,7 +838,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 'UNSIGNED' => null, // @todo
                 'PRIMARY' => $primary,
                 'PRIMARY_POSITION' => $primaryPosition,
-                'IDENTITY' => $identity
+                'IDENTITY' => $identity,
             ];
         }
         return $desc;

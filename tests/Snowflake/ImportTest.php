@@ -199,7 +199,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         return [
             [$initialAccountsFile, $incrementAccountsFile, $accountColumns, $expectedAccountsRows, 'accounts-3'],
             [$initialAccountsFile, $incrementAccountsFile, $accountColumns, $expectedAccountsRows, 'accounts-bez-ts', ['useTimestamp' => false]],
-            [$initialMultiPkFile, $incrementMultiPkFile, $multiPkColumns, $expectedMultiPkRows, 'multi-pk']
+            [$initialMultiPkFile, $incrementMultiPkFile, $multiPkColumns, $expectedMultiPkRows, 'multi-pk'],
         ];
     }
 
@@ -255,7 +255,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 $escapingHeader,
                 [['a', 'b'], ['c', 'd']],
                 'out.csv_2Cols',
-                'copy'
+                'copy',
             ],
 
             [
@@ -263,7 +263,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 ['charCol', 'numCol', 'floatCol', 'boolCol'],
                 [['a', '10.5', '0.3', 'true']],
                 'types',
-                'copy'
+                'copy',
             ],
 
             // reserved words
@@ -278,7 +278,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     ['a', 'b', 'Mon, 10 Nov 2014 13:12:06 Z'],
                     ['c', 'd', 'Mon, 10 Nov 2014 14:12:06 Z'],
                 ],
-                'out.csv_2Cols'
+                'out.csv_2Cols',
             ],
             // test creating table without _timestamp column
             [
@@ -287,8 +287,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 $expectedEscaping,
                 'out.no_timestamp_table',
                 'csv',
-                ['useTimestamp' => false]
-            ]
+                ['useTimestamp' => false],
+            ],
 
         ];
     }
@@ -583,7 +583,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -612,7 +612,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -638,11 +638,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -670,11 +670,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -703,11 +703,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -752,11 +752,11 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ['id', 'name', 'price'],
             [
                 "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName
+                "schemaName" => $this->destSchemaName,
             ],
             [
                 "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
