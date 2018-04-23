@@ -10,8 +10,15 @@ before_install:
 
 install:
   - docker-compose up -d mysql # boot mysql now to be ready when tests are started
-  - docker-compose run --rm drivers-download composer install
-  - docker-compose run --rm drivers-download php docker/downloadOdbcDriver.php
+  # download Snowflake drivers
+  - >-
+   docker
+   run
+   -e AWS_ACCESS_KEY_ID
+   -e AWS_SECRET_ACCESS_KEY
+   -v `pwd`:/code
+   quay.io/keboola/aws-cli
+   s3 cp s3://keboola-configs/drivers/snowflake/snowflake-odbc-2.14.0.x86_64.deb /code/snowflake-odbc.deb
   - docker-compose build tests
   - docker-compose run --rm tests php ./tests/loadS3.php
 
