@@ -1,5 +1,10 @@
 FROM php:7.1
+
 ENV DEBIAN_FRONTEND noninteractive
+ENV COMPOSER_ALLOW_SUPERUSER 1
+ENV COMPOSER_PROCESS_TIMEOUT 3600
+# snowflake - charset settings
+ENV LANG en_US.UTF-8
 
 RUN apt-get update \
   && apt-get install unzip git unixODBC-dev libpq-dev -y
@@ -26,9 +31,6 @@ RUN set -ex; \
 ADD ./snowflake-odbc.deb /tmp/snowflake-odbc.deb
 RUN dpkg -i /tmp/snowflake-odbc.deb
 ADD ./docker/snowflake/simba.snowflake.ini /usr/lib/snowflake/odbc/lib/simba.snowflake.ini
-
-# snowflake - charset settings
-ENV LANG en_US.UTF-8
 
 RUN cd \
   && curl -sS https://getcomposer.org/installer | php \
