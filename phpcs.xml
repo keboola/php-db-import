@@ -12,6 +12,5 @@
         <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.UselessDocComment" />
         <exclude name="Generic.Formatting.SpaceAfterCast.NoSpace" />
         <exclude name="Generic.Formatting.SpaceAfterCast.TooMuchSpace" />
-        <exclude name="PSR2.Methods.FunctionCallSignature.Indent" />
     </rule>
 </ruleset>
