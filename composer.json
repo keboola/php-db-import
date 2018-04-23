@@ -1,11 +1,5 @@
 {
     "name": "keboola/php-csv-db-import",
-    "authors": [
-        {
-            "name": "Martin Halamíček",
-            "email": "martin@keboola.com"
-        }
-    ],
     "require": {
         "keboola/csv": "^1.1",
         "tracy/tracy": "^2.3",
