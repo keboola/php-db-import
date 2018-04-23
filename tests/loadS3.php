@@ -14,10 +14,6 @@ require_once $basedir . '/vendor/autoload.php';
 $client =  new \Aws\S3\S3Client([
     'region' => getenv('AWS_REGION'),
     'version' => '2006-03-01',
-    'credentials' => [
-        'key' => getenv('AWS_ACCESS_KEY'),
-        'secret' => getenv('AWS_SECRET_KEY'),
-    ],
 ]);
 
 // Where the files will be source from
