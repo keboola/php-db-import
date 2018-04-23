@@ -16,7 +16,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
     private $sourceSchemaName = 'some.tests';
 
-    const AWS_S3_BUCKET_ENV = 'AWS_S3_BUCKET';
+    private const AWS_S3_BUCKET_ENV = 'AWS_S3_BUCKET';
 
     public static function setUpBeforeClass()
     {

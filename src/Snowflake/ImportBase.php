@@ -35,7 +35,7 @@ abstract class ImportBase implements ImportInterface
 
     private $incremental = false;
 
-    const TIMESTAMP_COLUMN_NAME = '_timestamp';
+    public const TIMESTAMP_COLUMN_NAME = '_timestamp';
 
     public function __construct(Connection $connection, $schemaName)
     {
