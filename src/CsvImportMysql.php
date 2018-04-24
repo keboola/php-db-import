@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\Db\Import;
 
 use Keboola\Csv\CsvFile;
@@ -118,7 +120,7 @@ class CsvImportMysql implements ImportInterface
         $stagingTableName = $this->createStagingTable($tableName, true);
 
         $sql = '
-			LOAD DATA LOCAL INFILE ' . $this->connection->quote($csvFile) . '
+			LOAD DATA LOCAL INFILE ' . $this->connection->quote((string) $csvFile) . '
 			REPLACE INTO TABLE ' . $this->quoteIdentifier($stagingTableName) . '
 			FIELDS TERMINATED BY ' . $this->connection->quote($csvFile->getDelimiter()) . '
 			OPTIONALLY ENCLOSED BY ' . $this->connection->quote($csvFile->getEnclosure()) . '

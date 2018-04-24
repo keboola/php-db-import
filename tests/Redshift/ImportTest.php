@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\DbImportTest\Redshift;
 
 use Keboola\Csv\CsvFile;
