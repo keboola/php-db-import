@@ -210,12 +210,24 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-
     /**
      * @dataProvider tables
+     * @param array $sourceData
+     * @param array $columns
+     * @param array $expected
+     * @param string $tableName
+     * @param string $type
+     * @param array $importOptions
+     * @throws Exception
      */
-    public function testFullImport($sourceData, $columns, $expected, $tableName, $type = 'csv', $importOptions = ['useTimestamp' => true])
-    {
+    public function testFullImport(
+        array $sourceData,
+        array $columns,
+        array $expected,
+        string $tableName,
+        string $type = 'csv',
+        array $importOptions = ['useTimestamp' => true]
+    ) {
 
         $import = $this->getImport($type);
         if ($type !== 'manifest') {
@@ -266,19 +278,21 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider tablesIncremental
-     * @param \Keboola\Csv\CsvFile $initialImportFile
-     * @param \Keboola\Csv\CsvFile $incrementFile
-     * @param $columns
-     * @param $expected
-     * @param $tableName
+     * @param CsvFile $initialImportFile
+     * @param CsvFile $incrementFile
+     * @param array $columns
+     * @param string $expected
+     * @param string $tableName
+     * @param array $importOptions
+     * @throws Exception
      */
     public function testIncrementalImport(
         \Keboola\Csv\CsvFile $initialImportFile,
         \Keboola\Csv\CsvFile $incrementFile,
-        $columns,
-        $expected,
-        $tableName,
-        $importOptions = ['useTimestamp' => true]
+        array $columns,
+        string $expected,
+        string $tableName,
+        array $importOptions = ['useTimestamp' => true]
     ) {
         // initial import
         $import = $this->getImport();
@@ -306,7 +320,6 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $importedData = $this->connection->query("SELECT $columnsSql FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll(\PDO::FETCH_NUM);
         $this->assertArrayEqualsSorted($expected, $importedData, 0);
     }
-
 
     public function testCopyOptions()
     {
@@ -705,7 +718,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    public function assertArrayEqualsSorted($expected, $actual, $sortKey, $message = "")
+    public function assertArrayEqualsSorted(array $expected, array $actual, string $sortKey, ?string $message = "")
     {
         $comparsion = function ($attrLeft, $attrRight) use ($sortKey) {
             if ($attrLeft[$sortKey] == $attrRight[$sortKey]) {
@@ -723,7 +736,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
      * @return \Keboola\Db\Import\ImportInterface
      * @throws Exception
      */
-    private function getImport($type = 'csv')
+    private function getImport(string $type = 'csv')
     {
         switch ($type) {
             case 'manifest':
@@ -757,7 +770,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    private function describeTable($tableName, $schemaName = null)
+    private function describeTable(string $tableName, ?string $schemaName = null)
     {
         $sql = "SELECT
                 a.attnum,

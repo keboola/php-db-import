@@ -68,7 +68,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         ], $data);
     }
 
-    private function prepareSchema(Connection $connection, $schemaName)
+    private function prepareSchema(Connection $connection, string $schemaName)
     {
         $connection->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schemaName));
         $connection->query(sprintf('CREATE SCHEMA "%s"', $schemaName));

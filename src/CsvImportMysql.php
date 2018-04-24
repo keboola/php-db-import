@@ -42,7 +42,7 @@ class CsvImportMysql implements ImportInterface
      * @param array $options
      * @return Result
      */
-    public function import($tableName, $columns, array $sourceData, array $options = [])
+    public function import(string $tableName, array $columns, array $sourceData, array $options = [])
     {
         $this->importedRowsCount = 0;
         $this->importedColumns = 0;
@@ -82,7 +82,7 @@ class CsvImportMysql implements ImportInterface
         ]);
     }
 
-    protected function createStagingTable($tableName, $temporary = false)
+    protected function createStagingTable(string $tableName, bool $temporary = false)
     {
         $tempName = '__temp_' . $this->uniqueValue();
         if (!$temporary) {
@@ -102,7 +102,7 @@ class CsvImportMysql implements ImportInterface
         return str_replace('.', '_', uniqid('csvImport', true));
     }
 
-    protected function importTableColumnsAll($tableName, $columns, CsvFile $csvFile, array $convertEmptyValuesToNull = [])
+    protected function importTableColumnsAll(string $tableName, array $columns, CsvFile $csvFile, array $convertEmptyValuesToNull = [])
     {
         $importColumns = $this->tableColumns($tableName);
 
@@ -192,7 +192,7 @@ class CsvImportMysql implements ImportInterface
         $this->query($sql);
     }
 
-    protected function insertOrUpdateTargetTable($sourceTable, $targetTable, $importColumns, array $convertEmptyValuesToNull = [])
+    protected function insertOrUpdateTargetTable(string $sourceTable, string $targetTable, array $importColumns, array $convertEmptyValuesToNull = [])
     {
         Debugger::timer('csvImport.insertIntoTargetTable');
 
@@ -234,7 +234,7 @@ class CsvImportMysql implements ImportInterface
         $this->addTimer('insertIntoTargetTable', Debugger::timer('csvImport.insertIntoTargetTable'));
     }
 
-    protected function swapTables($table1, $table2)
+    protected function swapTables(string $table1, string $table2)
     {
         $tmpNameQuoted = $this->quoteIdentifier($this->uniqueValue());
         $table1Quoted = $this->quoteIdentifier($table1);
@@ -246,7 +246,7 @@ class CsvImportMysql implements ImportInterface
         ");
     }
 
-    protected function dropTable($tableName, $temporary = false)
+    protected function dropTable(string $tableName, bool $temporary = false)
     {
         $this->query(sprintf(
             'DROP %S TABLE %s',
@@ -260,7 +260,7 @@ class CsvImportMysql implements ImportInterface
      * @return \Zend_Db_Statement_Pdo
      * @throws Exception
      */
-    protected function query($query)
+    protected function query(string $query)
     {
         try {
             $stmt = $this->connection->prepare($query);
@@ -271,7 +271,7 @@ class CsvImportMysql implements ImportInterface
         }
     }
 
-    protected function validate($tableName, array $columns)
+    protected function validate(string $tableName, array $columns)
     {
         if (!$this->tableExists($tableName)) {
             throw new Exception(sprintf('Table %s not exists', $tableName), Exception::TABLE_NOT_EXISTS);
@@ -290,7 +290,7 @@ class CsvImportMysql implements ImportInterface
         }
     }
 
-    private function tableExists($tableName)
+    private function tableExists(string $tableName)
     {
         $statement = $this->connection->prepare('SHOW TABLES LIKE ?');
         $statement->execute([$tableName]);
@@ -298,7 +298,7 @@ class CsvImportMysql implements ImportInterface
         return !!$statement->fetch();
     }
 
-    protected function tableColumns($tableName)
+    protected function tableColumns(string $tableName)
     {
         return array_keys($this->describeTable($tableName));
     }
@@ -330,11 +330,7 @@ class CsvImportMysql implements ImportInterface
         return $this->incremental;
     }
 
-    /**
-     * @param $incremental
-     * @return CsvImportMysql
-     */
-    public function setIncremental($incremental)
+    public function setIncremental(bool $incremental)
     {
         $this->incremental = (bool) $incremental;
         return $this;
@@ -348,17 +344,13 @@ class CsvImportMysql implements ImportInterface
         return $this->ignoreLines;
     }
 
-    /**
-     * @param $linesCount
-     * @return $this
-     */
-    public function setIgnoreLines($linesCount)
+    public function setIgnoreLines(int $linesCount)
     {
         $this->ignoreLines = (int) $linesCount;
         return $this;
     }
 
-    private function addTimer($name, $value)
+    private function addTimer(string $name, float $value)
     {
         $this->timers[] = [
             'name' => $name,
@@ -366,7 +358,7 @@ class CsvImportMysql implements ImportInterface
         ];
     }
 
-    private static function duplicates(array $array, $caseSensitive = true)
+    private static function duplicates(array $array, bool $caseSensitive = true)
     {
         if (!$caseSensitive) {
             $array = array_map('strtolower', $array);
@@ -374,7 +366,7 @@ class CsvImportMysql implements ImportInterface
         return array_values(array_unique(array_diff_key($array, array_unique($array))));
     }
 
-    private function describeTable($tableName)
+    private function describeTable(string $tableName)
     {
         $sql = 'DESCRIBE ' . $this->quoteIdentifier($tableName);
         $stmt = $this->connection->query($sql);
@@ -451,7 +443,7 @@ class CsvImportMysql implements ImportInterface
         return $desc;
     }
 
-    private function quoteIdentifier($value)
+    private function quoteIdentifier(string $value)
     {
         $q = '`';
         return ($q . str_replace("$q", "$q$q", $value) . $q);

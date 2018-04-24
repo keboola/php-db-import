@@ -16,8 +16,14 @@ abstract class RedshiftBaseCsv extends RedshiftBase
     /** @var string */
     private $s3region;
 
-    public function __construct(\PDO $connection, $s3key, $s3secret, $s3region, $schemaName, $legacyFullImport = false)
-    {
+    public function __construct(
+        \PDO $connection,
+        string $s3key,
+        string $s3secret,
+        string $s3region,
+        string $schemaName,
+        bool $legacyFullImport = false
+    ) {
         parent::__construct($connection, $schemaName, $legacyFullImport);
         $this->s3key = $s3key;
         $this->s3secret = $s3secret;
@@ -34,7 +40,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
      * @throws Exception
      * @throws \Exception
      */
-    protected function importTable($tempTableName, $columns, CsvFile $csvFile, array $options)
+    protected function importTable(string $tempTableName, array $columns, CsvFile $csvFile, array $options)
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
             throw new Exception(
@@ -83,7 +89,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         }
     }
 
-    private function generateCopyCommand($tempTableName, $columns, CsvFile $csvFile, array $options)
+    private function generateCopyCommand(string $tempTableName, array $columns, CsvFile $csvFile, array $options)
     {
         $tableNameEscaped = $this->tableNameEscaped($tempTableName);
         $columnsSql = implode(', ', array_map(function ($column) {
@@ -128,12 +134,12 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         return $command;
     }
 
-    private function isGzipped($path)
+    private function isGzipped(string $path)
     {
         return in_array(pathinfo($path, PATHINFO_EXTENSION), ['gz', 'gzip']);
     }
 
-    private function downloadManifest($path)
+    private function downloadManifest(string $path)
     {
         $s3Client = new \Aws\S3\S3Client([
             'credentials' => [

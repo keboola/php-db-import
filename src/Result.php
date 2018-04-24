@@ -32,7 +32,12 @@ class Result
         return (array) $this->getKeyValue('timers', []);
     }
 
-    public function getKeyValue($keyName, $default = null)
+    /**
+     * @param string $keyName
+     * @param mixed|null $default
+     * @return mixed|null
+     */
+    public function getKeyValue(string $keyName, $default = null)
     {
         return isset($this->results[$keyName]) ? $this->results[$keyName] : $default;
     }

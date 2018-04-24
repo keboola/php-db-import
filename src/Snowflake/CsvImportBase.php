@@ -18,8 +18,13 @@ abstract class CsvImportBase extends ImportBase
     /** @var string */
     protected $s3region;
 
-    public function __construct($connection, $s3key, $s3secret, $s3region, $schemaName)
-    {
+    public function __construct(
+        Connection $connection,
+        string $s3key,
+        string $s3secret,
+        string $s3region,
+        string $schemaName
+    ) {
         parent::__construct($connection, $schemaName);
         $this->s3key = $s3key;
         $this->s3secret = $s3secret;
@@ -33,7 +38,7 @@ abstract class CsvImportBase extends ImportBase
      *  - isManifest
      * @throws Exception
      */
-    protected function importTable($tableName, CsvFile $csvFile, array $options)
+    protected function importTable(string $tableName, CsvFile $csvFile, array $options)
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
             throw new Exception(
@@ -67,7 +72,7 @@ abstract class CsvImportBase extends ImportBase
      *  - isManifest
      * @return string
      */
-    private function generateCopyCommand($tableName, CsvFile $csvFile, array $options)
+    private function generateCopyCommand(string $tableName, CsvFile $csvFile, array $options)
     {
         $csvOptions = [];
         $csvOptions[] = sprintf('FIELD_DELIMITER = %s', $this->quote($csvFile->getDelimiter()));
@@ -124,12 +129,12 @@ abstract class CsvImportBase extends ImportBase
         }
     }
 
-    private function quote($value)
+    private function quote(string $value)
     {
         return "'" . addslashes($value) . "'";
     }
 
-    private function getFilesToDownloadFromManifest($path)
+    private function getFilesToDownloadFromManifest(string $path)
     {
         $s3Client = new \Aws\S3\S3Client([
             'credentials' => [

@@ -51,7 +51,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     /**
      * @dataProvider tables
      */
-    public function testImport(CsvFile $csvFile, $expectationsFile, $tableName, $incremental)
+    public function testImport(CsvFile $csvFile, string $expectationsFile, string $tableName, bool $incremental)
     {
         $result = $this->import
             ->setIncremental($incremental)

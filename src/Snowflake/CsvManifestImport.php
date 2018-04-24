@@ -1,15 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: martinhalamicek
- * Date: 27/04/16
- * Time: 15:59
- */
 namespace Keboola\Db\Import\Snowflake;
 
 class CsvManifestImport extends CsvImportBase
 {
-    protected function importDataToStagingTable($stagingTableName, $columns, $sourceData)
+    protected function importDataToStagingTable(string $stagingTableName, array $columns, array $sourceData)
     {
         foreach ($sourceData as $csvFile) {
             $this->importTable(
