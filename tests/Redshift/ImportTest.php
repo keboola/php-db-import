@@ -287,10 +287,10 @@ class ImportTest extends \PHPUnit_Framework_TestCase
      * @throws Exception
      */
     public function testIncrementalImport(
-        \Keboola\Csv\CsvFile $initialImportFile,
-        \Keboola\Csv\CsvFile $incrementFile,
+        CsvFile $initialImportFile,
+        CsvFile $incrementFile,
         array $columns,
-        string $expected,
+        array $expected,
         string $tableName,
         array $importOptions = ['useTimestamp' => true]
     ) {
