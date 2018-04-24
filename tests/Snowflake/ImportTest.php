@@ -130,7 +130,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
         $importedData = $this->fetchAll($this->destSchemaName, $tableName, $tableColumns);
 
-        $this->assertArrayEqualsSorted($expected, $importedData, 0);
+        $this->assertArrayEqualsSorted($expected, $importedData, '0');
     }
 
     /**
@@ -177,7 +177,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         
         $importedData = $this->fetchAll($this->destSchemaName, $tableName, $tableColumns);
 
-        $this->assertArrayEqualsSorted($expected, $importedData, 0);
+        $this->assertArrayEqualsSorted($expected, $importedData, '0');
     }
 
     public function incrementalImportData()

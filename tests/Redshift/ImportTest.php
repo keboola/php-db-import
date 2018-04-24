@@ -748,7 +748,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
                     $this->destSchemaName,
-                    getenv('REDSHIFT_LEGACY_IMPORT')
+                    (bool) getenv('REDSHIFT_LEGACY_IMPORT')
                 );
                 break;
             case 'csv':
@@ -758,13 +758,13 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
                     $this->destSchemaName,
-                    getenv('REDSHIFT_LEGACY_IMPORT')
+                    (bool) getenv('REDSHIFT_LEGACY_IMPORT')
                 );
             case 'copy':
                 return new \Keboola\Db\Import\CopyImportRedshift(
                     $this->connection,
                     $this->destSchemaName,
-                    getenv('REDSHIFT_LEGACY_IMPORT')
+                    (bool) getenv('REDSHIFT_LEGACY_IMPORT')
                 );
                 break;
             default:
