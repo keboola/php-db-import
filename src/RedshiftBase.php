@@ -631,7 +631,7 @@ abstract class RedshiftBase implements ImportInterface
             if ($row[$contype] == 'p') {
                 $primary = true;
                 $primaryPosition = array_search($row[$attnum], explode(',', $row[$conkey])) + 1;
-                $identity = (bool) (preg_match('/^nextval/', $row[$default_value]));
+                $identity = (bool) (preg_match('/^nextval/', (string) $row[$default_value]));
             }
             $desc[$row[$colname]] = [
                 'SCHEMA_NAME' => $row[$nspname],

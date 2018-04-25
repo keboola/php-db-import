@@ -257,7 +257,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
         $importedData = $this->connection->query("SELECT $columnsSql FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll(\PDO::FETCH_NUM);
 
-        $this->assertArrayEqualsSorted($expected, $importedData, 0);
+
+        $this->assertArrayEqualsSorted($expected, $importedData, '0');
     }
 
     public function testImportShouldNotFailOnColumnNameRowNumber()
@@ -320,7 +321,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }, array_keys($tableColumns)));
 
         $importedData = $this->connection->query("SELECT $columnsSql FROM \"{$this->destSchemaName}\".\"$tableName\"")->fetchAll(\PDO::FETCH_NUM);
-        $this->assertArrayEqualsSorted($expected, $importedData, 0);
+        $this->assertArrayEqualsSorted($expected, $importedData, '0');
     }
 
     public function testCopyOptions()
@@ -829,7 +830,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                         $row[$length] = null; // unlimited
                     }
                 }
-                if (preg_match("/^'(.*?)'::(?:character varying|bpchar)$/", $defaultValue, $matches)) {
+                if (preg_match("/^'(.*?)'::(?:character varying|bpchar)$/", (string) $defaultValue, $matches)) {
                     $defaultValue = $matches[1];
                 }
             }
@@ -837,7 +838,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             if ($row[$contype] == 'p') {
                 $primary = true;
                 $primaryPosition = array_search($row[$attnum], explode(',', $row[$conkey])) + 1;
-                $identity = (bool) (preg_match('/^nextval/', $row[$default_value]));
+                $identity = (bool) (preg_match('/^nextval/', (string) $row[$default_value]));
             }
             $desc[$row[$colname]] = [
                 'SCHEMA_NAME' => $row[$nspname],
