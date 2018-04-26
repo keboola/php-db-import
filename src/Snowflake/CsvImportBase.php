@@ -53,10 +53,12 @@ abstract class CsvImportBase extends ImportBase
         try {
             $timerName = 'copyToStaging-' . $csvFile->getBasename();
             Debugger::timer($timerName);
-            $results = $this->connection->fetchAll($this->generateCopyCommand($tableName, $csvFile, $options));
-            foreach ($results as $result) {
-                $this->importedRowsCount += (int) $result['rows_loaded'];
-            }
+            array_map(
+                function (string $copyCommand) {
+                    $this->executeCopyCommand($copyCommand);
+                },
+                $this->generateCopyCommands($tableName, $csvFile, $options)
+            );
             $this->addTimer($timerName, Debugger::timer($timerName));
         } catch (\Throwable $e) {
             $stringCode = Exception::INVALID_SOURCE_DATA;
@@ -67,14 +69,22 @@ abstract class CsvImportBase extends ImportBase
         }
     }
 
+    private function executeCopyCommand($sql)
+    {
+        $results = $this->connection->fetchAll($sql);
+        foreach ($results as $result) {
+            $this->importedRowsCount += (int) $result['rows_loaded'];
+        }
+    }
+
     /**
      * @param string $tableName
      * @param CsvFile $csvFile
      * @param array $options
      *  - isManifest
-     * @return string
+     * @return array
      */
-    private function generateCopyCommand(string $tableName, CsvFile $csvFile, array $options): string
+    private function generateCopyCommands(string $tableName, CsvFile $csvFile, array $options)
     {
         $csvOptions = [];
         $csvOptions[] = sprintf('FIELD_DELIMITER = %s', $this->quote($csvFile->getDelimiter()));
@@ -91,44 +101,53 @@ abstract class CsvImportBase extends ImportBase
         }
 
         if (empty($options['isManifest'])) {
-            return sprintf(
-                "COPY INTO %s FROM %s 
-                CREDENTIALS = (AWS_KEY_ID = %s AWS_SECRET_KEY = %s)
-                REGION = %s
-                FILE_FORMAT = (TYPE=CSV %s)",
-                $this->nameWithSchemaEscaped($tableName),
-                $this->quote($csvFile->getPathname()),
-                $this->quote($this->s3key),
-                $this->quote($this->s3secret),
-                $this->quote($this->s3region),
-                implode(' ', $csvOptions)
-            );
-        } else {
-            $parsedS3Path = parse_url($csvFile->getPathname());
-            $s3Prefix = 's3://' . $parsedS3Path['host'];
-            return sprintf(
-                "COPY INTO %s FROM %s 
+            return [
+                sprintf(
+                    "COPY INTO %s FROM %s 
+                    CREDENTIALS = (AWS_KEY_ID = %s AWS_SECRET_KEY = %s)
+                    REGION = %s
+                    FILE_FORMAT = (TYPE=CSV %s)",
+                    $this->nameWithSchemaEscaped($tableName),
+                    $this->quote($csvFile->getPathname()),
+                    $this->quote($this->s3key),
+                    $this->quote($this->s3secret),
+                    $this->quote($this->s3region),
+                    implode(' ', $csvOptions)
+                ),
+            ];
+        }
+        $parsedS3Path = parse_url($csvFile->getPathname());
+        $s3Prefix = 's3://' . $parsedS3Path['host'];
+        return array_map(
+            function (array $slices) use ($tableName, $s3Prefix, $csvOptions) {
+                return sprintf(
+                    "COPY INTO %s FROM %s 
                 CREDENTIALS = (AWS_KEY_ID = %s AWS_SECRET_KEY = %s)
                 REGION = %s
                 FILE_FORMAT = (TYPE=CSV %s)
                 FILES = (%s)",
-                $this->nameWithSchemaEscaped($tableName),
-                $this->quote($s3Prefix), // s3 bucket
-                $this->quote($this->s3key),
-                $this->quote($this->s3secret),
-                $this->quote($this->s3region),
-                implode(' ', $csvOptions),
-                implode(
-                    ', ',
-                    array_map(
-                        function ($file) use ($s3Prefix) {
-                            return $this->quote(str_replace($s3Prefix . '/', '', $file));
-                        },
-                        $this->getFilesToDownloadFromManifest($csvFile->getPathname())
+                    $this->nameWithSchemaEscaped($tableName),
+                    $this->quote($s3Prefix), // s3 bucket
+                    $this->quote($this->s3key),
+                    $this->quote($this->s3secret),
+                    $this->quote($this->s3region),
+                    implode(' ', $csvOptions),
+                    implode(
+                        ', ',
+                        array_map(
+                            function ($file) use ($s3Prefix) {
+                                return $this->quote(str_replace($s3Prefix . '/', '', $file));
+                            },
+                            $slices
+                        )
                     )
-                )
-            );
-        }
+                );
+            },
+            array_chunk(
+                $this->getFilesToDownloadFromManifest($csvFile->getPathname()),
+                1000
+            )
+        );
     }
 
     private function quote(string $value): string
