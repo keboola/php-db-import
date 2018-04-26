@@ -46,6 +46,26 @@ if ($objects) {
     ]);
 }
 
+// generate files
+$largeManifest = [
+    'entries' => []
+];
+for ($i = 0; $i <= 1500; $i++) {
+    $sliceName = sprintf('sliced.csv_%d', $i);
+    file_put_contents(
+        $source . '/manifests/2cols-large/' . $sliceName,
+        "\"a\",\"b\"\n"
+    );
+    $largeManifest['entries'][] = [
+        'url' => sprintf("s3://%s/manifests/2cols-large/%s", $bucket, $sliceName),
+        'mandatory' => true,
+    ];
+}
+file_put_contents(
+    $source . '/manifests/2cols-large/sliced.csvmanifest',
+    json_encode($largeManifest)
+);
+
 // Create a transfer object.
 $manager = new \Aws\S3\Transfer($client, $source, $dest, [
     'debug' => true,
@@ -107,6 +127,8 @@ $manifest = [
         ],
     ],
 ];
+
+// 4. More than 1000 slices
 
 $client->putObject([
     'Bucket' => $bucket,
