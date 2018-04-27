@@ -48,7 +48,7 @@ if ($objects) {
 
 // generate files
 $largeManifest = [
-    'entries' => []
+    'entries' => [],
 ];
 for ($i = 0; $i <= 1500; $i++) {
     $sliceName = sprintf('sliced.csv_%d', $i);

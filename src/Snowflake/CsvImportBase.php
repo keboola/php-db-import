@@ -63,24 +63,24 @@ abstract class CsvImportBase extends ImportBase
         }
     }
 
-    private function importTableFromSingleFile(string $stableName, CsvFile $csvFile)
+    private function importTableFromSingleFile(string $stableName, CsvFile $csvFile): void
     {
         $this->executeCopyCommand(
             $this->generateSingleFileCopyCommand($stableName, $csvFile)
         );
     }
 
-    private function importTableFromSlicedFile(string $tableName, CsvFile $csvFile)
+    private function importTableFromSlicedFile(string $tableName, CsvFile $csvFile): void
     {
         $slicesPaths = $this->getFilesToDownloadFromManifest($csvFile->getPathname());
         foreach (array_chunk($slicesPaths, self::SLICED_FILES_CHUNK_SIZE) as $slicesChunk) {
             $this->executeCopyCommand(
-              $this->generateSlicedFileCopyCommand($tableName, $csvFile, $slicesChunk)
+                $this->generateSlicedFileCopyCommand($tableName, $csvFile, $slicesChunk)
             );
         }
     }
 
-    private function executeCopyCommand($sql)
+    private function executeCopyCommand(string $sql): void
     {
         $results = $this->connection->fetchAll($sql);
         foreach ($results as $result) {
@@ -110,7 +110,7 @@ abstract class CsvImportBase extends ImportBase
         );
     }
 
-    private function generateSlicedFileCopyCommand(string $tableName, CsvFile $csvFile, array $slicesPaths)
+    private function generateSlicedFileCopyCommand(string $tableName, CsvFile $csvFile, array $slicesPaths): string
     {
         $parsedS3Path = parse_url($csvFile->getPathname());
         $s3Prefix = 's3://' . $parsedS3Path['host'];
@@ -145,7 +145,7 @@ abstract class CsvImportBase extends ImportBase
         );
     }
 
-    private function createCopyCommandCsvOptions(CsvFile $csvFile, int $ignoreLinesCount)
+    private function createCopyCommandCsvOptions(CsvFile $csvFile, int $ignoreLinesCount): array
     {
         $csvOptions = [];
         $csvOptions[] = sprintf('FIELD_DELIMITER = %s', $this->quote($csvFile->getDelimiter()));
