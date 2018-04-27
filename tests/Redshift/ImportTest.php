@@ -188,6 +188,15 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         ";
 
         $commands[] = "
+            CREATE TABLE \"{$this->destSchemaName}\".column_name_row_number (
+                  id  varchar(65535) NOT NULL,
+                  row_number  varchar(65535) NOT NULL,
+                  _timestamp TIMESTAMP,
+                  PRIMARY KEY(id)
+                );
+        ";
+
+        $commands[] = "
             CREATE TABLE  \"{$this->destSchemaName}\".\"multi-pk\" (
             \"VisitID\" VARCHAR NOT NULL,
             \"Value\" VARCHAR NOT NULL,
