@@ -1,5 +1,7 @@
 {
     "name": "keboola/php-csv-db-import",
+    "description": "Handling of large bulk data into database tables.",
+    "license": "MIT",
     "require": {
         "keboola/csv": "^1.1",
         "tracy/tracy": "^2.3",
@@ -38,7 +40,7 @@
             "@tests-snowflake"
         ],
         "ci": [
-            "@composer validate --no-check-publish --no-check-all",
+            "@composer validate --strict",
             "@build"
         ]
     }
