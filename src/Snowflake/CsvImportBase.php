@@ -65,17 +65,39 @@ abstract class CsvImportBase extends ImportBase
 
     private function importTableFromSingleFile(string $stableName, CsvFile $csvFile): void
     {
+        $csvOptions = $this->createCopyCommandCsvOptions(
+            $csvFile,
+            $this->getIgnoreLines()
+        );
         $this->executeCopyCommand(
-            $this->generateSingleFileCopyCommand($stableName, $csvFile)
+            $this->generateSingleFileCopyCommand(
+                $stableName,
+                $csvFile->getPathname(),
+               $csvOptions
+            )
         );
     }
 
     private function importTableFromSlicedFile(string $tableName, CsvFile $csvFile): void
     {
-        $slicesPaths = $this->getFilesToDownloadFromManifest($csvFile->getPathname());
+        $csvOptions = $this->createCopyCommandCsvOptions(
+            $csvFile,
+            $this->getIgnoreLines()
+        );
+        $parsedS3Path = parse_url($csvFile->getPathname());
+
+        $slicesPaths = $this->getFilesToDownloadFromManifest(
+            $parsedS3Path['host'],
+            $parsedS3Path['path']
+        );
         foreach (array_chunk($slicesPaths, self::SLICED_FILES_CHUNK_SIZE) as $slicesChunk) {
             $this->executeCopyCommand(
-                $this->generateSlicedFileCopyCommand($tableName, $csvFile, $slicesChunk)
+                $this->generateSlicedFileCopyCommand(
+                    $tableName,
+                    $parsedS3Path['host'],
+                    $slicesChunk,
+                    $csvOptions
+                )
             );
         }
     }
@@ -88,7 +110,7 @@ abstract class CsvImportBase extends ImportBase
         }
     }
 
-    private function generateSingleFileCopyCommand(string $tableName, CsvFile $csvFile): string
+    private function generateSingleFileCopyCommand(string $tableName, string $s3path, array $csvOptions): string
     {
         return sprintf(
             "COPY INTO %s FROM %s 
@@ -96,25 +118,20 @@ abstract class CsvImportBase extends ImportBase
                     REGION = %s
                     FILE_FORMAT = (TYPE=CSV %s)",
             $this->nameWithSchemaEscaped($tableName),
-            $this->quote($csvFile->getPathname()),
+            $this->quote($s3path),
             $this->quote($this->s3key),
             $this->quote($this->s3secret),
             $this->quote($this->s3region),
             implode(
                 ' ',
-                $this->createCopyCommandCsvOptions(
-                    $csvFile,
-                    $this->getIgnoreLines()
-                )
+               $csvOptions
             )
         );
     }
 
-    private function generateSlicedFileCopyCommand(string $tableName, CsvFile $csvFile, array $slicesPaths): string
+    private function generateSlicedFileCopyCommand(string $tableName, string $s3Bucket, array $slicesPaths, array $csvOptions): string
     {
-        $parsedS3Path = parse_url($csvFile->getPathname());
-        $s3Prefix = 's3://' . $parsedS3Path['host'];
-
+        $s3Prefix = sprintf('s3://%s', $s3Bucket);
         return sprintf(
             "COPY INTO %s FROM %s 
                 CREDENTIALS = (AWS_KEY_ID = %s AWS_SECRET_KEY = %s)
@@ -122,16 +139,13 @@ abstract class CsvImportBase extends ImportBase
                 FILE_FORMAT = (TYPE=CSV %s)
                 FILES = (%s)",
             $this->nameWithSchemaEscaped($tableName),
-            $this->quote($s3Prefix), // s3 bucket
+            $this->quote($s3Prefix),
             $this->quote($this->s3key),
             $this->quote($this->s3secret),
             $this->quote($this->s3region),
             implode(
                 ' ',
-                $this->createCopyCommandCsvOptions(
-                    $csvFile,
-                    $this->getIgnoreLines()
-                )
+                $csvOptions
             ),
             implode(
                 ', ',
@@ -170,7 +184,7 @@ abstract class CsvImportBase extends ImportBase
         return "'" . addslashes($value) . "'";
     }
 
-    private function getFilesToDownloadFromManifest(string $path): array
+    private function getFilesToDownloadFromManifest(string $bucket, string $path): array
     {
         $s3Client = new \Aws\S3\S3Client([
             'credentials' => [
@@ -181,12 +195,10 @@ abstract class CsvImportBase extends ImportBase
             'version' => '2006-03-01',
         ]);
 
-        $path = parse_url($path);
-
         try {
             $response = $s3Client->getObject([
-                'Bucket' => $path['host'],
-                'Key' => ltrim($path['path'], '/'),
+                'Bucket' => $bucket,
+                'Key' => ltrim($path, '/'),
             ]);
         } catch (AwsException $e) {
             throw new Exception('Unable to download file from S3: ' . $e->getMessage());
