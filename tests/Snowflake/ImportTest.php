@@ -294,8 +294,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 [new CsvFile("s3://{$s3bucket}/with-ts.csv")],
                 ['col1', 'col2', '_timestamp'],
                 [
-                    ['a', 'b', 'Mon, 10 Nov 2014 13:12:06 Z'],
-                    ['c', 'd', 'Mon, 10 Nov 2014 14:12:06 Z'],
+                    ['a', 'b', '2014-11-10 13:12:06.000'],
+                    ['c', 'd', '2014-11-10 14:12:06.000'],
                 ],
                 'out.csv_2Cols',
             ],
