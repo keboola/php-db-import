@@ -244,11 +244,18 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $lemmaHeader = array_shift($expectedLemma);
         $expectedLemma = array_values($expectedLemma);
 
+        // large sliced manifest
+        $expectedLargeSlicedManifest = [];
+        $expectedLargeSlicedManifest[] = $escapingHeader;
+        for ($i = 0; $i < 1500; $i++) {
+            $expectedLargeSlicedManifest[] = ['a', 'b'];
+        }
+
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
         return [
             // full imports
-            [[new CsvFile("s3://{$s3bucket}/manifests/2cols-large/sliced.csvmanifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],
+            [[new CsvFile("s3://{$s3bucket}/manifests/2cols-large/sliced.csvmanifest")], $escapingHeader, $expectedLargeSlicedManifest, 'out.csv_2Cols', 'manifest' ],
             [[new CsvFile("s3://{$s3bucket}/empty.manifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],
             [[new CsvFile("s3://{$s3bucket}/lemma.csv")], $lemmaHeader, $expectedLemma, 'out.lemma'],
             [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
