@@ -2,6 +2,5 @@
 <ruleset name="Project">
     <rule ref="vendor/keboola/coding-standard/src/ruleset.xml">
         <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingReturnTypeHint" />
-        <exclude name="SlevomatCodingStandard.TypeHints.TypeHintDeclaration.UselessDocComment" />
     </rule>
 </ruleset>

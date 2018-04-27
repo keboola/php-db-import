@@ -166,10 +166,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertNull($importedDataById[5]['name']);
     }
 
-    /**
-     * @TODO fix this, exception should not be thrown
-     */
-    public function _testImportWithWarnings()
+    public function testImportWithWarnings()
     {
         $importFiles = [
             new CsvFile(__DIR__ . '/../_data/csv-import/escaping/raw-warnings.csv', "\t", "", "\\"),
@@ -183,7 +180,6 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertEquals(7, $result->getImportedRowsCount());
         $this->assertCount(1, $result->getWarnings());
     }
-
 
     public function duplicateColumnsData()
     {
