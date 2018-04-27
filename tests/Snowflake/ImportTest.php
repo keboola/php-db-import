@@ -246,8 +246,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
         // large sliced manifest
         $expectedLargeSlicedManifest = [];
-        $expectedLargeSlicedManifest[] = $escapingHeader;
-        for ($i = 0; $i < 1500; $i++) {
+        for ($i = 0; $i <= 1500; $i++) {
             $expectedLargeSlicedManifest[] = ['a', 'b'];
         }
 
