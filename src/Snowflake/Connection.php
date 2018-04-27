@@ -81,10 +81,10 @@ class Connection
                 if (stristr($e->getMessage(), "S1000") !== false) {
                     $attemptNumber++;
                     if ($attemptNumber > $maxBackoffAttempts) {
-                        throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), null, $e);
+                        throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), 0, $e);
                     }
                 } else {
-                    throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), null, $e);
+                    throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), 0, $e);
                 }
             }
         } while ($this->connection === null);
