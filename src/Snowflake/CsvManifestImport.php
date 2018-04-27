@@ -9,12 +9,10 @@ class CsvManifestImport extends CsvImportBase
     protected function importDataToStagingTable(string $stagingTableName, array $columns, array $sourceData): void
     {
         foreach ($sourceData as $csvFile) {
-            $this->importTable(
+            $this->importTableFromCsv(
                 $stagingTableName,
                 $csvFile,
-                [
-                    'isManifest' => true,
-                ]
+                true
             );
         }
     }

@@ -35,14 +35,7 @@ abstract class CsvImportBase extends ImportBase
         $this->s3region = $s3region;
     }
 
-    /**
-     * @param string $tableName
-     * @param CsvFile $csvFile
-     * @param array $options
-     *  - isManifest
-     * @throws Exception
-     */
-    protected function importTable(string $tableName, CsvFile $csvFile, array $options): void
+    protected function importTableFromCsv(string $tableName, CsvFile $csvFile, bool $isSliced): void
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
             throw new Exception(
@@ -55,7 +48,7 @@ abstract class CsvImportBase extends ImportBase
         try {
             $timerName = 'copyToStaging-' . $csvFile->getBasename();
             Debugger::timer($timerName);
-            if (!empty($options['isManifest'])) {
+            if ($isSliced) {
                 $this->importTableFromSlicedFile($tableName, $csvFile);
             } else {
                 $this->importTableFromSingleFile($tableName, $csvFile);
