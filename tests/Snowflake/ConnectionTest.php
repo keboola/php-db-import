@@ -16,7 +16,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         $connection = new Connection([
             'host' => getenv('SNOWFLAKE_HOST'),
             'port' => getenv('SNOWFLAKE_PORT'),
-            'user' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'user' => getenv('SNOWFLAKE_USER'),
             'password' => getenv('SNOWFLAKE_PASSWORD'),
         ]);
 
@@ -83,7 +83,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
             'port' => getenv('SNOWFLAKE_PORT'),
             'database' => getenv('SNOWFLAKE_DATABASE'),
             'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
-            'user' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'user' => getenv('SNOWFLAKE_USER'),
             'password' => getenv('SNOWFLAKE_PASSWORD'),
         ]);
     }
