@@ -23,8 +23,19 @@
     "scripts": {
         "phpcs": "phpcs -n --ignore=vendor --extensions=php .",
         "phpcbf": "phpcbf -n --ignore=vendor --extensions=php .",
+        "tests-load-s3": "php ./tests/loadS3.php",
+        "tests-mysql": "phpunit tests/Mysql",
+        "tests-redshift": "phpunit tests/Redshift",
+        "tests-redshift-legacy": "export REDSHIFT_LEGACY_IMPORT=1 && phpunit tests/Redshift",
+        "tests-snowflake": "phpunit tests/Snowflake",
         "build": [
-            "@phpcs"
+            "@composer install",
+            "@phpcs",
+            "@tests-load-s3",
+            "@tests-mysql",
+            "@tests-redshift",
+            "@tests-redshift-legacy",
+            "@tests-snowflake"
         ],
         "ci": [
             "@composer validate --no-check-publish --no-check-all",

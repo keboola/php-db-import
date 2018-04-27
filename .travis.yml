@@ -20,12 +20,6 @@ install:
    quay.io/keboola/aws-cli
    s3 cp s3://keboola-configs/drivers/snowflake/snowflake-odbc-2.14.0.x86_64.deb /code/snowflake-odbc.deb
   - docker-compose build tests
-  - docker-compose run --rm tests composer install
-  - docker-compose run --rm tests php ./tests/loadS3.php
 
 script:
  - docker-compose run --rm tests composer ci
- - docker-compose run --rm tests php ./vendor/bin/phpunit tests/Mysql
- - docker-compose run --rm tests php ./vendor/bin/phpunit tests/Redshift
- - docker-compose run --rm -e REDSHIFT_LEGACY_IMPORT=1 tests php ./vendor/bin/phpunit tests/Redshift
- - docker-compose run --rm tests php ./vendor/bin/phpunit tests/Snowflake
