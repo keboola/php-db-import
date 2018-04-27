@@ -1,20 +1,17 @@
 {
     "name": "keboola/php-csv-db-import",
-    "authors": [
-        {
-            "name": "Martin Halamíček",
-            "email": "martin@keboola.com"
-        }
-    ],
+    "description": "Handling of large bulk data into database tables.",
+    "license": "MIT",
     "require": {
         "keboola/csv": "^1.1",
         "tracy/tracy": "^2.3",
         "aws/aws-sdk-php": "^3.11"
     },
     "require-dev": {
+        "keboola/coding-standard": "^2.0",
+        "phpstan/phpstan-shim": "^0.9.2",
         "phpunit/phpunit": "^5.0",
-        "phpunit/dbunit": "^2.0",
-        "squizlabs/php_codesniffer": "^2.6"
+        "phpunit/dbunit": "^2.0"
     },
     "autoload": {
         "psr-4": {
@@ -25,5 +22,29 @@
         "psr-4": {
             "Keboola\\DbImportTest\\": "tests/"
         }
+    },
+    "scripts": {
+        "phpcs": "phpcs -n --ignore=vendor --extensions=php .",
+        "phpcbf": "phpcbf -n --ignore=vendor --extensions=php .",
+        "phpstan": "phpstan analyse ./src ./tests --level=max --no-progress -c phpstan.neon",
+        "tests-load-s3": "php ./tests/loadS3.php",
+        "tests-mysql": "phpunit tests/Mysql",
+        "tests-redshift": "phpunit tests/Redshift",
+        "tests-redshift-legacy": "export REDSHIFT_LEGACY_IMPORT=1 && phpunit tests/Redshift",
+        "tests-snowflake": "phpunit tests/Snowflake",
+        "build": [
+            "@composer install",
+            "@phpcs",
+            "@phpstan",
+            "@tests-load-s3",
+            "@tests-mysql",
+            "@tests-redshift",
+            "@tests-redshift-legacy",
+            "@tests-snowflake"
+        ],
+        "ci": [
+            "@composer validate --strict",
+            "@build"
+        ]
     }
 }

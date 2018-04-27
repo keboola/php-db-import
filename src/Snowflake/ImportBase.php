@@ -1,10 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: martinhalamicek
- * Date: 27/04/16
- * Time: 10:05
- */
+
+declare(strict_types=1);
 
 namespace Keboola\Db\Import\Snowflake;
 
@@ -21,37 +17,36 @@ abstract class ImportBase implements ImportInterface
      */
     protected $connection;
 
+    /** @var string */
     protected $schemaName;
 
+    /** @var array  */
     protected $warnings = [];
 
+    /** @var int  */
     protected $importedRowsCount = 0;
 
+    /** @var array  */
     private $timers = [];
 
+    /** @var array  */
     private $importedColumns = [];
 
+    /** @var int  */
     private $ignoreLines = 0;
 
+    /** @var bool  */
     private $incremental = false;
 
-    const TIMESTAMP_COLUMN_NAME = '_timestamp';
+    public const TIMESTAMP_COLUMN_NAME = '_timestamp';
 
-    public function __construct(Connection $connection, $schemaName)
+    public function __construct(Connection $connection, string $schemaName)
     {
         $this->connection = $connection;
         $this->schemaName = $schemaName;
     }
 
-    /**
-     * @param $tableName
-     * @param $columns
-     * @param array $sourceData
-     * @param array $options
-     * @return Result
-     * @throws \Exception
-     */
-    public function import($tableName, $columns, array $sourceData, array $options = [])
+    public function import(string $tableName, array $columns, array $sourceData, array $options = []): Result
     {
         $this->validateColumns($tableName, $columns);
         $stagingTableName = $this->createStagingTable($columns);
@@ -92,22 +87,20 @@ abstract class ImportBase implements ImportInterface
                 'importedRowsCount' => $this->importedRowsCount,
                 'importedColumns' => $this->importedColumns,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->dropTable($stagingTableName);
             throw $e;
         }
     }
 
-    abstract protected function importDataToStagingTable($stagingTableName, $columns, $sourceData);
+    abstract protected function importDataToStagingTable(string $stagingTableName, array $columns, array $sourceData): void;
 
-    private function validateColumns($tableName, $columnsToImport)
+    private function validateColumns(string $tableName, array $columnsToImport): void
     {
         if (count($columnsToImport) == 0) {
             throw new Exception(
                 'No columns found in CSV file.',
-                Exception::NO_COLUMNS,
-                null,
-                'csvImport.noColumns'
+                Exception::NO_COLUMNS
             );
         }
 
@@ -122,7 +115,7 @@ abstract class ImportBase implements ImportInterface
         }
     }
 
-    private function insertAllIntoTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
+    private function insertAllIntoTargetTable(string $stagingTableName, string $targetTableName, array $columns, bool $useTimestamp = true, array $convertEmptyValuesToNull = []): void
     {
         $this->connection->query('BEGIN TRANSACTION');
 
@@ -167,13 +160,8 @@ abstract class ImportBase implements ImportInterface
 
     /**
      * Performs merge operation according to http://docs.aws.amazon.com/redshift/latest/dg/merge-specify-a-column-list.html
-     * @param $stagingTableName
-     * @param $targetTableName
-     * @param $columns
-     * @param bool $useTimestamp
-     * @param array $convertEmptyValuesToNull
      */
-    private function insertOrUpdateTargetTable($stagingTableName, $targetTableName, $columns, $useTimestamp = true, array $convertEmptyValuesToNull = [])
+    private function insertOrUpdateTargetTable(string $stagingTableName, string $targetTableName, array $columns, bool $useTimestamp = true, array $convertEmptyValuesToNull = []): void
     {
         $this->connection->query('BEGIN TRANSACTION');
         $nowFormatted = $this->getNowFormatted();
@@ -288,7 +276,7 @@ abstract class ImportBase implements ImportInterface
         $this->connection->query('COMMIT');
     }
 
-    private function replaceTables($sourceTableName, $targetTableName)
+    private function replaceTables(string $sourceTableName, string $targetTableName): void
     {
         $this->dropTable($targetTableName);
         $this->connection->query(
@@ -296,12 +284,12 @@ abstract class ImportBase implements ImportInterface
         );
     }
 
-    private function dropTable($tableName)
+    private function dropTable(string $tableName): void
     {
         $this->connection->query("DROP TABLE " . $this->nameWithSchemaEscaped($tableName));
     }
 
-    protected function nameWithSchemaEscaped($tableName, $schemaName = null)
+    protected function nameWithSchemaEscaped(string $tableName, ?string $schemaName = null): string
     {
         if ($schemaName === null) {
             $schemaName = $this->schemaName;
@@ -313,12 +301,12 @@ abstract class ImportBase implements ImportInterface
         );
     }
 
-    private function uniqueValue()
+    private function uniqueValue(): string
     {
         return str_replace('.', '_', uniqid('csvimport', true));
     }
 
-    private function dedupe($tableName, $columns, array $primaryKey)
+    private function dedupe(string $tableName, array $columns, array $primaryKey): void
     {
         if (empty($primaryKey)) {
             return;
@@ -355,7 +343,7 @@ abstract class ImportBase implements ImportInterface
         $this->replaceTables($tempTable, $tableName);
     }
 
-    private function createStagingTable(array $columns)
+    private function createStagingTable(array $columns): string
     {
 
         $tempName = '__temp_' . $this->uniqueValue();
@@ -373,52 +361,35 @@ abstract class ImportBase implements ImportInterface
         return $tempName;
     }
 
-    /**
-     * @return string
-     */
-    private function getNowFormatted()
+    private function getNowFormatted(): string
     {
         $currentDate = new \DateTime('now', new \DateTimeZone('UTC'));
         return $currentDate->format('Y-m-d H:i:s');
     }
 
-    /**
-     * @return bool
-     */
-    public function getIncremental()
+    public function getIncremental(): bool
     {
         return $this->incremental;
     }
 
-    /**
-     * @param $incremental
-     * @return ImportBase
-     */
-    public function setIncremental($incremental)
+    public function setIncremental(bool $incremental): ImportInterface
     {
-        $this->incremental = (bool)$incremental;
+        $this->incremental = $incremental;
         return $this;
     }
 
-    /**
-     * @return int
-     */
-    public function getIgnoreLines()
+    public function getIgnoreLines(): int
     {
         return $this->ignoreLines;
     }
 
-    /**
-     * @param $linesCount
-     * @return $this
-     */
-    public function setIgnoreLines($linesCount)
+    public function setIgnoreLines(int $linesCount): ImportInterface
     {
-        $this->ignoreLines = (int)$linesCount;
+        $this->ignoreLines = $linesCount;
         return $this;
     }
 
-    protected function addTimer($name, $value)
+    protected function addTimer(string $name, float $value): void
     {
         $this->timers[] = [
             'name' => $name,
@@ -426,7 +397,7 @@ abstract class ImportBase implements ImportInterface
         ];
     }
 
-    protected function quoteIdentifier($value)
+    protected function quoteIdentifier(string $value): string
     {
         return $this->connection->quoteIdentifier($value);
     }

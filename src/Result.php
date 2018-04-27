@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\Db\Import;
 
 class Result
 {
-
+    /** @var array  */
     private $results;
 
     public function __construct(array $results)
@@ -12,27 +14,32 @@ class Result
         $this->results = $results;
     }
 
-    public function getWarnings()
+    public function getWarnings(): array
     {
-        return (array)$this->getKeyValue('warnings', []);
+        return (array) $this->getKeyValue('warnings', []);
     }
 
-    public function getImportedRowsCount()
+    public function getImportedRowsCount(): int
     {
-        return (int)$this->getKeyValue('importedRowsCount');
+        return (int) $this->getKeyValue('importedRowsCount');
     }
 
-    public function getImportedColumns()
+    public function getImportedColumns(): array
     {
-        return (array)$this->getKeyValue('importedColumns', []);
+        return (array) $this->getKeyValue('importedColumns', []);
     }
 
-    public function getTimers()
+    public function getTimers(): array
     {
-        return (array)$this->getKeyValue('timers', []);
+        return (array) $this->getKeyValue('timers', []);
     }
 
-    public function getKeyValue($keyName, $default = null)
+    /**
+     * @param string $keyName
+     * @param mixed|null $default
+     * @return mixed|null
+     */
+    public function getKeyValue(string $keyName, $default = null)
     {
         return isset($this->results[$keyName]) ? $this->results[$keyName] : $default;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\DbImportTest;
 
 class Helpers
@@ -9,7 +11,7 @@ class Helpers
      * Stolen from Nette https://github.com/nette/nette/blob/master/Nette/Database/Helpers.php
      * @return int  count of commands
      */
-    public static function loadFromFile(\PDO $connection, $file)
+    public static function loadFromFile(\PDO $connection, string $file): int
     {
         @set_time_limit(0); // intentionally @
 
@@ -20,8 +22,7 @@ class Helpers
 
         $count = 0;
         $sql = '';
-        while (!feof($handle)) {
-            $s = fgets($handle);
+        while (($s = fgets($handle)) !== false) {
             $sql .= $s;
             if (substr(rtrim($s), -1) === ';') {
                 $connection->exec($sql); // native query without logging

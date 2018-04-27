@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\DbImportTest\Mysql;
 
 use Keboola\Csv\CsvFile;
@@ -14,7 +16,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
      */
     protected $import;
 
-    public function getConnection()
+    public function getConnection(): \PHPUnit_Extensions_Database_DB_DefaultDatabaseConnection
     {
         $pdo = new \PDO(
             sprintf('mysql:host=%s;dbname=%s', getenv('MYSQL_HOST'), getenv('MYSQL_DATABASE')),
@@ -28,7 +30,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         return $this->createDefaultDBConnection($pdo);
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         // init test table - table is altered during tests - must be recreated before each test run
         Helpers::loadFromFile($this->getConnection()->getConnection(), __DIR__ . '/../_data/csv-import/init.sql');
@@ -41,9 +43,9 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     /**
      * Returns the test dataset.
      *
-     * @return PHPUnit_Extensions_Database_DataSet_IDataSet
+     * @return \PHPUnit_Extensions_Database_DataSet_IDataSet
      */
-    protected function getDataSet()
+    protected function getDataSet(): \PHPUnit_Extensions_Database_DataSet_IDataSet
     {
         return $this->createMySQLXMLDataSet(__DIR__ . '/../_data/csv-import/fixtures.xml');
     }
@@ -51,7 +53,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     /**
      * @dataProvider tables
      */
-    public function testImport(CsvFile $csvFile, $expectationsFile, $tableName, $incremental)
+    public function testImport(CsvFile $csvFile, string $expectationsFile, string $tableName, bool $incremental): void
     {
         $result = $this->import
             ->setIncremental($incremental)
@@ -71,7 +73,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertEmpty($result->getWarnings());
     }
 
-    public function testImportWithoutHeaders()
+    public function testImportWithoutHeaders(): void
     {
         $tableName = 'csv_2cols';
         $result = $this->import
@@ -91,7 +93,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertEmpty($result->getWarnings());
     }
 
-    public function testMultipleFilesImport()
+    public function testMultipleFilesImport(): void
     {
         $csvFile = new CsvFile(__DIR__ . '/../_data/csv-import/escaping/raw.csv', "\t", "", "\\");
         $importFiles = [
@@ -106,7 +108,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertEquals(7, $result->getImportedRowsCount());
     }
 
-    public function testImportMultipleFilesPrimaryKeyDedupe()
+    public function testImportMultipleFilesPrimaryKeyDedupe(): void
     {
         $this->getConnection()->getConnection()->query("DROP TABLE IF EXISTS `pk_test`");
         $this->getConnection()->getConnection()->query("CREATE TABLE `pk_test` (id VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY (`id`))");
@@ -135,7 +137,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertEmpty($importedDataById[5]['name']);
     }
 
-    public function testImportMultipleFilesPrimaryKeyDedupeAndNullify()
+    public function testImportMultipleFilesPrimaryKeyDedupeAndNullify(): void
     {
         $this->getConnection()->getConnection()->query("DROP TABLE IF EXISTS `pk_test`");
         $this->getConnection()->getConnection()->query("CREATE TABLE `pk_test` (id VARCHAR(255) NOT NULL, name VARCHAR(255), PRIMARY KEY (`id`))");
@@ -164,10 +166,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertNull($importedDataById[5]['name']);
     }
 
-    /**
-     * @TODO fix this, exception should not be thrown
-     */
-    public function _testImportWithWarnings()
+    public function testImportWithWarnings(): void
     {
         $importFiles = [
             new CsvFile(__DIR__ . '/../_data/csv-import/escaping/raw-warnings.csv', "\t", "", "\\"),
@@ -182,8 +181,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertCount(1, $result->getWarnings());
     }
 
-
-    public function duplicateColumnsData()
+    public function duplicateColumnsData(): array
     {
         return [
             ['tw_accounts.duplicateColumnsAdded.csv'],
@@ -192,7 +190,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     }
 
 
-    public function testInvalidTableImportShouldThrowException()
+    public function testInvalidTableImportShouldThrowException(): void
     {
         $csvFile = new CsvFile(__DIR__ . "/../_data/csv-import/tw_accounts.csv");
 
@@ -205,7 +203,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
             ->import('tw_something', $csvFile->getHeader(), [$csvFile]);
     }
 
-    public function testEmptyFileShouldThrowsException()
+    public function testEmptyFileShouldThrowsException(): void
     {
         $csvFile = new CsvFile(__DIR__ . "/../_data/csv-import/empty.csv");
 
@@ -217,7 +215,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
             ->import('csv_accounts', $csvFile->getHeader(), [$csvFile]);
     }
 
-    public function testEmptyFilePartialShouldThrowsException()
+    public function testEmptyFilePartialShouldThrowsException(): void
     {
         $csvFile = new CsvFile(__DIR__ . "/../_data/csv-import/empty.csv");
 
@@ -228,7 +226,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
             ->import('csv_accounts', $csvFile->getHeader(), [$csvFile]);
     }
 
-    public function testRowTooLongShouldThrowException()
+    public function testRowTooLongShouldThrowException(): void
     {
         $csvFile = new CsvFile(__DIR__ . "/../_data/csv-import/very-long-row.csv");
 
@@ -240,7 +238,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
     }
 
 
-    public function testNullifyCsv()
+    public function testNullifyCsv(): void
     {
 
         $this->getConnection()->getConnection()->query("DROP TABLE IF EXISTS `nullify`");
@@ -255,7 +253,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
                 new CsvFile(__DIR__ . "/../_data/csv-import/nullify.csv"),
             ],
             [
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -265,7 +263,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertTrue(null === $importedData[2]["price"]);
     }
 
-    public function testNullifyCsvIncremental()
+    public function testNullifyCsvIncremental(): void
     {
         $this->getConnection()->getConnection()->query("DROP TABLE IF EXISTS `nullify`");
         $this->getConnection()->getConnection()->query("CREATE TABLE `nullify` (id VARCHAR(255), name VARCHAR(255), price VARCHAR(255))");
@@ -281,7 +279,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
                 new CsvFile(__DIR__ . "/../_data/csv-import/nullify.csv"),
             ],
             [
-                "convertEmptyValuesToNull" => ["name", "price"]
+                "convertEmptyValuesToNull" => ["name", "price"],
             ]
         );
 
@@ -292,7 +290,7 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
         $this->assertTrue(null === $importedData[3]["name"]);
     }
 
-    public function tables()
+    public function tables(): array
     {
         return [
 
@@ -322,11 +320,11 @@ class ImportTest extends \PHPUnit_Extensions_Database_TestCase
 
             // specified columns import
             [new CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.columnImport.csv'), 'expectation.incrementalImportColumnsList.xml', 'csv_accounts',
-                true, [], true
+                true, [], true,
             ],
             [new CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.columnImportIsImported.csv'), 'expectation.incrementalImportColumnsListIsImported.xml',
-                'csv_accounts', true, [], true
-            ]
+                'csv_accounts', true, [], true,
+            ],
         ];
     }
 }

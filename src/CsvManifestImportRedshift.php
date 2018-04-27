@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\Db\Import;
 
 class CsvManifestImportRedshift extends RedshiftBaseCsv
 {
 
-    protected function importDataToStagingTable($stagingTempTableName, $columns, $sourceData, array $options = [])
+    protected function importDataToStagingTable(string $stagingTempTableName, array $columns, array $sourceData, array $options = []): void
     {
         foreach ($sourceData as $csvFile) {
             $this->importTable(

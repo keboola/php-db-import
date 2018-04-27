@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\Db\Import;
 
 use Keboola\Csv\CsvFile;
@@ -7,12 +9,23 @@ use Tracy\Debugger;
 
 abstract class RedshiftBaseCsv extends RedshiftBase
 {
+    /** @var string */
     private $s3key;
+
+    /** @var string */
     private $s3secret;
+
+    /** @var string */
     private $s3region;
 
-    public function __construct(\PDO $connection, $s3key, $s3secret, $s3region, $schemaName, $legacyFullImport = false)
-    {
+    public function __construct(
+        \PDO $connection,
+        string $s3key,
+        string $s3secret,
+        string $s3region,
+        string $schemaName,
+        bool $legacyFullImport = false
+    ) {
         parent::__construct($connection, $schemaName, $legacyFullImport);
         $this->s3key = $s3key;
         $this->s3secret = $s3secret;
@@ -20,16 +33,14 @@ abstract class RedshiftBaseCsv extends RedshiftBase
     }
 
     /**
-     * @param $tempTableName
-     * @param $columns
+     * @param string $tempTableName
+     * @param array $columns
      * @param CsvFile $csvFile
      * @param array $options
      *  - isManifest
      *  - copyOptions
-     * @throws Exception
-     * @throws \Exception
      */
-    protected function importTable($tempTableName, $columns, CsvFile $csvFile, array $options)
+    protected function importTable(string $tempTableName, array $columns, CsvFile $csvFile, array $options): void
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
             throw new Exception(
@@ -62,7 +73,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 
             $this->query($this->generateCopyCommand($tempTableName, $columns, $csvFile, $copyOptions));
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $result = $this->connection->query("SELECT * FROM stl_load_errors WHERE query = pg_last_query_id();")->fetchAll();
             if (!count($result)) {
                 throw $e;
@@ -78,7 +89,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         }
     }
 
-    private function generateCopyCommand($tempTableName, $columns, CsvFile $csvFile, array $options)
+    private function generateCopyCommand(string $tempTableName, array $columns, CsvFile $csvFile, array $options): string
     {
         $tableNameEscaped = $this->tableNameEscaped($tempTableName);
         $columnsSql = implode(', ', array_map(function ($column) {
@@ -123,12 +134,12 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         return $command;
     }
 
-    private function isGzipped($path)
+    private function isGzipped(string $path): bool
     {
         return in_array(pathinfo($path, PATHINFO_EXTENSION), ['gz', 'gzip']);
     }
 
-    private function downloadManifest($path)
+    private function downloadManifest(string $path): array
     {
         $s3Client = new \Aws\S3\S3Client([
             'credentials' => [
@@ -146,6 +157,6 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             'Key' => ltrim($path['path'], '/'),
         ]);
 
-        return json_decode((string)$response['Body'], true);
+        return json_decode((string) $response['Body'], true);
     }
 }

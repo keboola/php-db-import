@@ -1,10 +1,7 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: martinhalamicek
- * Date: 28/04/16
- * Time: 08:29
- */
+
+declare(strict_types=1);
+
 namespace Keboola\Db\Import\Snowflake;
 
 use Keboola\Db\Import\Exception;
@@ -13,7 +10,7 @@ use Tracy\Debugger;
 class CopyImport extends ImportBase
 {
 
-    protected function importDataToStagingTable($stagingTableName, $columns, $sourceData)
+    protected function importDataToStagingTable(string $stagingTableName, array $columns, array $sourceData): void
     {
         if (!isset($sourceData['schemaName'])) {
             throw new Exception('Invalid source data. schemaName must be set', Exception::INVALID_SOURCE_DATA);
@@ -42,10 +39,10 @@ class CopyImport extends ImportBase
                 $this->connection->quoteIdentifier($this->schemaName),
                 $this->connection->quoteIdentifier($stagingTableName)
             ));
-            $this->importedRowsCount += (int)$rows[0]['count'];
+            $this->importedRowsCount += (int) $rows[0]['count'];
 
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             // everything is user error
             throw new Exception($e->getMessage(), Exception::UNKNOWN_ERROR, $e);
         }

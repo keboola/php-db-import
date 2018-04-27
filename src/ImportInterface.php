@@ -1,32 +1,18 @@
 <?php
 
-namespace Keboola\Db\Import;
+declare(strict_types=1);
 
-use Keboola\Csv\CsvFile;
+namespace Keboola\Db\Import;
 
 interface ImportInterface
 {
-    /**
-     * @param $tableName
-     * @param $columns
-     * @param array CsvFile $csvFiles
-     * @return Result
-     */
-    public function import($tableName, $columns, array $sourceData, array $options = []);
+    public function import(string $tableName, array $columns, array $sourceData, array $options = []): Result;
 
-    public function getIncremental();
+    public function getIncremental(): bool;
 
-    /**
-     * @param $incremental
-     * @return $this
-     */
-    public function setIncremental($incremental);
+    public function setIncremental(bool $incremental): ImportInterface;
 
-    public function getIgnoreLines();
+    public function getIgnoreLines(): int;
 
-    /**
-     * @param $linesCount
-     * @return $this
-     */
-    public function setIgnoreLines($linesCount);
+    public function setIgnoreLines(int $linesCount): ImportInterface;
 }

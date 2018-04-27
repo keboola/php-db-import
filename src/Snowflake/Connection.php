@@ -1,10 +1,7 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: martinhalamicek
- * Date: 28/04/16
- * Time: 09:31
- */
+
+declare(strict_types=1);
+
 namespace Keboola\Db\Import\Snowflake;
 
 use Keboola\Db\Import\Exception;
@@ -79,7 +76,7 @@ class Connection
             }
             try {
                 $this->connection = odbc_connect($dsn, $options['user'], $options['password']);
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 // try again if it is a failed rest request
                 if (stristr($e->getMessage(), "S1000") !== false) {
                     $attemptNumber++;
@@ -98,7 +95,7 @@ class Connection
         odbc_close($this->connection);
     }
 
-    public function quoteIdentifier($value)
+    public function quoteIdentifier(string $value): string
     {
         $q = '"';
         return ($q . str_replace("$q", "$q$q", $value) . $q);
@@ -109,12 +106,12 @@ class Connection
      *  - name
      *  - bytes
      *  - rows
-     * @param $schemaName
-     * @param $tableName
+     * @param string $schemaName
+     * @param string $tableName
      * @return array
      * @throws Exception
      */
-    public function describeTable($schemaName, $tableName)
+    public function describeTable(string $schemaName, string $tableName): array
     {
         $tables = $this->fetchAll(sprintf(
             "SHOW TABLES LIKE %s IN SCHEMA %s",
@@ -131,7 +128,7 @@ class Connection
         throw new Exception("Table $tableName not found in schema $schemaName");
     }
 
-    public function describeTableColumns($schemaName, $tableName)
+    public function describeTableColumns(string $schemaName, string $tableName): array
     {
         return $this->fetchAll(sprintf(
             'SHOW COLUMNS IN %s.%s',
@@ -140,14 +137,14 @@ class Connection
         ));
     }
 
-    public function getTableColumns($schemaName, $tableName)
+    public function getTableColumns(string $schemaName, string $tableName): array
     {
         return array_map(function ($column) {
             return $column['column_name'];
         }, $this->describeTableColumns($schemaName, $tableName));
     }
 
-    public function getTablePrimaryKey($schemaName, $tableName)
+    public function getTablePrimaryKey(string $schemaName, string $tableName): array
     {
         $cols = $this->fetchAll(sprintf(
             "DESC TABLE %s.%s",
@@ -165,14 +162,14 @@ class Connection
         return $pkCols;
     }
 
-    public function query($sql, array $bind = [])
+    public function query(string $sql, array $bind = []): void
     {
         $stmt = odbc_prepare($this->connection, $sql);
         odbc_execute($stmt, $this->repairBinding($bind));
         odbc_free_result($stmt);
     }
 
-    public function fetchAll($sql, $bind = [])
+    public function fetchAll(string $sql, array $bind = []): array
     {
         $stmt = odbc_prepare($this->connection, $sql);
         odbc_execute($stmt, $this->repairBinding($bind));
@@ -184,7 +181,7 @@ class Connection
         return $rows;
     }
 
-    public function fetch($sql, $bind, callable $callback)
+    public function fetch(string $sql, array $bind, callable $callback): void
     {
         $stmt = odbc_prepare($this->connection, $sql);
         odbc_execute($stmt, $this->repairBinding($bind));
@@ -199,7 +196,7 @@ class Connection
      * @param array $bind
      * @return array
      */
-    private function repairBinding(array $bind)
+    private function repairBinding(array $bind): array
     {
         return array_map(function ($value) {
             if (preg_match("/^'.*'$/", $value)) {
