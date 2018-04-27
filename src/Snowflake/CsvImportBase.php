@@ -73,7 +73,7 @@ abstract class CsvImportBase extends ImportBase
             $this->generateSingleFileCopyCommand(
                 $stableName,
                 $csvFile->getPathname(),
-               $csvOptions
+                $csvOptions
             )
         );
     }
@@ -124,7 +124,7 @@ abstract class CsvImportBase extends ImportBase
             $this->quote($this->s3region),
             implode(
                 ' ',
-               $csvOptions
+                $csvOptions
             )
         );
     }
