@@ -30,7 +30,7 @@ abstract class RedshiftBase implements ImportInterface
     /** @var bool  */
     private $incremental = false;
 
-    /** @var  */
+    /** @var string */
     private $schemaName;
 
     /** @var bool  */
@@ -40,13 +40,13 @@ abstract class RedshiftBase implements ImportInterface
     {
         $this->connection = $connection;
         $this->schemaName = $schemaName;
-        $this->legacyFullImport = (bool) $legacyFullImport;
+        $this->legacyFullImport = $legacyFullImport;
     }
 
     /**
-     * @param $tableName
-     * @param $columns
-     * @param array CsvFile $csvFiles
+     * @param string $tableName
+     * @param array $columns
+     * @param array $sourceData
      * @param array $options
      *  - useTimestamp - update and use timestamp column. default true
      *  - copyOptions - additional copy options for import command
@@ -111,9 +111,7 @@ abstract class RedshiftBase implements ImportInterface
         if (count($columnsToImport) == 0) {
             throw new Exception(
                 'No columns found in CSV file.',
-                Exception::NO_COLUMNS,
-                null,
-                'csvImport.noColumns'
+                Exception::NO_COLUMNS
             );
         }
 
@@ -219,12 +217,6 @@ abstract class RedshiftBase implements ImportInterface
 
     /**
      * Performs merge operation according to http://docs.aws.amazon.com/redshift/latest/dg/merge-specify-a-column-list.html
-     * @param $stagingTempTableName
-     * @param $targetTableName
-     * @param array $primaryKey
-     * @param $columns
-     * @param bool $useTimestamp
-     * @param array $convertEmptyValuesToNull
      */
     private function insertOrUpdateTargetTable(
         string $stagingTempTableName,
@@ -309,7 +301,7 @@ abstract class RedshiftBase implements ImportInterface
         }
 
         // Insert from staging to target table
-        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) use ($convertEmptyValuesToNull) {
+        $sql = "INSERT INTO " . $targetTableNameWithSchema . " (" . implode(', ', array_map(function ($column) {
             return $this->quoteIdentifier($column);
         }, $columns));
 
@@ -537,7 +529,7 @@ abstract class RedshiftBase implements ImportInterface
 
     public function setIncremental(bool $incremental): ImportInterface
     {
-        $this->incremental = (bool) $incremental;
+        $this->incremental = $incremental;
         return $this;
     }
 
@@ -548,7 +540,7 @@ abstract class RedshiftBase implements ImportInterface
 
     public function setIgnoreLines(int $linesCount): ImportInterface
     {
-        $this->ignoreLines = (int) $linesCount;
+        $this->ignoreLines = $linesCount;
         return $this;
     }
 
@@ -631,7 +623,7 @@ abstract class RedshiftBase implements ImportInterface
                 'COLUMN_POSITION' => $row[$attnum],
                 'DATA_TYPE' => $row[$type],
                 'DEFAULT' => $defaultValue,
-                'NULLABLE' => (bool) ($row[$notnull] != 't'),
+                'NULLABLE' => ($row[$notnull] !== 't'),
                 'LENGTH' => $row[$length],
                 'SCALE' => null, // @todo
                 'PRECISION' => null, // @todo

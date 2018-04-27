@@ -33,14 +33,12 @@ abstract class RedshiftBaseCsv extends RedshiftBase
     }
 
     /**
-     * @param $tempTableName
-     * @param $columns
+     * @param string $tempTableName
+     * @param array $columns
      * @param CsvFile $csvFile
      * @param array $options
      *  - isManifest
      *  - copyOptions
-     * @throws Exception
-     * @throws \Exception
      */
     protected function importTable(string $tempTableName, array $columns, CsvFile $csvFile, array $options): void
     {

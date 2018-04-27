@@ -34,7 +34,7 @@ abstract class CsvImportBase extends ImportBase
     }
 
     /**
-     * @param $tableName
+     * @param string $tableName
      * @param CsvFile $csvFile
      * @param array $options
      *  - isManifest
@@ -68,7 +68,7 @@ abstract class CsvImportBase extends ImportBase
     }
 
     /**
-     * @param $tableName
+     * @param string $tableName
      * @param CsvFile $csvFile
      * @param array $options
      *  - isManifest

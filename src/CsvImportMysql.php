@@ -40,7 +40,7 @@ class CsvImportMysql implements ImportInterface
     public function import(string $tableName, array $columns, array $sourceData, array $options = []): Result
     {
         $this->importedRowsCount = 0;
-        $this->importedColumns = 0;
+        $this->importedColumns = [];
         $this->warnings = [];
         $this->timers = [];
 
@@ -119,7 +119,7 @@ class CsvImportMysql implements ImportInterface
 			OPTIONALLY ENCLOSED BY ' . $this->connection->quote($csvFile->getEnclosure()) . '
 			ESCAPED BY ' . $this->connection->quote($csvFile->getEscapedBy()) . '
 			LINES TERMINATED BY ' . $this->connection->quote($csvFile->getLineBreak()) . '
-			IGNORE ' . (int) $this->getIgnoreLines() . ' LINES
+			IGNORE ' . $this->getIgnoreLines() . ' LINES
 			(' . implode(', ', $loadColumnsOrdered) . ')
 		';
 
@@ -220,7 +220,7 @@ class CsvImportMysql implements ImportInterface
         ) . ' FROM ' . $this->quoteIdentifier($sourceTable) . ' t ';
         $sql .= 'ON DUPLICATE KEY UPDATE ';
 
-        $sql .= implode(', ', array_map(function ($columnName) use ($connection) {
+        $sql .= implode(', ', array_map(function ($columnName) {
             return $this->quoteIdentifier($columnName) . ' = t.' . $this->quoteIdentifier($columnName);
         }, $importColumns));
 
@@ -244,7 +244,7 @@ class CsvImportMysql implements ImportInterface
     protected function dropTable(string $tableName, bool $temporary = false): void
     {
         $this->query(sprintf(
-            'DROP %S TABLE %s',
+            'DROP %s TABLE %s',
             $temporary ? 'TEMPORARY' : '',
             $this->quoteIdentifier($tableName)
         ));
@@ -293,10 +293,6 @@ class CsvImportMysql implements ImportInterface
         return array_keys($this->describeTable($tableName));
     }
 
-    /**
-     * @param \Exception $e
-     * @return Exception
-     */
     protected function convertException(\Throwable $e): Exception
     {
         $code = 0;
@@ -319,7 +315,7 @@ class CsvImportMysql implements ImportInterface
 
     public function setIncremental(bool $incremental): ImportInterface
     {
-        $this->incremental = (bool) $incremental;
+        $this->incremental = $incremental;
         return $this;
     }
 
@@ -330,7 +326,7 @@ class CsvImportMysql implements ImportInterface
 
     public function setIgnoreLines(int $linesCount): ImportInterface
     {
-        $this->ignoreLines = (int) $linesCount;
+        $this->ignoreLines = $linesCount;
         return $this;
     }
 
@@ -413,7 +409,7 @@ class CsvImportMysql implements ImportInterface
                 'COLUMN_POSITION' => $i,
                 'DATA_TYPE' => $row[$type],
                 'DEFAULT' => $row[$default],
-                'NULLABLE' => (bool) ($row[$null] == 'YES'),
+                'NULLABLE' => ($row[$null] === 'YES'),
                 'LENGTH' => $length,
                 'SCALE' => $scale,
                 'PRECISION' => $precision,

@@ -188,15 +188,6 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         ";
 
         $commands[] = "
-            CREATE TABLE \"$schema\".column_name_row_number (
-                  id  varchar(65535) NOT NULL,
-                  row_number  varchar(65535) NOT NULL,
-                  _timestamp TIMESTAMP,
-                  PRIMARY KEY(id)
-                );
-        ";
-
-        $commands[] = "
             CREATE TABLE  \"{$this->destSchemaName}\".\"multi-pk\" (
             \"VisitID\" VARCHAR NOT NULL,
             \"Value\" VARCHAR NOT NULL,
@@ -284,10 +275,10 @@ class ImportTest extends \PHPUnit_Framework_TestCase
      * @param CsvFile $initialImportFile
      * @param CsvFile $incrementFile
      * @param array $columns
-     * @param string $expected
+     * @param array $expected
      * @param string $tableName
      * @param array $importOptions
-     * @throws Exception
+     * @throws \Exception
      */
     public function testIncrementalImport(
         CsvFile $initialImportFile,
@@ -721,7 +712,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    public function assertArrayEqualsSorted(array $expected, array $actual, string $sortKey, ?string $message = ""): void
+    public function assertArrayEqualsSorted(array $expected, array $actual, string $sortKey, string $message = ""): void
     {
         $comparsion = function ($attrLeft, $attrRight) use ($sortKey) {
             if ($attrLeft[$sortKey] == $attrRight[$sortKey]) {
@@ -842,7 +833,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 'COLUMN_POSITION' => $row[$attnum],
                 'DATA_TYPE' => $row[$type],
                 'DEFAULT' => $defaultValue,
-                'NULLABLE' => (bool) ($row[$notnull] != 't'),
+                'NULLABLE' => ($row[$notnull] !== 't'),
                 'LENGTH' => $row[$length],
                 'SCALE' => null, // @todo
                 'PRECISION' => null, // @todo

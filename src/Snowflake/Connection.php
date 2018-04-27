@@ -106,8 +106,8 @@ class Connection
      *  - name
      *  - bytes
      *  - rows
-     * @param $schemaName
-     * @param $tableName
+     * @param string $schemaName
+     * @param string $tableName
      * @return array
      * @throws Exception
      */

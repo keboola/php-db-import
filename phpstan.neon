@@ -1,0 +1,3 @@
+parameters:
+    ignoreErrors:
+        - '#Property Keboola\\DbImportTest\\Snowflake\\ImportTest::\$connection \(Keboola\\Db\\Import\\Snowflake\\Connection\) does not accept null.#'

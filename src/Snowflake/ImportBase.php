@@ -100,9 +100,7 @@ abstract class ImportBase implements ImportInterface
         if (count($columnsToImport) == 0) {
             throw new Exception(
                 'No columns found in CSV file.',
-                Exception::NO_COLUMNS,
-                null,
-                'csvImport.noColumns'
+                Exception::NO_COLUMNS
             );
         }
 
@@ -162,11 +160,6 @@ abstract class ImportBase implements ImportInterface
 
     /**
      * Performs merge operation according to http://docs.aws.amazon.com/redshift/latest/dg/merge-specify-a-column-list.html
-     * @param $stagingTableName
-     * @param $targetTableName
-     * @param $columns
-     * @param bool $useTimestamp
-     * @param array $convertEmptyValuesToNull
      */
     private function insertOrUpdateTargetTable(string $stagingTableName, string $targetTableName, array $columns, bool $useTimestamp = true, array $convertEmptyValuesToNull = []): void
     {
@@ -381,7 +374,7 @@ abstract class ImportBase implements ImportInterface
 
     public function setIncremental(bool $incremental): ImportInterface
     {
-        $this->incremental = (bool) $incremental;
+        $this->incremental = $incremental;
         return $this;
     }
 
@@ -392,7 +385,7 @@ abstract class ImportBase implements ImportInterface
 
     public function setIgnoreLines(int $linesCount): ImportInterface
     {
-        $this->ignoreLines = (int) $linesCount;
+        $this->ignoreLines = $linesCount;
         return $this;
     }
 
