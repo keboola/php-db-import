@@ -46,7 +46,7 @@ abstract class ImportBase implements ImportInterface
         $this->schemaName = $schemaName;
     }
 
-    public function import(string $tableName, array $columns, array $sourceData, array $options = [])
+    public function import(string $tableName, array $columns, array $sourceData, array $options = []): Result
     {
         $this->validateColumns($tableName, $columns);
         $stagingTableName = $this->createStagingTable($columns);
@@ -93,9 +93,9 @@ abstract class ImportBase implements ImportInterface
         }
     }
 
-    abstract protected function importDataToStagingTable(string $stagingTableName, array $columns, array $sourceData);
+    abstract protected function importDataToStagingTable(string $stagingTableName, array $columns, array $sourceData): void;
 
-    private function validateColumns(string $tableName, array $columnsToImport)
+    private function validateColumns(string $tableName, array $columnsToImport): void
     {
         if (count($columnsToImport) == 0) {
             throw new Exception(
@@ -117,7 +117,7 @@ abstract class ImportBase implements ImportInterface
         }
     }
 
-    private function insertAllIntoTargetTable(string $stagingTableName, string $targetTableName, array $columns, bool $useTimestamp = true, array $convertEmptyValuesToNull = [])
+    private function insertAllIntoTargetTable(string $stagingTableName, string $targetTableName, array $columns, bool $useTimestamp = true, array $convertEmptyValuesToNull = []): void
     {
         $this->connection->query('BEGIN TRANSACTION');
 
@@ -168,7 +168,7 @@ abstract class ImportBase implements ImportInterface
      * @param bool $useTimestamp
      * @param array $convertEmptyValuesToNull
      */
-    private function insertOrUpdateTargetTable(string $stagingTableName, string $targetTableName, array $columns, bool $useTimestamp = true, array $convertEmptyValuesToNull = [])
+    private function insertOrUpdateTargetTable(string $stagingTableName, string $targetTableName, array $columns, bool $useTimestamp = true, array $convertEmptyValuesToNull = []): void
     {
         $this->connection->query('BEGIN TRANSACTION');
         $nowFormatted = $this->getNowFormatted();
@@ -283,7 +283,7 @@ abstract class ImportBase implements ImportInterface
         $this->connection->query('COMMIT');
     }
 
-    private function replaceTables(string $sourceTableName, string $targetTableName)
+    private function replaceTables(string $sourceTableName, string $targetTableName): void
     {
         $this->dropTable($targetTableName);
         $this->connection->query(
@@ -291,12 +291,12 @@ abstract class ImportBase implements ImportInterface
         );
     }
 
-    private function dropTable(string $tableName)
+    private function dropTable(string $tableName): void
     {
         $this->connection->query("DROP TABLE " . $this->nameWithSchemaEscaped($tableName));
     }
 
-    protected function nameWithSchemaEscaped(string $tableName, ?string $schemaName = null)
+    protected function nameWithSchemaEscaped(string $tableName, ?string $schemaName = null): string
     {
         if ($schemaName === null) {
             $schemaName = $this->schemaName;
@@ -308,12 +308,12 @@ abstract class ImportBase implements ImportInterface
         );
     }
 
-    private function uniqueValue()
+    private function uniqueValue(): string
     {
         return str_replace('.', '_', uniqid('csvimport', true));
     }
 
-    private function dedupe(string $tableName, array $columns, array $primaryKey)
+    private function dedupe(string $tableName, array $columns, array $primaryKey): void
     {
         if (empty($primaryKey)) {
             return;
@@ -350,7 +350,7 @@ abstract class ImportBase implements ImportInterface
         $this->replaceTables($tempTable, $tableName);
     }
 
-    private function createStagingTable(array $columns)
+    private function createStagingTable(array $columns): string
     {
 
         $tempName = '__temp_' . $this->uniqueValue();
@@ -368,44 +368,35 @@ abstract class ImportBase implements ImportInterface
         return $tempName;
     }
 
-    /**
-     * @return string
-     */
-    private function getNowFormatted()
+    private function getNowFormatted(): string
     {
         $currentDate = new \DateTime('now', new \DateTimeZone('UTC'));
         return $currentDate->format('Y-m-d H:i:s');
     }
 
-    /**
-     * @return bool
-     */
-    public function getIncremental()
+    public function getIncremental(): bool
     {
         return $this->incremental;
     }
 
-    public function setIncremental(bool $incremental)
+    public function setIncremental(bool $incremental): ImportInterface
     {
         $this->incremental = (bool) $incremental;
         return $this;
     }
 
-    /**
-     * @return int
-     */
-    public function getIgnoreLines()
+    public function getIgnoreLines(): int
     {
         return $this->ignoreLines;
     }
 
-    public function setIgnoreLines(int $linesCount)
+    public function setIgnoreLines(int $linesCount): ImportInterface
     {
         $this->ignoreLines = (int) $linesCount;
         return $this;
     }
 
-    protected function addTimer(string $name, float $value)
+    protected function addTimer(string $name, float $value): void
     {
         $this->timers[] = [
             'name' => $name,
@@ -413,7 +404,7 @@ abstract class ImportBase implements ImportInterface
         ];
     }
 
-    protected function quoteIdentifier(string $value)
+    protected function quoteIdentifier(string $value): string
     {
         return $this->connection->quoteIdentifier($value);
     }

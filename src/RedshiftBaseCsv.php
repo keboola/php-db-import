@@ -42,7 +42,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
      * @throws Exception
      * @throws \Exception
      */
-    protected function importTable(string $tempTableName, array $columns, CsvFile $csvFile, array $options)
+    protected function importTable(string $tempTableName, array $columns, CsvFile $csvFile, array $options): void
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
             throw new Exception(
@@ -91,7 +91,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         }
     }
 
-    private function generateCopyCommand(string $tempTableName, array $columns, CsvFile $csvFile, array $options)
+    private function generateCopyCommand(string $tempTableName, array $columns, CsvFile $csvFile, array $options): string
     {
         $tableNameEscaped = $this->tableNameEscaped($tempTableName);
         $columnsSql = implode(', ', array_map(function ($column) {
@@ -136,12 +136,12 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         return $command;
     }
 
-    private function isGzipped(string $path)
+    private function isGzipped(string $path): bool
     {
         return in_array(pathinfo($path, PATHINFO_EXTENSION), ['gz', 'gzip']);
     }
 
-    private function downloadManifest(string $path)
+    private function downloadManifest(string $path): array
     {
         $s3Client = new \Aws\S3\S3Client([
             'credentials' => [

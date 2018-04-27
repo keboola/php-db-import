@@ -6,7 +6,7 @@ namespace Keboola\Db\Import\Snowflake;
 
 class CsvManifestImport extends CsvImportBase
 {
-    protected function importDataToStagingTable(string $stagingTableName, array $columns, array $sourceData)
+    protected function importDataToStagingTable(string $stagingTableName, array $columns, array $sourceData): void
     {
         foreach ($sourceData as $csvFile) {
             $this->importTable(

@@ -40,7 +40,7 @@ abstract class CsvImportBase extends ImportBase
      *  - isManifest
      * @throws Exception
      */
-    protected function importTable(string $tableName, CsvFile $csvFile, array $options)
+    protected function importTable(string $tableName, CsvFile $csvFile, array $options): void
     {
         if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
             throw new Exception(
@@ -74,7 +74,7 @@ abstract class CsvImportBase extends ImportBase
      *  - isManifest
      * @return string
      */
-    private function generateCopyCommand(string $tableName, CsvFile $csvFile, array $options)
+    private function generateCopyCommand(string $tableName, CsvFile $csvFile, array $options): string
     {
         $csvOptions = [];
         $csvOptions[] = sprintf('FIELD_DELIMITER = %s', $this->quote($csvFile->getDelimiter()));
@@ -131,12 +131,12 @@ abstract class CsvImportBase extends ImportBase
         }
     }
 
-    private function quote(string $value)
+    private function quote(string $value): string
     {
         return "'" . addslashes($value) . "'";
     }
 
-    private function getFilesToDownloadFromManifest(string $path)
+    private function getFilesToDownloadFromManifest(string $path): array
     {
         $s3Client = new \Aws\S3\S3Client([
             'credentials' => [

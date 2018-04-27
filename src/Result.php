@@ -14,22 +14,22 @@ class Result
         $this->results = $results;
     }
 
-    public function getWarnings()
+    public function getWarnings(): array
     {
         return (array) $this->getKeyValue('warnings', []);
     }
 
-    public function getImportedRowsCount()
+    public function getImportedRowsCount(): int
     {
         return (int) $this->getKeyValue('importedRowsCount');
     }
 
-    public function getImportedColumns()
+    public function getImportedColumns(): array
     {
         return (array) $this->getKeyValue('importedColumns', []);
     }
 
-    public function getTimers()
+    public function getTimers(): array
     {
         return (array) $this->getKeyValue('timers', []);
     }

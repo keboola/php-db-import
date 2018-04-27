@@ -20,12 +20,12 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
     private const AWS_S3_BUCKET_ENV = 'AWS_S3_BUCKET';
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         echo sprintf("\nLegacy mode: %s\n", (bool) getenv('REDSHIFT_LEGACY_IMPORT') ? 'ON' : 'OFF');
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->connection = $pdo = new \PDO(
             sprintf('pgsql:host=%s;dbname=%s;port=%s', getenv('REDSHIFT_HOST'), getenv('REDSHIFT_DATABASE'), getenv('REDSHIFT_PORT')),
@@ -39,7 +39,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->initData();
     }
 
-    private function initData()
+    private function initData(): void
     {
         $commands = [];
 
@@ -229,7 +229,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         string $tableName,
         string $type = 'csv',
         array $importOptions = ['useTimestamp' => true]
-    ) {
+    ): void {
 
         $import = $this->getImport($type);
         if ($type !== 'manifest') {
@@ -261,7 +261,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayEqualsSorted($expected, $importedData, '0');
     }
 
-    public function testImportShouldNotFailOnColumnNameRowNumber()
+    public function testImportShouldNotFailOnColumnNameRowNumber(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
@@ -296,7 +296,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         array $expected,
         string $tableName,
         array $importOptions = ['useTimestamp' => true]
-    ) {
+    ): void {
         // initial import
         $import = $this->getImport();
         $import
@@ -324,7 +324,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayEqualsSorted($expected, $importedData, '0');
     }
 
-    public function testCopyOptions()
+    public function testCopyOptions(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"dates\" ");
@@ -352,7 +352,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertCount(4, $importedData);
     }
 
-    public function testCopyInvalidParamsShouldThrowException()
+    public function testCopyInvalidParamsShouldThrowException(): void
     {
         $import = $this->getImport('copy');
 
@@ -364,7 +364,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testQueryTimeoutError()
+    public function testQueryTimeoutError(): void
     {
         $import = $this->getImport('copy');
 
@@ -396,7 +396,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     }
 
 
-    public function testCopyInvalidSourceDataShouldThrowException()
+    public function testCopyInvalidSourceDataShouldThrowException(): void
     {
         $import = $this->getImport('copy');
 
@@ -415,7 +415,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testInvalidManifestImport()
+    public function testInvalidManifestImport(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/../_data/csv-import/tw_accounts.csv");
@@ -431,7 +431,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testNullifyCsv()
+    public function testNullifyCsv(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
@@ -457,7 +457,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(null === $importedData[2]["price"]);
     }
     
-    public function testNullifyCsvIncremental()
+    public function testNullifyCsvIncremental(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
@@ -487,7 +487,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(null === $importedData[3]["price"]);
     }
 
-    public function testNullifyCopy()
+    public function testNullifyCopy(): void
     {
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
         $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price VARCHAR)");
@@ -517,7 +517,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(null === $importedData[1]["name"]);
     }
 
-    public function testNullifyCopyIncremental()
+    public function testNullifyCopyIncremental(): void
     {
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
         $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (id VARCHAR, name VARCHAR, price VARCHAR)");
@@ -551,7 +551,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     }
 
 
-    public function testNullifyCopyIncrementalWithPk()
+    public function testNullifyCopyIncrementalWithPk(): void
     {
         // test convertEmptyValuesToNull
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
@@ -618,7 +618,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(null !== $importedData[2]["price"]);
     }
 
-    public function tables()
+    public function tables(): array
     {
 
         $expectedEscaping = [];
@@ -686,7 +686,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     }
 
 
-    public function tablesIncremental()
+    public function tablesIncremental(): array
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
@@ -721,7 +721,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         ];
     }
 
-    public function assertArrayEqualsSorted(array $expected, array $actual, string $sortKey, ?string $message = "")
+    public function assertArrayEqualsSorted(array $expected, array $actual, string $sortKey, ?string $message = ""): void
     {
         $comparsion = function ($attrLeft, $attrRight) use ($sortKey) {
             if ($attrLeft[$sortKey] == $attrRight[$sortKey]) {
@@ -731,15 +731,10 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         };
         usort($expected, $comparsion);
         usort($actual, $comparsion);
-        return $this->assertEquals($expected, $actual, $message);
+        $this->assertEquals($expected, $actual, $message);
     }
 
-    /**
-     * @param string $type
-     * @return \Keboola\Db\Import\ImportInterface
-     * @throws Exception
-     */
-    private function getImport(string $type = 'csv')
+    private function getImport(string $type = 'csv'): \Keboola\Db\Import\ImportInterface
     {
         switch ($type) {
             case 'manifest':
@@ -773,7 +768,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    private function describeTable(string $tableName, ?string $schemaName = null)
+    private function describeTable(string $tableName, ?string $schemaName = null): array
     {
         $sql = "SELECT
                 a.attnum,

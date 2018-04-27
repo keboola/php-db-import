@@ -11,7 +11,7 @@ class Helpers
      * Stolen from Nette https://github.com/nette/nette/blob/master/Nette/Database/Helpers.php
      * @return int  count of commands
      */
-    public static function loadFromFile(\PDO $connection, string $file)
+    public static function loadFromFile(\PDO $connection, string $file): int
     {
         @set_time_limit(0); // intentionally @
 

@@ -9,7 +9,7 @@ use Tracy\Debugger;
 class CopyImportRedshift extends RedshiftBase
 {
 
-    protected function importDataToStagingTable(string $stagingTempTableName, array $columns, array $sourceData, array $options = [])
+    protected function importDataToStagingTable(string $stagingTempTableName, array $columns, array $sourceData, array $options = []): void
     {
         if (!isset($sourceData['schemaName'])) {
             throw new Exception('Invalid source data. schemaName must be set', Exception::INVALID_SOURCE_DATA);

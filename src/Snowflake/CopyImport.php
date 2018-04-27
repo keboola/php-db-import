@@ -10,7 +10,7 @@ use Tracy\Debugger;
 class CopyImport extends ImportBase
 {
 
-    protected function importDataToStagingTable(string $stagingTableName, array $columns, array $sourceData)
+    protected function importDataToStagingTable(string $stagingTableName, array $columns, array $sourceData): void
     {
         if (!isset($sourceData['schemaName'])) {
             throw new Exception('Invalid source data. schemaName must be set', Exception::INVALID_SOURCE_DATA);

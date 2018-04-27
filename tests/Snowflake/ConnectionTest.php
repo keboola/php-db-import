@@ -11,7 +11,7 @@ use Keboola\Db\Import\Snowflake\Connection;
 class ConnectionTest extends \PHPUnit_Framework_TestCase
 {
 
-    public function testConnectionWithoutDbAndWarehouse()
+    public function testConnectionWithoutDbAndWarehouse(): void
     {
         $connection = new Connection([
             'host' => getenv('SNOWFLAKE_HOST'),
@@ -24,7 +24,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         $this->assertNotEmpty($databases);
     }
 
-    public function testConnectionBinding()
+    public function testConnectionBinding(): void
     {
         $connection = $this->createConnection();
         $destSchemaName = 'test';
@@ -38,7 +38,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         $this->assertEmpty($rows);
     }
 
-    public function testConnectionWithDefaultDbAndWarehouse()
+    public function testConnectionWithDefaultDbAndWarehouse(): void
     {
         $connection = $this->createConnection();
         $destSchemaName = 'test';
@@ -50,7 +50,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         $connection->query('DROP TABLE "' . $destSchemaName . '"."TEST" RESTRICT');
     }
 
-    public function testConnectionEncoding()
+    public function testConnectionEncoding(): void
     {
         $connection = $this->createConnection();
 
@@ -70,13 +70,13 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         ], $data);
     }
 
-    private function prepareSchema(Connection $connection, string $schemaName)
+    private function prepareSchema(Connection $connection, string $schemaName): void
     {
         $connection->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schemaName));
         $connection->query(sprintf('CREATE SCHEMA "%s"', $schemaName));
     }
 
-    private function createConnection()
+    private function createConnection(): Connection
     {
         return new Connection([
             'host' => getenv('SNOWFLAKE_HOST'),
