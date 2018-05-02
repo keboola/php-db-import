@@ -253,6 +253,9 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
         return [
+            [[new CsvFile("s3://{$s3bucket}/manifests/2cols-large/sliced.csvmanifest")], $escapingHeader, $expectedLargeSlicedManifest, 'out.csv_2Cols', 'manifest' ],
+        ];
+        return [
             // full imports
             [[new CsvFile("s3://{$s3bucket}/manifests/2cols-large/sliced.csvmanifest")], $escapingHeader, $expectedLargeSlicedManifest, 'out.csv_2Cols', 'manifest' ],
             [[new CsvFile("s3://{$s3bucket}/empty.manifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],

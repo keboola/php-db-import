@@ -54,7 +54,7 @@ for ($i = 0; $i <= 1500; $i++) {
     $sliceName = sprintf('sliced.csv_%d', $i);
     file_put_contents(
         $source . '/manifests/2cols-large/' . $sliceName,
-        "\"a\",\"b\"\n"
+        str_repeat("\"a\",\"b\"\n", 1000000)
     );
     $largeManifest['entries'][] = [
         'url' => sprintf("s3://%s/manifests/2cols-large/%s", $bucket, $sliceName),
