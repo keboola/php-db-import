@@ -244,10 +244,17 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $lemmaHeader = array_shift($expectedLemma);
         $expectedLemma = array_values($expectedLemma);
 
+        // large sliced manifest
+        $expectedLargeSlicedManifest = [];
+        for ($i = 0; $i <= 1500; $i++) {
+            $expectedLargeSlicedManifest[] = ['a', 'b'];
+        }
+
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
         return [
             // full imports
+            [[new CsvFile("s3://{$s3bucket}/manifests/2cols-large/sliced.csvmanifest")], $escapingHeader, $expectedLargeSlicedManifest, 'out.csv_2Cols', 'manifest' ],
             [[new CsvFile("s3://{$s3bucket}/empty.manifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],
             [[new CsvFile("s3://{$s3bucket}/lemma.csv")], $lemmaHeader, $expectedLemma, 'out.lemma'],
             [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
@@ -287,8 +294,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 [new CsvFile("s3://{$s3bucket}/with-ts.csv")],
                 ['col1', 'col2', '_timestamp'],
                 [
-                    ['a', 'b', 'Mon, 10 Nov 2014 13:12:06 Z'],
-                    ['c', 'd', 'Mon, 10 Nov 2014 14:12:06 Z'],
+                    ['a', 'b', '2014-11-10 13:12:06.000'],
+                    ['c', 'd', '2014-11-10 14:12:06.000'],
                 ],
                 'out.csv_2Cols',
             ],
