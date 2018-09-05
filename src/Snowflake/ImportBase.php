@@ -109,7 +109,7 @@ abstract class ImportBase implements ImportInterface
         $moreColumns = array_diff($columnsToImport, $tableColumns);
         if (!empty($moreColumns)) {
             throw new Exception(
-                'Columns doest not match. Non existing columns: ' . implode(', ', $moreColumns),
+                'Columns do not match. Non existing columns: ' . implode(', ', $moreColumns),
                 Exception::COLUMNS_COUNT_NOT_MATCH
             );
         }
