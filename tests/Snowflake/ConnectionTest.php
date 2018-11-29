@@ -70,6 +70,12 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         ], $data);
     }
 
+    public function testParametersBinding(): void
+    {
+        $connection = $this->createConnection();
+        $connection->query("CREATE SCHEMA IDENTIFIER(?)", ['bind_test']);
+    }
+
     private function prepareSchema(Connection $connection, string $schemaName): void
     {
         $connection->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schemaName));
