@@ -70,6 +70,54 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         ], $data);
     }
 
+    public function testConnectionUseDatabase()
+    {
+        $connection = $this->createConnection();
+
+        $database = getenv('SNOWFLAKE_DATABASE');
+        $this->assertNotEmpty($database);
+
+        $result = $connection->fetchAll('SELECT CURRENT_DATABASE();');
+        $this->assertEquals($database, $result[0]['CURRENT_DATABASE()']);
+    }
+
+    public function testConnectionUseDatabaseError()
+    {
+        $options = $this->getConnectionOptions();
+        $options['database'] = 'non-existing-database';
+
+        try {
+            new Connection($options);
+            $this->fail('Creating connection with invalid database should fail');
+        } catch (Exception $e) {
+            $this->assertContains('Object does not exist', $e->getMessage());
+        }
+    }
+
+    public function testConnectionUseWarehouse()
+    {
+        $connection = $this->createConnection();
+
+        $warehouse = getenv('SNOWFLAKE_WAREHOUSE');
+        $this->assertNotEmpty($warehouse);
+
+        $result = $connection->fetchAll('SELECT CURRENT_WAREHOUSE();');
+        $this->assertEquals($warehouse, $result[0]['CURRENT_WAREHOUSE()']);
+    }
+
+    public function testConnectionUseWarehouseError()
+    {
+        $options = $this->getConnectionOptions();
+        $options['warehouse'] = 'non-existing-warehouse';
+
+        try {
+            new Connection($options);
+            $this->fail('Creating connection with invalid warehouse should fail');
+        } catch (Exception $e) {
+            $this->assertContains('Object does not exist', $e->getMessage());
+        }
+    }
+
     private function prepareSchema(Connection $connection, string $schemaName): void
     {
         $connection->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schemaName));
@@ -78,13 +126,18 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
 
     private function createConnection(): Connection
     {
-        return new Connection([
+        return new Connection($this->getConnectionOptions());
+    }
+
+    private function getConnectionOptions(): array
+    {
+        return [
             'host' => getenv('SNOWFLAKE_HOST'),
             'port' => getenv('SNOWFLAKE_PORT'),
             'database' => getenv('SNOWFLAKE_DATABASE'),
             'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
             'user' => getenv('SNOWFLAKE_USER'),
             'password' => getenv('SNOWFLAKE_PASSWORD'),
-        ]);
+        ];
     }
 }

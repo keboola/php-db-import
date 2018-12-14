@@ -88,6 +88,22 @@ class Connection
                 }
             }
         } while ($this->connection === null);
+
+        if (isset($options['database'])) {
+            try {
+                $this->query(sprintf("USE DATABASE %s", $this->quoteIdentifier($options['database'])));
+            } catch (\Exception $e) {
+                throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), 0, $e);
+            }
+        }
+
+        if (isset($options['warehouse'])) {
+            try {
+                $this->query(sprintf("USE WAREHOUSE %s", $this->quoteIdentifier($options['warehouse'])));
+            } catch (\Exception $e) {
+                throw new Exception("Initializing Snowflake connection failed: " . $e->getMessage(), 0, $e);
+            }
+        }
     }
 
     public function __destruct()
