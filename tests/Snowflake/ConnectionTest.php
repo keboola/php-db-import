@@ -70,7 +70,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         ], $data);
     }
 
-    public function testConnectionUseDatabase()
+    public function testConnectionUseDatabase(): void
     {
         $connection = $this->createConnection();
 
@@ -81,7 +81,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($database, $result[0]['CURRENT_DATABASE()']);
     }
 
-    public function testConnectionUseDatabaseError()
+    public function testConnectionUseDatabaseError(): void
     {
         $options = $this->getConnectionOptions();
         $options['database'] = 'non-existing-database';
@@ -94,7 +94,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testConnectionUseWarehouse()
+    public function testConnectionUseWarehouse(): void
     {
         $connection = $this->createConnection();
 
@@ -105,7 +105,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($warehouse, $result[0]['CURRENT_WAREHOUSE()']);
     }
 
-    public function testConnectionUseWarehouseError()
+    public function testConnectionUseWarehouseError(): void
     {
         $options = $this->getConnectionOptions();
         $options['warehouse'] = 'non-existing-warehouse';
