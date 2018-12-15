@@ -61,14 +61,6 @@ class Connection
             $dsn .= ";Query_timeout=" . (int) $options['queryTimeout'];
         }
 
-        if (isset($options['database'])) {
-            $dsn .= ";Database=" . $this->quoteIdentifier($options['database']);
-        }
-
-        if (isset($options['warehouse'])) {
-            $dsn .= ";Warehouse=" . $this->quoteIdentifier($options['warehouse']);
-        }
-
         $attemptNumber = 0;
         do {
             if ($attemptNumber > 0) {
