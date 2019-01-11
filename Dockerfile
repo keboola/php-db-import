@@ -7,7 +7,7 @@ ENV COMPOSER_PROCESS_TIMEOUT 3600
 ENV LANG en_US.UTF-8
 
 RUN apt-get update \
-  && apt-get install unzip git unixODBC-dev libpq-dev -y
+  && apt-get install unzip git unixodbc unixodbc-dev libpq-dev -y
 
 RUN echo "memory_limit = -1" >> /usr/local/etc/php/php.ini
 
