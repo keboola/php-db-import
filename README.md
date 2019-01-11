@@ -21,6 +21,7 @@ Handling of large bulk data into database tables.
 
 - Create AWS S3 bucket and IAM user using `aws-services.json` cloudformation template.
 - Create Redshift cluster
+- Download Snowflake driver (.deb) and place it into root of repository (`./snowflake-odbc.deb`)
 - Create `.env` file. Use output of `aws-services` cloudfront stack to fill the variables and your Redshift credentials.
 ```
 REDSHIFT_HOST=
