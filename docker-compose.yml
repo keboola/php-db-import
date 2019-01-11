@@ -1,9 +1,10 @@
-version: "2"
+version: "3"
 
 services:
 
-  tests:
+  tests: &tests
     build: .
+    image: keboola/php-db-import
     volumes:
       - .:/code
     working_dir: /code
@@ -32,6 +33,11 @@ services:
       - MYSQL_HOST=mysql
       - MYSQL_DATABASE=tests
       - MYSQL_PASSWORD=password
+
+  tests-xdebug:
+    <<: *tests
+    build: docker/xdebug
+
 
   mysql:
     image: mysql:5.5

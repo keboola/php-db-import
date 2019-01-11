@@ -10,4 +10,4 @@ set_error_handler(function ($errno, $errstr, $errfile, $errline, array $errconte
     throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
 });
 
-require_once 'vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
