@@ -169,7 +169,7 @@ class Connection
             odbc_execute($stmt, $this->repairBinding($bind));
             odbc_free_result($stmt);
         } catch (\Throwable $e) {
-            ConnectionExceptionResolver::resolveException($e);
+            throw (new ExceptionHandler())->createException($e);
         }
     }
 

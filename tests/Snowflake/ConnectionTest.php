@@ -84,7 +84,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         );
 
         $this->expectException(Import\Exception::class);
-        $this->expectExceptionMessageRegExp('/column exceeds maximum length/');
+        $this->expectExceptionMessageRegExp('/cannot be inserted because it\'s bigger than column size/');
         $connection->query(
             sprintf(
                 'INSERT INTO "%s"."%s" VALUES(\'%s\');',
