@@ -21,7 +21,7 @@ class ExceptionHandler
                 "String '%s' cannot be inserted because it's bigger than column size",
                 Import\Exception::ROW_SIZE_TOO_LARGE,
                 [1]
-            )
+            ),
         ];
     }
 
