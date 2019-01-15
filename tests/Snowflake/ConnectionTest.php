@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Keboola\DbImportTest\Snowflake;
 
-use Keboola\Csv\CsvFile;
-use Keboola\Db\Import\Exception;
+use Keboola\Db\Import;
 use Keboola\Db\Import\Snowflake\Connection;
 
 class ConnectionTest extends \PHPUnit_Framework_TestCase
 {
-
     public function testConnectionWithoutDbAndWarehouse(): void
     {
         $connection = new Connection([
@@ -68,6 +66,34 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
                 'COL2' => 'módní doplňky.cz',
             ],
         ], $data);
+    }
+
+    public function testTooLargeColumnInsert(): void
+    {
+        $connection = $this->createConnection();
+        $destSchemaName = 'test';
+        $this->prepareSchema($connection, $destSchemaName);
+        $size = 10;
+        $connection->query(
+            sprintf(
+                'CREATE TABLE "%s"."%s" ("col1" varchar(%d));',
+                $destSchemaName,
+                "TEST",
+                $size
+            )
+        );
+
+        $this->expectException(Import\Exception::class);
+        $this->expectExceptionMessageRegExp('/cannot be inserted because it\'s bigger than column size/');
+        $this->expectExceptionCode(Import\Exception::ROW_SIZE_TOO_LARGE);
+        $connection->query(
+            sprintf(
+                'INSERT INTO "%s"."%s" VALUES(\'%s\');',
+                $destSchemaName,
+                "TEST",
+                implode('', array_fill(0, $size + 1, 'x'))
+            )
+        );
     }
 
     private function prepareSchema(Connection $connection, string $schemaName): void
