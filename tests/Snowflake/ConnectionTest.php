@@ -120,7 +120,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
 
         $this->expectException(Import\Exception::class);
         $this->expectExceptionMessage('Query reached its timeout 1 second(s)');
-        $connection->fetch('CALL SYSTEM$WAIT(5)', [], function ($row) {return;}, 1);
+        $connection->fetch('CALL SYSTEM$WAIT(5)', [], function () {return;}, 1);
     }
 
     private function prepareSchema(Connection $connection, string $schemaName): void
