@@ -238,12 +238,12 @@ class Connection
         }, $bind);
     }
 
-    private function setTimeout(int $timeoutInSeconds)
+    private function setTimeout(int $timeoutInSeconds): void
     {
         odbc_exec($this->connection, "ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = $timeoutInSeconds");
     }
 
-    private function disableTimeout()
+    private function disableTimeout(): void
     {
         odbc_exec($this->connection, "ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 172800");
     }
