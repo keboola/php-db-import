@@ -23,6 +23,14 @@ class ExceptionHandler
                 [1]
             ),
         ];
+
+        $this->messageTransformations[] =
+            new MessageTransformation(
+                '/Statement reached its statement or warehouse timeout of ([0-9]+) second.* SQL state 57014/',
+                'Query reached its timeout %d second(s)',
+                Import\Exception::QUERY_TIMEOUT,
+                [1]
+            );
     }
 
     public function createException(\Throwable $exception): \Throwable

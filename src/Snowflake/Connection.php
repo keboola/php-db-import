@@ -24,7 +24,7 @@ class Connection
      * - tracing (int) - the level of detail to be logged in the driver trace files
      * - loginTimeout (int) - Specifies how long to wait for a response when connecting to the Snowflake service before returning a login failure error.
      * - networkTimeout (int) - Specifies how long to wait for a response when interacting with the Snowflake service before returning an error. Zero (0) indicates no network timeout is set.
-     * - queryTimeout (int) - Specifies how long to wait for a query to complete before returning an error. Zero (0) indicates to wait indefinitely.
+     * - queryTimeout (int) - (This parameter doesn't work. Don't waste time ...) Specifies how long to wait for a query to complete before returning an error. Zero (0) indicates to wait indefinitely.
      *
      * @param array $options
      */
@@ -162,8 +162,11 @@ class Connection
         return $pkCols;
     }
 
-    public function query(string $sql, array $bind = []): void
+    public function query(string $sql, array $bind = [], ?int $timeoutInSeconds = null): void
     {
+        if ($timeoutInSeconds) {
+            $this->setTimeout($timeoutInSeconds);
+        }
         try {
             $stmt = odbc_prepare($this->connection, $sql);
             odbc_execute($stmt, $this->repairBinding($bind));
@@ -171,28 +174,52 @@ class Connection
         } catch (\Throwable $e) {
             throw (new ExceptionHandler())->createException($e);
         }
+        if ($timeoutInSeconds) {
+            $this->disableTimeout();
+        }
     }
 
-    public function fetchAll(string $sql, array $bind = []): array
+    public function fetchAll(string $sql, array $bind = [], ?int $timeoutInSeconds = null): array
     {
-        $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt, $this->repairBinding($bind));
-        $rows = [];
-        while ($row = odbc_fetch_array($stmt)) {
-            $rows[] = $row;
+
+        if ($timeoutInSeconds) {
+            $this->setTimeout($timeoutInSeconds);
         }
-        odbc_free_result($stmt);
+        try {
+            $stmt = odbc_prepare($this->connection, $sql);
+            odbc_execute($stmt, $this->repairBinding($bind));
+            $rows = [];
+            while ($row = odbc_fetch_array($stmt)) {
+                $rows[] = $row;
+            }
+            odbc_free_result($stmt);
+        } catch (\Throwable $e) {
+            throw (new ExceptionHandler())->createException($e);
+        }
+        if ($timeoutInSeconds) {
+            $this->disableTimeout();
+        }
         return $rows;
     }
 
-    public function fetch(string $sql, array $bind, callable $callback): void
+    public function fetch(string $sql, array $bind, callable $callback, ?int $timeoutInSeconds = null): void
     {
-        $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt, $this->repairBinding($bind));
-        while ($row = odbc_fetch_array($stmt)) {
-            $callback($row);
+        if ($timeoutInSeconds) {
+            $this->setTimeout($timeoutInSeconds);
         }
-        odbc_free_result($stmt);
+        try {
+            $stmt = odbc_prepare($this->connection, $sql);
+            odbc_execute($stmt, $this->repairBinding($bind));
+            while ($row = odbc_fetch_array($stmt)) {
+                $callback($row);
+            }
+            odbc_free_result($stmt);
+        } catch (\Throwable $e) {
+            throw (new ExceptionHandler())->createException($e);
+        }
+        if ($timeoutInSeconds) {
+            $this->disableTimeout();
+        }
     }
 
     /**
@@ -209,5 +236,15 @@ class Connection
                 return $value;
             }
         }, $bind);
+    }
+
+    private function setTimeout(int $timeoutInSeconds)
+    {
+        odbc_exec($this->connection, "ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = $timeoutInSeconds");
+    }
+
+    private function disableTimeout()
+    {
+        odbc_exec($this->connection, "ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 172800");
     }
 }
