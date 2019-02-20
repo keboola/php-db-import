@@ -96,6 +96,33 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function testQueryTimeout(): void
+    {
+        $connection = $this->createConnection();
+
+        $this->expectException(Import\Exception::class);
+        $this->expectExceptionMessage('Query reached its timeout 1 second(s)');
+        $connection->query('CALL SYSTEM$WAIT(5)', [], 1);
+    }
+
+    public function testFetchAllTimeout(): void
+    {
+        $connection = $this->createConnection();
+
+        $this->expectException(Import\Exception::class);
+        $this->expectExceptionMessage('Query reached its timeout 1 second(s)');
+        $connection->fetchAll('CALL SYSTEM$WAIT(5)', [], 1);
+    }
+
+    public function testFetchTimeout(): void
+    {
+        $connection = $this->createConnection();
+
+        $this->expectException(Import\Exception::class);
+        $this->expectExceptionMessage('Query reached its timeout 1 second(s)');
+        $connection->fetch('CALL SYSTEM$WAIT(5)', [], function ($row) {return;}, 1);
+    }
+
     private function prepareSchema(Connection $connection, string $schemaName): void
     {
         $connection->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schemaName));
