@@ -175,24 +175,32 @@ class Connection
 
     public function fetchAll(string $sql, array $bind = []): array
     {
-        $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt, $this->repairBinding($bind));
-        $rows = [];
-        while ($row = odbc_fetch_array($stmt)) {
-            $rows[] = $row;
+        try{
+            $stmt = odbc_prepare($this->connection, $sql);
+            odbc_execute($stmt, $this->repairBinding($bind));
+            $rows = [];
+            while ($row = odbc_fetch_array($stmt)) {
+                $rows[] = $row;
+            }
+            odbc_free_result($stmt);
+        } catch (\Throwable $e) {
+            throw (new ExceptionHandler())->createException($e);
         }
-        odbc_free_result($stmt);
         return $rows;
     }
 
     public function fetch(string $sql, array $bind, callable $callback): void
     {
-        $stmt = odbc_prepare($this->connection, $sql);
-        odbc_execute($stmt, $this->repairBinding($bind));
-        while ($row = odbc_fetch_array($stmt)) {
-            $callback($row);
+        try {
+            $stmt = odbc_prepare($this->connection, $sql);
+            odbc_execute($stmt, $this->repairBinding($bind));
+            while ($row = odbc_fetch_array($stmt)) {
+                $callback($row);
+            }
+            odbc_free_result($stmt);
+        } catch (\Throwable $e) {
+            throw (new ExceptionHandler())->createException($e);
         }
-        odbc_free_result($stmt);
     }
 
     /**
