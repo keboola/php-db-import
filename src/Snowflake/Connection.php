@@ -175,7 +175,7 @@ class Connection
 
     public function fetchAll(string $sql, array $bind = []): array
     {
-        try{
+        try {
             $stmt = odbc_prepare($this->connection, $sql);
             odbc_execute($stmt, $this->repairBinding($bind));
             $rows = [];
