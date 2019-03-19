@@ -96,6 +96,22 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function testQueryTimeoutLimit(): void
+    {
+        $connection = $this->createConnection();
+        $connection->query("ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 3");
+
+        try {
+            $connection->fetchAll('CALL system$wait(5)');
+        } catch (Import\Exception $e) {
+            $this->assertSame(Import\Exception::class, get_class($e));
+            $this->assertRegExp('~timeout~', $e->getMessage());
+            $this->assertSame(Import\Exception::QUERY_TIMEOUT, $e->getCode());
+        } finally {
+            $connection->query('ALTER SESSION UNSET STATEMENT_TIMEOUT_IN_SECONDS');
+        }
+    }
+
     private function prepareSchema(Connection $connection, string $schemaName): void
     {
         $connection->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schemaName));
