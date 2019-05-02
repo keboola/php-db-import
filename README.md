@@ -59,6 +59,9 @@ GRANT ALL ON DATABASE keboola_db_import TO keboola_db_import;
 
 #### Snowflake settings
 Role, user, database and warehouse are required for tests. You can create them:
+
+Password for test user must contain these chars: `;`, `{` and `}`.
+
 ```
 CREATE ROLE "KEBOOLA_DB_IMPORT";
 CREATE DATABASE "KEBOOLA_DB_IMPORT";

@@ -75,7 +75,11 @@ class Connection
                 sleep(pow(2, $attemptNumber));
             }
             try {
-                $this->connection = odbc_connect($dsn, $options['user'], $options['password']);
+                $this->connection = odbc_connect(
+                    $dsn,
+                    $options['user'],
+                    '{' . str_replace('}', '}}', $options['password']) . '}'
+                );
             } catch (\Throwable $e) {
                 // try again if it is a failed rest request
                 if (stristr($e->getMessage(), "S1000") !== false) {

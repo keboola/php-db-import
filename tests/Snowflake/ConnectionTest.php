@@ -120,13 +120,21 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
 
     private function createConnection(): Connection
     {
+        $password = getenv('SNOWFLAKE_PASSWORD');
+
+        $passwordCheck = strpos($password, ';') !== false &&
+            strpos($password, '{') !== false &&
+            strpos($password, '}') !== false
+        ;
+        $this->assertTrue($passwordCheck, 'Snowflake password must contain semicolon and curly brackets');
+
         return new Connection([
             'host' => getenv('SNOWFLAKE_HOST'),
             'port' => getenv('SNOWFLAKE_PORT'),
             'database' => getenv('SNOWFLAKE_DATABASE'),
             'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
             'user' => getenv('SNOWFLAKE_USER'),
-            'password' => getenv('SNOWFLAKE_PASSWORD'),
+            'password' => $password,
         ]);
     }
 }
