@@ -6,8 +6,20 @@ ENV COMPOSER_PROCESS_TIMEOUT 3600
 # snowflake - charset settings
 ENV LANG en_US.UTF-8
 
+ARG SNOWFLAKE_ODBC_VERSION=2.19.11
+ARG SNOWFLAKE_GPG_KEY=EC218558EABB25A1
+
 RUN apt-get update \
-  && apt-get install unzip git unixodbc unixodbc-dev libpq-dev -y
+  && apt-get install -y unzip \
+      git \
+      unixodbc \
+      unixodbc-dev \
+      libpq-dev \
+      gpg \
+      debsig-verify \
+      dirmngr \
+      gpg-agent \
+  && rm -r /var/lib/apt/lists/*
 
 RUN echo "memory_limit = -1" >> /usr/local/etc/php/php.ini
 
@@ -28,9 +40,20 @@ RUN set -ex; \
     docker-php-ext-install odbc; \
     docker-php-source delete
 
-ADD ./snowflake-odbc.deb /tmp/snowflake-odbc.deb
-RUN dpkg -i /tmp/snowflake-odbc.deb
-ADD ./docker/snowflake/simba.snowflake.ini /usr/lib/snowflake/odbc/lib/simba.snowflake.ini
+## install snowflake drivers
+COPY ./docker/snowflake/generic.pol /etc/debsig/policies/$SNOWFLAKE_GPG_KEY/generic.pol
+ADD https://sfc-repo.snowflakecomputing.com/odbc/linux/$SNOWFLAKE_ODBC_VERSION/snowflake-odbc-$SNOWFLAKE_ODBC_VERSION.x86_64.deb /tmp/snowflake-odbc.deb
+COPY ./docker/snowflake/simba.snowflake.ini /usr/lib/snowflake/odbc/lib/simba.snowflake.ini
+
+RUN mkdir -p ~/.gnupg \
+    && chmod 700 ~/.gnupg \
+    && echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf \
+    && mkdir -p /usr/share/debsig/keyrings/$SNOWFLAKE_GPG_KEY \
+    && gpg --keyserver hkp://keys.gnupg.net --recv-keys $SNOWFLAKE_GPG_KEY \
+    && gpg --export $SNOWFLAKE_GPG_KEY > /usr/share/debsig/keyrings/$SNOWFLAKE_GPG_KEY/debsig.gpg \
+    && debsig-verify /tmp/snowflake-odbc.deb \
+    && gpg --batch --delete-key --yes $SNOWFLAKE_GPG_KEY \
+    && dpkg -i /tmp/snowflake-odbc.deb
 
 RUN cd \
   && curl -sS https://getcomposer.org/installer | php \
