@@ -29,7 +29,6 @@
         "phpcbf": "phpcbf -n --ignore=vendor --extensions=php .",
         "phpstan": "phpstan analyse ./src ./tests --level=max --no-progress -c phpstan.neon",
         "tests-load-s3": "php ./tests/loadS3.php",
-        "tests-mysql": "phpunit tests/Mysql",
         "tests-redshift": "phpunit tests/Redshift",
         "tests-redshift-legacy": "export REDSHIFT_LEGACY_IMPORT=1 && phpunit tests/Redshift",
         "tests-snowflake": "phpunit tests/Snowflake",
@@ -38,7 +37,6 @@
             "@phpcs",
             "@phpstan",
             "@tests-load-s3",
-            "@tests-mysql",
             "@tests-redshift",
             "@tests-redshift-legacy",
             "@tests-snowflake"
