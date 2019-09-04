@@ -9,7 +9,6 @@ before_install:
   - docker-compose -v
 
 install:
-  - docker-compose up -d mysql # boot mysql now to be ready when tests are started
   # download Snowflake drivers
   - >-
    docker

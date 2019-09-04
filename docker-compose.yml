@@ -11,8 +11,6 @@ services:
     command: sh -c 'composer install -n && php ./vendor/bin/phpunit'
     tty: true
     stdin_open: true
-    links:
-      - mysql
     environment:
       - REDSHIFT_HOST
       - REDSHIFT_USER
@@ -30,17 +28,7 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - AWS_S3_BUCKET
       - AWS_REGION
-      - MYSQL_HOST=mysql
-      - MYSQL_DATABASE=tests
-      - MYSQL_PASSWORD=password
 
   tests-xdebug:
     <<: *tests
     build: docker/xdebug
-
-
-  mysql:
-    image: mysql:5.5
-    environment:
-      MYSQL_DATABASE: tests
-      MYSQL_ROOT_PASSWORD: password

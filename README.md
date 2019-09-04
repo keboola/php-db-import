@@ -4,7 +4,6 @@
 Handling of large bulk data into database tables.
 
 ### Supported engines:
-- `MySQL` - load data from local CSV file
 - `AWS Redshift`, `Snowflake`
   - Load data from CSV stored in AWS S3
   - Load data from another Redshift table in same database
@@ -80,4 +79,4 @@ Run tests with following command.
 docker-compose run --rm tests
 ```
 
-Tests are executed against real backends `MySQL` is provisioned and wired by Docker. Redshift and S3 credentials have to be provided.
+Redshift and S3 credentials have to be provided.
