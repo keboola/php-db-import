@@ -144,8 +144,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider incrementalImportData
-     * @param CsvReader $initialImportFile
-     * @param CsvReader $incrementFile
+     * @param array $initialImportFile
+     * @param array $incrementFile
      * @param array $columns
      * @param array $expected
      * @param string $tableName
@@ -153,8 +153,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
      * @throws \Exception
      */
     public function testIncrementalImport(
-        CsvReader $initialImportFile,
-        CsvReader $incrementFile,
+        array $initialImportFile,
+        array $incrementFile,
         array $columns,
         array $expected,
         string $tableName,
@@ -194,8 +194,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
         // accounts
-        $initialAccountsFile = new CsvReader("s3://{$s3bucket}/tw_accounts.csv");
-        $incrementAccountsFile = new CsvReader("s3://{$s3bucket}/tw_accounts.increment.csv");
+        $initialAccountsFile = $this->getSource("s3://{$s3bucket}/tw_accounts.csv");
+        $incrementAccountsFile = $this->getSource("s3://{$s3bucket}/tw_accounts.increment.csv");
 
         $expectationAccountsFile = new CsvReader(__DIR__ . '/../_data/csv-import/expectation.tw_accounts.increment.csv');
         $expectedAccountsRows = [];
@@ -206,8 +206,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $expectedAccountsRows = array_values($expectedAccountsRows);
 
         // multi pk
-        $initialMultiPkFile = new CsvReader("s3://{$s3bucket}/multi-pk.csv");
-        $incrementMultiPkFile = new CsvReader("s3://{$s3bucket}/multi-pk.increment.csv");
+        $initialMultiPkFile = $this->getSource("s3://{$s3bucket}/multi-pk.csv");
+        $incrementMultiPkFile = $this->getSource("s3://{$s3bucket}/multi-pk.increment.csv");
 
         $expectationMultiPkFile = new CsvReader(__DIR__ . '/../_data/csv-import/expectation.multi-pk.increment.csv');
         $expectedMultiPkRows = [];
