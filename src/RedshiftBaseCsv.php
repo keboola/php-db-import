@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import;
 
-use Keboola\Csv\CsvFile;
+use Keboola\Csv\CsvOptions;
+use SplFileInfo;
 use Tracy\Debugger;
 
 abstract class RedshiftBaseCsv extends RedshiftBase
@@ -35,14 +36,17 @@ abstract class RedshiftBaseCsv extends RedshiftBase
     /**
      * @param string $tempTableName
      * @param array $columns
-     * @param CsvFile $csvFile
+     * @param SplFileInfo $file
+     * @param CsvOptions $csvOptions
      * @param array $options
      *  - isManifest
      *  - copyOptions
+     * @throws Exception
+     * @throws \Throwable
      */
-    protected function importTable(string $tempTableName, array $columns, CsvFile $csvFile, array $options): void
+    protected function importTable(string $tempTableName, array $columns, SplFileInfo $file, CsvOptions $csvOptions, array $options): void
     {
-        if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
+        if ($csvOptions->getEnclosure() && $csvOptions->getEscapedBy()) {
             throw new Exception(
                 'Invalid CSV params. Either enclosure or escapedBy must be specified for Redshift backend but not both.',
                 Exception::INVALID_CSV_PARAMS,
@@ -58,7 +62,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             ];
 
             if (isset($options['isManifest']) && $options['isManifest']) {
-                $manifest = $this->downloadManifest($csvFile->getPathname());
+                $manifest = $this->downloadManifest($file->getPathname());
 
                 // empty manifest handling - do nothing
                 if (!count($manifest['entries'])) {
@@ -68,10 +72,10 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 
                 $copyOptions['isGzipped'] = $this->isGzipped(reset($manifest['entries'])['url']);
             } else {
-                $copyOptions['isGzipped'] = $this->isGzipped($csvFile->getPathname());
+                $copyOptions['isGzipped'] = $this->isGzipped($file->getPathname());
             }
 
-            $this->query($this->generateCopyCommand($tempTableName, $columns, $csvFile, $copyOptions));
+            $this->query($this->generateCopyCommand($tempTableName, $columns, $file, $csvOptions, $copyOptions));
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
         } catch (\Throwable $e) {
             $result = $this->connection->query("SELECT * FROM stl_load_errors WHERE query = pg_last_query_id();")->fetchAll();
@@ -89,7 +93,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         }
     }
 
-    private function generateCopyCommand(string $tempTableName, array $columns, CsvFile $csvFile, array $options): string
+    private function generateCopyCommand(string $tempTableName, array $columns, SplFileInfo $file, CsvOptions $csvOptions, array $options): string
     {
         $tableNameEscaped = $this->tableNameEscaped($tempTableName);
         $columnsSql = implode(', ', array_map(function ($column) {
@@ -97,18 +101,18 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         }, $columns));
 
         $command = "COPY $tableNameEscaped ($columnsSql) "
-            . " FROM {$this->connection->quote($csvFile->getPathname())}"
+            . " FROM {$this->connection->quote($file->getPathname())}"
             . " CREDENTIALS 'aws_access_key_id={$this->s3key};aws_secret_access_key={$this->s3secret}' "
-            . " DELIMITER '{$csvFile->getDelimiter()}' "
+            . " DELIMITER '{$csvOptions->getDelimiter()}' "
             . " REGION '{$this->s3region}'";
 
-        if ($csvFile->getEnclosure()) {
-            $command .= "QUOTE {$this->connection->quote($csvFile->getEnclosure())} ";
+        if ($csvOptions->getEnclosure()) {
+            $command .= "QUOTE {$this->connection->quote($csvOptions->getEnclosure())} ";
         }
 
-        if ($csvFile->getEscapedBy()) {
+        if ($csvOptions->getEscapedBy()) {
             // raw format
-            if ($csvFile->getEscapedBy() != '\\') {
+            if ($csvOptions->getEscapedBy() !== '\\') {
                 throw new Exception('Only backshlash can be used as escape character');
             }
             $command .= " ESCAPE ";

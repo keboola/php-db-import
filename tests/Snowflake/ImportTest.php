@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\DbImportTest\Snowflake;
 
-use Keboola\Csv\CsvFile;
+use Keboola\Csv\CsvOptions;
+use Keboola\Csv\CsvReader;
 use Keboola\Db\Import\Exception;
 use Keboola\Db\Import\Snowflake\Connection;
 
@@ -39,6 +40,14 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     protected function tearDown(): void
     {
         $this->connection = null;
+    }
+
+    private function getSource(string $filePath, ?CsvOptions $options = null): array
+    {
+        return [
+            'file' => new \SplFileInfo($filePath),
+            'csvOptions' => $options ?? new CsvOptions,
+        ];
     }
 
     /**
@@ -135,17 +144,17 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider incrementalImportData
-     * @param CsvFile $initialImportFile
-     * @param CsvFile $incrementFile
+     * @param CsvReader $initialImportFile
+     * @param CsvReader $incrementFile
      * @param array $columns
      * @param array $expected
      * @param string $tableName
      * @param array $importOptions
-     * @throws Exception
+     * @throws \Exception
      */
     public function testIncrementalImport(
-        CsvFile $initialImportFile,
-        CsvFile $incrementFile,
+        CsvReader $initialImportFile,
+        CsvReader $incrementFile,
         array $columns,
         array $expected,
         string $tableName,
@@ -174,7 +183,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $tableColumns = array_filter($tableColumns, function ($column) {
             return $column !== '_timestamp';
         });
-        
+
         $importedData = $this->fetchAll($this->destSchemaName, $tableName, $tableColumns);
 
         $this->assertArrayEqualsSorted($expected, $importedData, '0');
@@ -185,10 +194,10 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
         // accounts
-        $initialAccountsFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
-        $incrementAccountsFile = new CsvFile("s3://{$s3bucket}/tw_accounts.increment.csv");
+        $initialAccountsFile = new CsvReader("s3://{$s3bucket}/tw_accounts.csv");
+        $incrementAccountsFile = new CsvReader("s3://{$s3bucket}/tw_accounts.increment.csv");
 
-        $expectationAccountsFile = new CsvFile(__DIR__ . '/../_data/csv-import/expectation.tw_accounts.increment.csv');
+        $expectationAccountsFile = new CsvReader(__DIR__ . '/../_data/csv-import/expectation.tw_accounts.increment.csv');
         $expectedAccountsRows = [];
         foreach ($expectationAccountsFile as $row) {
             $expectedAccountsRows[] = $row;
@@ -197,10 +206,10 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $expectedAccountsRows = array_values($expectedAccountsRows);
 
         // multi pk
-        $initialMultiPkFile = new CsvFile("s3://{$s3bucket}/multi-pk.csv");
-        $incrementMultiPkFile = new CsvFile("s3://{$s3bucket}/multi-pk.increment.csv");
+        $initialMultiPkFile = new CsvReader("s3://{$s3bucket}/multi-pk.csv");
+        $incrementMultiPkFile = new CsvReader("s3://{$s3bucket}/multi-pk.increment.csv");
 
-        $expectationMultiPkFile = new CsvFile(__DIR__ . '/../_data/csv-import/expectation.multi-pk.increment.csv');
+        $expectationMultiPkFile = new CsvReader(__DIR__ . '/../_data/csv-import/expectation.multi-pk.increment.csv');
         $expectedMultiPkRows = [];
         foreach ($expectationMultiPkFile as $row) {
             $expectedMultiPkRows[] = $row;
@@ -218,7 +227,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function fullImportData(): array
     {
         $expectedEscaping = [];
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/escaping/standard-with-enclosures.csv');
+        $file = new CsvReader(__DIR__ . '/../_data/csv-import/escaping/standard-with-enclosures.csv');
         foreach ($file as $row) {
             $expectedEscaping[] = $row;
         }
@@ -226,17 +235,17 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $expectedEscaping = array_values($expectedEscaping);
 
         $expectedAccounts = [];
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.csv');
+        $file = new CsvReader(__DIR__ . '/../_data/csv-import/tw_accounts.csv');
         foreach ($file as $row) {
             $expectedAccounts[] = $row;
         }
         $accountsHeader = array_shift($expectedAccounts); // remove header
         $expectedAccounts = array_values($expectedAccounts);
 
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv');
+        $file = new CsvReader(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv');
         $accountChangedColumnsOrderHeader = $file->getHeader();
 
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/lemma.csv');
+        $file = new CsvReader(__DIR__ . '/../_data/csv-import/lemma.csv');
         $expectedLemma = [];
         foreach ($file as $row) {
             $expectedLemma[] = $row;
@@ -254,19 +263,19 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
         return [
             // full imports
-            [[new CsvFile("s3://{$s3bucket}/manifests/2cols-large/sliced.csvmanifest")], $escapingHeader, $expectedLargeSlicedManifest, 'out.csv_2Cols', 'manifest' ],
-            [[new CsvFile("s3://{$s3bucket}/empty.manifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],
-            [[new CsvFile("s3://{$s3bucket}/lemma.csv")], $lemmaHeader, $expectedLemma, 'out.lemma'],
-            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-            [[new CsvFile("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-            [[new CsvFile("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", "\t")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-            [[new CsvFile("s3://{$s3bucket}/raw.rs.csv", "\t", '', '\\')], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
-            [[new CsvFile("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts-3'],
-            [[new CsvFile("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts-3'],
+            [[$this->getSource("s3://{$s3bucket}/manifests/2cols-large/sliced.csvmanifest")], $escapingHeader, $expectedLargeSlicedManifest, 'out.csv_2Cols', 'manifest' ],
+            [[$this->getSource("s3://{$s3bucket}/empty.manifest")], $escapingHeader, [], 'out.csv_2Cols', 'manifest' ],
+            [[$this->getSource("s3://{$s3bucket}/lemma.csv")], $lemmaHeader, $expectedLemma, 'out.lemma'],
+            [[$this->getSource("s3://{$s3bucket}/standard-with-enclosures.csv")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[$this->getSource("s3://{$s3bucket}/gzipped-standard-with-enclosures.csv.gz")], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[$this->getSource("s3://{$s3bucket}/standard-with-enclosures.tabs.csv", new CsvOptions("\t"))], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[$this->getSource("s3://{$s3bucket}/raw.rs.csv", new CsvOptions("\t", '', '\\'))], $escapingHeader, $expectedEscaping, 'out.csv_2Cols'],
+            [[$this->getSource("s3://{$s3bucket}/tw_accounts.changedColumnsOrder.csv")], $accountChangedColumnsOrderHeader, $expectedAccounts, 'accounts-3'],
+            [[$this->getSource("s3://{$s3bucket}/tw_accounts.csv")], $accountsHeader, $expectedAccounts, 'accounts-3'],
 
             // manifests
-            [[new CsvFile("s3://{$s3bucket}/manifests/accounts/tw_accounts.csvmanifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
-            [[new CsvFile("s3://{$s3bucket}/manifests/accounts-gzip/tw_accounts.csv.gzmanifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
+            [[$this->getSource("s3://{$s3bucket}/manifests/accounts/tw_accounts.csvmanifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
+            [[$this->getSource("s3://{$s3bucket}/manifests/accounts-gzip/tw_accounts.csv.gzmanifest")], $accountsHeader, $expectedAccounts, 'accounts-3', 'manifest'],
 
             // copy from table
             [
@@ -286,12 +295,12 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ],
 
             // reserved words
-            [[new CsvFile("s3://{$s3bucket}/reserved-words.csv")], ['column', 'table'], [['table', 'column']], 'table', 'csv'],
+            [[$this->getSource("s3://{$s3bucket}/reserved-words.csv")], ['column', 'table'], [['table', 'column']], 'table', 'csv'],
 
 
             // import table with _timestamp columns - used by snapshots
             [
-                [new CsvFile("s3://{$s3bucket}/with-ts.csv")],
+                [$this->getSource("s3://{$s3bucket}/with-ts.csv")],
                 ['col1', 'col2', '_timestamp'],
                 [
                     ['a', 'b', '2014-11-10 13:12:06.000'],
@@ -301,7 +310,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             ],
             // test creating table without _timestamp column
             [
-                [new CsvFile("s3://{$s3bucket}/standard-with-enclosures.csv")],
+                [$this->getSource("s3://{$s3bucket}/standard-with-enclosures.csv")],
                 $escapingHeader,
                 $expectedEscaping,
                 'out.no_timestamp_table',
@@ -315,7 +324,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function testInvalidCsvImport(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+        $importFile = $this->getSource("s3://{$s3bucket}/tw_accounts.csv");
 
         $import = $this->getImport();
         $import->setIgnoreLines(1);
@@ -330,7 +339,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function testImportShouldNotFailOnColumnNameRowNumber(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/column-name-row-number.csv");
+        $importFile = $this->getSource("s3://{$s3bucket}/column-name-row-number.csv");
 
         $import = $this->getImport();
         $import->setIncremental(false);
@@ -340,8 +349,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function testInvalidManifestImport(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/../_data/csv-import/tw_accounts.csv");
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/02_tw_accounts.csv.invalid.manifest");
+        $initialFile = new CsvReader(__DIR__ . "/../_data/csv-import/tw_accounts.csv");
+        $importFile = $this->getSource("s3://{$s3bucket}/02_tw_accounts.csv.invalid.manifest");
 
         $import = $this->getImport('manifest');
         $import->setIgnoreLines(1);
@@ -357,7 +366,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function testMoreColumnsShouldThrowException(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+        $importFile = $this->getSource("s3://{$s3bucket}/tw_accounts.csv");
 
         $import = $this->getImport();
         $import->setIgnoreLines(1);
@@ -593,7 +602,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             'nullify',
             ['id', 'name', 'price'],
             [
-                new CsvFile("s3://{$s3bucket}/nullify.csv"),
+                $this->getSource("s3://{$s3bucket}/nullify.csv"),
             ],
             [
                 "useTimestamp" => false,
@@ -622,7 +631,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             'nullify',
             ['id', 'name', 'price'],
             [
-                new CsvFile("s3://{$s3bucket}/nullify.csv"),
+                $this->getSource("s3://{$s3bucket}/nullify.csv"),
             ],
             [
                 "useTimestamp" => false,

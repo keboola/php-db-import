@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import\Snowflake;
 
-use Keboola\Csv\CsvFile;
+use Keboola\Csv\CsvOptions;
 use Keboola\Db\Import\Exception;
+use SplFileInfo;
 use Tracy\Debugger;
 use Aws\Exception\AwsException;
 
@@ -35,9 +36,9 @@ abstract class CsvImportBase extends ImportBase
         $this->s3region = $s3region;
     }
 
-    protected function importTableFromCsv(string $tableName, CsvFile $csvFile, bool $isSliced): void
+    protected function importTableFromCsv(string $tableName, SplFileInfo $file, CsvOptions $csvOptions, bool $isSliced): void
     {
-        if ($csvFile->getEnclosure() && $csvFile->getEscapedBy()) {
+        if ($csvOptions->getEnclosure() && $csvOptions->getEscapedBy()) {
             throw new Exception(
                 'Invalid CSV params. Either enclosure or escapedBy must be specified for Snowflake backend but not both.',
                 Exception::INVALID_CSV_PARAMS,
@@ -46,12 +47,12 @@ abstract class CsvImportBase extends ImportBase
         }
 
         try {
-            $timerName = 'copyToStaging-' . $csvFile->getBasename();
+            $timerName = 'copyToStaging-' . $file->getBasename();
             Debugger::timer($timerName);
             if ($isSliced) {
-                $this->importTableFromSlicedFile($tableName, $csvFile);
+                $this->importTableFromSlicedFile($tableName, $file, $csvOptions);
             } else {
-                $this->importTableFromSingleFile($tableName, $csvFile);
+                $this->importTableFromSingleFile($tableName, $file, $csvOptions);
             }
             $this->addTimer($timerName, Debugger::timer($timerName));
         } catch (\Throwable $e) {
@@ -63,28 +64,28 @@ abstract class CsvImportBase extends ImportBase
         }
     }
 
-    private function importTableFromSingleFile(string $stableName, CsvFile $csvFile): void
+    private function importTableFromSingleFile(string $stableName, SplFileInfo $file, CsvOptions $csvOptions): void
     {
-        $csvOptions = $this->createCopyCommandCsvOptions(
-            $csvFile,
+        $csvOptionsArray = $this->createCopyCommandCsvOptions(
+            $csvOptions,
             $this->getIgnoreLines()
         );
         $this->executeCopyCommand(
             $this->generateSingleFileCopyCommand(
                 $stableName,
-                $csvFile->getPathname(),
-                $csvOptions
+                $file->getPathname(),
+                $csvOptionsArray
             )
         );
     }
 
-    private function importTableFromSlicedFile(string $tableName, CsvFile $csvFile): void
+    private function importTableFromSlicedFile(string $tableName, SplFileInfo $file, CsvOptions $csvOptions): void
     {
-        $csvOptions = $this->createCopyCommandCsvOptions(
-            $csvFile,
+        $csvOptionsArray = $this->createCopyCommandCsvOptions(
+            $csvOptions,
             $this->getIgnoreLines()
         );
-        $parsedS3Path = parse_url($csvFile->getPathname());
+        $parsedS3Path = parse_url($file->getPathname());
 
         $slicesPaths = $this->getFilesToDownloadFromManifest(
             $parsedS3Path['host'],
@@ -96,7 +97,7 @@ abstract class CsvImportBase extends ImportBase
                     $tableName,
                     $parsedS3Path['host'],
                     $slicesChunk,
-                    $csvOptions
+                    $csvOptionsArray
                 )
             );
         }
@@ -159,23 +160,23 @@ abstract class CsvImportBase extends ImportBase
         );
     }
 
-    private function createCopyCommandCsvOptions(CsvFile $csvFile, int $ignoreLinesCount): array
+    private function createCopyCommandCsvOptions(CsvOptions $csvOptions, int $ignoreLinesCount): array
     {
-        $csvOptions = [];
-        $csvOptions[] = sprintf('FIELD_DELIMITER = %s', $this->quote($csvFile->getDelimiter()));
+        $optionsArray = [];
+        $optionsArray[] = sprintf('FIELD_DELIMITER = %s', $this->quote($csvOptions->getDelimiter()));
 
         if ($ignoreLinesCount > 0) {
-            $csvOptions[] = sprintf('SKIP_HEADER = %d', $ignoreLinesCount);
+            $optionsArray[] = sprintf('SKIP_HEADER = %d', $ignoreLinesCount);
         }
 
-        if ($csvFile->getEnclosure()) {
-            $csvOptions[] = sprintf("FIELD_OPTIONALLY_ENCLOSED_BY = %s", $this->quote($csvFile->getEnclosure()));
-            $csvOptions[] = "ESCAPE_UNENCLOSED_FIELD = NONE";
-        } elseif ($csvFile->getEscapedBy()) {
-            $csvOptions[] = sprintf("ESCAPE_UNENCLOSED_FIELD = %s", $this->quote($csvFile->getEscapedBy()));
+        if ($csvOptions->getEnclosure()) {
+            $optionsArray[] = sprintf("FIELD_OPTIONALLY_ENCLOSED_BY = %s", $this->quote($csvOptions->getEnclosure()));
+            $optionsArray[] = "ESCAPE_UNENCLOSED_FIELD = NONE";
+        } elseif ($csvOptions->getEscapedBy()) {
+            $optionsArray[] = sprintf("ESCAPE_UNENCLOSED_FIELD = %s", $this->quote($csvOptions->getEscapedBy()));
         }
 
-        return $csvOptions;
+        return $optionsArray;
     }
 
 

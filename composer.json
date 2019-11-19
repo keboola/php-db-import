@@ -4,7 +4,7 @@
     "license": "MIT",
     "require": {
         "PHP": "^7.1",
-        "keboola/csv": "^1.1",
+        "keboola/csv": "^2.1",
         "tracy/tracy": "^2.3",
         "aws/aws-sdk-php": "^3.11"
     },
