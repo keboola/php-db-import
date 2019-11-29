@@ -76,6 +76,13 @@ class Connection
             }
             try {
                 $this->connection = odbc_connect($dsn, $options['user'], $options['password']);
+
+                if (isset($options['runId'])) {
+                    $queryTag = [
+                        "runId" => $options['runId'],
+                    ];
+                    $this->query("ALTER SESSION SET QUERY_TAG='" . json_encode($queryTag) . "';");
+                }
             } catch (\Throwable $e) {
                 // try again if it is a failed rest request
                 if (stristr($e->getMessage(), "S1000") !== false) {
