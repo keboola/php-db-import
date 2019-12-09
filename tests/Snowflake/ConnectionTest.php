@@ -112,6 +112,38 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testQueryTagging(): void
+    {
+        $connection = new Connection([
+            'host' => getenv('SNOWFLAKE_HOST'),
+            'port' => getenv('SNOWFLAKE_PORT'),
+            'database' => getenv('SNOWFLAKE_DATABASE'),
+            'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'user' => getenv('SNOWFLAKE_USER'),
+            'password' => getenv('SNOWFLAKE_PASSWORD'),
+            'runId' => 'myRunId',
+        ]);
+
+        $destSchemaName = 'testQueryTagging';
+        $this->prepareSchema($connection, $destSchemaName);
+
+        $connection->query('CREATE TABLE "' . $destSchemaName . '" ("col1" NUMBER);');
+
+        $queries = $connection->fetchAll(
+            '
+                SELECT 
+                    QUERY_TEXT, QUERY_TAG 
+                FROM 
+                    TABLE(INFORMATION_SCHEMA.QUERY_HISTORY_BY_SESSION())
+                WHERE QUERY_TEXT = \'CREATE TABLE "' . $destSchemaName . '" ("col1" NUMBER);\' 
+                ORDER BY START_TIME DESC 
+                LIMIT 1
+            '
+        );
+
+        $this->assertEquals('{"runId":"myRunId"}', $queries[0]["QUERY_TAG"]);
+    }
+
     private function prepareSchema(Connection $connection, string $schemaName): void
     {
         $connection->query(sprintf('DROP SCHEMA IF EXISTS "%s"', $schemaName));
