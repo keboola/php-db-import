@@ -99,7 +99,7 @@ class Connection
 
     public function __destruct()
     {
-        odbc_close($this->connection);
+        $this->disconnect();
     }
 
     public function quoteIdentifier(string $value): string
@@ -224,5 +224,12 @@ class Connection
                 return $value;
             }
         }, $bind);
+    }
+
+    public function disconnect(): void
+    {
+        if (is_resource($this->connection)) {
+            odbc_close($this->connection);
+        }
     }
 }
