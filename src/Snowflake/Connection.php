@@ -176,12 +176,13 @@ class Connection
             odbc_execute($stmt, $this->repairBinding($bind));
             odbc_free_result($stmt);
         } catch (\Throwable $e) {
-            throw (new ExceptionHandler())->createException($e);
+            (new ExceptionHandler())->handleException($e, $sql);
         }
     }
 
     public function fetchAll(string $sql, array $bind = []): array
     {
+        $rows = [];
         try {
             $stmt = odbc_prepare($this->connection, $sql);
             odbc_execute($stmt, $this->repairBinding($bind));
@@ -191,7 +192,7 @@ class Connection
             }
             odbc_free_result($stmt);
         } catch (\Throwable $e) {
-            throw (new ExceptionHandler())->createException($e);
+            (new ExceptionHandler())->handleException($e, $sql);
         }
         return $rows;
     }
@@ -206,7 +207,7 @@ class Connection
             }
             odbc_free_result($stmt);
         } catch (\Throwable $e) {
-            throw (new ExceptionHandler())->createException($e);
+            (new ExceptionHandler())->handleException($e, $sql);
         }
     }
 

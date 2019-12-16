@@ -6,6 +6,8 @@ namespace Keboola\DbImportTest\Snowflake;
 
 use Keboola\Db\Import;
 use Keboola\Db\Import\Snowflake\Connection;
+use Keboola\Db\Import\Snowflake\Exception\StringTooLongException;
+use Keboola\Db\Import\Snowflake\Exception\WarehouseTimeoutReached;
 
 class ConnectionTest extends \PHPUnit_Framework_TestCase
 {
@@ -83,9 +85,8 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
             )
         );
 
-        $this->expectException(Import\Exception::class);
+        $this->expectException(StringTooLongException::class);
         $this->expectExceptionMessageRegExp('/cannot be inserted because it\'s bigger than column size/');
-        $this->expectExceptionCode(Import\Exception::ROW_SIZE_TOO_LARGE);
         $connection->query(
             sprintf(
                 'INSERT INTO "%s"."%s" VALUES(\'%s\');',
@@ -103,10 +104,9 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
 
         try {
             $connection->fetchAll('CALL system$wait(5)');
-        } catch (Import\Exception $e) {
-            $this->assertSame(Import\Exception::class, get_class($e));
+        } catch (WarehouseTimeoutReached $e) {
+            $this->assertSame(WarehouseTimeoutReached::class, get_class($e));
             $this->assertRegExp('~timeout~', $e->getMessage());
-            $this->assertSame(Import\Exception::QUERY_TIMEOUT, $e->getCode());
         } finally {
             $connection->query('ALTER SESSION UNSET STATEMENT_TIMEOUT_IN_SECONDS');
         }

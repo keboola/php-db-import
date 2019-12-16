@@ -4,50 +4,46 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import\Snowflake;
 
-use Keboola\Db\Import;
-use Keboola\Db\Import\MessageTransformation;
+use Keboola\Db\Import\Snowflake\Exception\ExceptionInterface;
+use Keboola\Db\Import\Snowflake\Exception\RuntimeException;
+use Keboola\Db\Import\Snowflake\Exception\SnowflakeDbAdapterException;
+use Keboola\Db\Import\Snowflake\Exception\StringTooLongException;
+use Keboola\Db\Import\Snowflake\Exception\WarehouseTimeoutReached;
 
 class ExceptionHandler
 {
-    /** @var Import\MessageTransformation[] */
-    private $messageTransformations = [];
-
-
-    public function __construct()
+    public function handleException(\Throwable $e, ?string $sql = null): void
     {
-        $this->messageTransformations = [
-            new MessageTransformation(
-                "/String \'([^\']*)\' is too long .* SQL state 22000/",
+        $pattern = "/String \'([^\']*)\' is too long .* SQL state 22000/";
+        $matches = null;
+        if (preg_match($pattern, $e->getMessage(), $matches)) {
+            array_shift($matches); // remove the whole string from matches
+            throw new StringTooLongException(vsprintf(
                 "String '%s' cannot be inserted because it's bigger than column size",
-                Import\Exception::ROW_SIZE_TOO_LARGE,
-                [1]
-            ),
-        ];
-
-        $this->messageTransformations[] =
-            new MessageTransformation(
-                '/Statement reached its statement or warehouse timeout of ([0-9]+) second.* SQL state 57014/',
-                'Query reached its timeout %d second(s)',
-                Import\Exception::QUERY_TIMEOUT,
-                [1]
-            );
-    }
-
-    /**
-     * @return \Throwable|Import\Exception
-     */
-    public function createException(\Throwable $exception): \Throwable
-    {
-        foreach ($this->messageTransformations as $messageTransformation) {
-            if (preg_match(
-                $messageTransformation->getPattern(),
-                $exception->getMessage(),
                 $matches
-            )) {
-                return $messageTransformation->getImportException($matches);
-            }
+            ));
         }
 
-        return $exception;
+        $pattern = '/Statement reached its statement or warehouse timeout of ([0-9]+) second.* SQL state 57014/';
+        $matches = null;
+        if (preg_match($pattern, $e->getMessage(), $matches)) {
+            array_shift($matches); // remove the whole string from matches
+            throw new WarehouseTimeoutReached(vsprintf(
+                'Query reached its timeout %d second(s)',
+                $matches
+            ));
+        }
+
+        if ($sql) {
+            throw new RuntimeException(
+                sprintf('Error "%s" while executing query "%s"', $e->getMessage(), $sql),
+                $e->getCode(),
+                $e
+            );
+        }
+        if ($e instanceof ExceptionInterface) {
+            throw $e;
+        }
+        throw new SnowflakeDbAdapterException($e->getMessage(), $e->getCode(), $e);
     }
 }
