@@ -792,7 +792,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayEqualsSorted($expectedData, $importedData, 'id');
     }
 
-    public function testStagingTableShouldBeDroppedAfterDisconnect()
+    public function testStagingTableShouldBeDroppedAfterDisconnect(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
