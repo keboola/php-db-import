@@ -80,8 +80,6 @@ abstract class ImportBase implements ImportInterface
                 );
             }
 
-            $this->dropTable($stagingTableName);
-
             $this->importedColumns = $columns;
 
             return new Result([
