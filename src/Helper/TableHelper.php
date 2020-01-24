@@ -6,8 +6,10 @@ namespace Keboola\Db\Import\Helper;
 
 final class TableHelper
 {
+    public const STAGING_TABLE_PREFIX = '__temp_csvimport';
+
     public static function generateStagingTableName(): string
     {
-        return '__temp_' . str_replace('.', '_', uniqid('csvimport', true));
+        return str_replace('.', '_', uniqid(self::STAGING_TABLE_PREFIX, true));
     }
 }

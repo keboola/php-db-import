@@ -11,6 +11,7 @@ class TableHelperTest extends \PHPUnit_Framework_TestCase
     public function testGenerateStagingTableName(): void
     {
         $tableName = TableHelper::generateStagingTableName();
-        self::assertContains('__temp_csvimport', $tableName);
+        self::assertNotEquals(TableHelper::STAGING_TABLE_PREFIX, $tableName);
+        self::assertStringStartsWith(TableHelper::STAGING_TABLE_PREFIX, $tableName);
     }
 }
