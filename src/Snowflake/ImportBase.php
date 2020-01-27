@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import\Snowflake;
 
+use Keboola\Db\Import\Helper\TableHelper;
 use Keboola\Db\Import\ImportInterface;
 use Keboola\Db\Import\Exception;
 use Tracy\Debugger;
@@ -78,7 +79,7 @@ abstract class ImportBase implements ImportInterface
                     isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
                 );
             }
-            $this->dropTable($stagingTableName);
+
             $this->importedColumns = $columns;
 
             return new Result([
@@ -301,11 +302,6 @@ abstract class ImportBase implements ImportInterface
         );
     }
 
-    private function uniqueValue(): string
-    {
-        return str_replace('.', '_', uniqid('csvimport', true));
-    }
-
     private function dedupe(string $tableName, array $columns, array $primaryKey): void
     {
         if (empty($primaryKey)) {
@@ -345,8 +341,7 @@ abstract class ImportBase implements ImportInterface
 
     private function createStagingTable(array $columns): string
     {
-
-        $tempName = '__temp_' . $this->uniqueValue();
+        $tempName = TableHelper::generateStagingTableName();
 
         $columnsSql = array_map(function ($column) {
             return sprintf('%s varchar', $this->quoteIdentifier($column));

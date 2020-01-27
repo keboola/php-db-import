@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import;
 
+use Keboola\Db\Import\Helper\TableHelper;
 use Tracy\Debugger;
 
 abstract class RedshiftBase implements ImportInterface
@@ -361,11 +362,6 @@ abstract class RedshiftBase implements ImportInterface
         return "\"{$tableNameFiltered}\"";
     }
 
-    private function uniqueValue(): string
-    {
-        return str_replace('.', '_', uniqid('csvimport', true));
-    }
-
     private function dedup(string $inputTempTableName, array $columns, array $primaryKey): void
     {
         if (empty($primaryKey)) {
@@ -408,7 +404,8 @@ abstract class RedshiftBase implements ImportInterface
         array $primaryKey,
         ?string $schemaName = null
     ): string {
-        $tempName = '__temp_' . $this->uniqueValue();
+        $tempName = TableHelper::generateStagingTableName();
+
         $this->query(sprintf(
             'CREATE TEMPORARY TABLE %s (LIKE %s)',
             $this->tableNameEscaped($tempName),
@@ -435,7 +432,8 @@ abstract class RedshiftBase implements ImportInterface
 
     private function createTableFromSourceTable(string $sourceTableName, array $primaryKey, string $schemaName): string
     {
-        $tempName = '__temp_' . $this->uniqueValue();
+        $tempName = TableHelper::generateStagingTableName();
+
         $this->query(sprintf(
             'CREATE TABLE %s (LIKE %s)',
             $this->nameWithSchemaEscaped($tempName, $schemaName),

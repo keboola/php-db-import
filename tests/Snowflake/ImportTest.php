@@ -6,6 +6,7 @@ namespace Keboola\DbImportTest\Snowflake;
 
 use Keboola\Csv\CsvFile;
 use Keboola\Db\Import\Exception;
+use Keboola\Db\Import\Helper\TableHelper;
 use Keboola\Db\Import\Snowflake\Connection;
 
 class ImportTest extends \PHPUnit_Framework_TestCase
@@ -25,14 +26,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
     public function setUp(): void
     {
-        $this->connection = new Connection([
-            'host' => getenv('SNOWFLAKE_HOST'),
-            'port' => getenv('SNOWFLAKE_PORT'),
-            'database' => getenv('SNOWFLAKE_DATABASE'),
-            'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
-            'user' => getenv('SNOWFLAKE_USER'),
-            'password' => getenv('SNOWFLAKE_PASSWORD'),
-        ]);
+        $this->connection = $this->createConnection();
         $this->initData();
     }
 
@@ -798,6 +792,42 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $this->assertArrayEqualsSorted($expectedData, $importedData, 'id');
     }
 
+    public function testStagingTableShouldBeDroppedAfterDisconnect(): void
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $this->connection->query("DROP TABLE IF EXISTS \"$this->destSchemaName\".\"nullify\" ");
+        $this->connection->query("CREATE TABLE \"$this->destSchemaName\".\"nullify\" (\"id\" VARCHAR, \"name\" VARCHAR, \"price\" NUMERIC)");
+
+        $this->assertCount(0, $this->getStagingTablesInSchema($this->destSchemaName));
+
+        $import = $this->getImport('csv');
+        $import->setIgnoreLines(1);
+        $import->import(
+            'nullify',
+            ['id', 'name', 'price'],
+            [
+                new CsvFile("s3://{$s3bucket}/nullify.csv"),
+            ],
+            [
+                "useTimestamp" => false,
+                "convertEmptyValuesToNull" => ["name", "price"],
+            ]
+        );
+
+        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
+        $this->assertCount(3, $importedData);
+        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue(null === $importedData[2]["price"]);
+
+        $this->assertCount(1, $this->getStagingTablesInSchema($this->destSchemaName));
+
+        // reconnect
+        $this->connection->disconnect();
+        $this->connection = $this->createConnection();
+
+        $this->assertCount(0, $this->getStagingTablesInSchema($this->destSchemaName));
+    }
+
     private function fetchAll(string $schemaName, string $tableName, array $columns): array
     {
         // temporary fix of client charset handling
@@ -830,5 +860,26 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         usort($expected, $comparsion);
         usort($actual, $comparsion);
         $this->assertEquals($expected, $actual, $message);
+    }
+
+    private function createConnection(): Connection
+    {
+        return new Connection([
+            'host' => getenv('SNOWFLAKE_HOST'),
+            'port' => getenv('SNOWFLAKE_PORT'),
+            'database' => getenv('SNOWFLAKE_DATABASE'),
+            'warehouse' => getenv('SNOWFLAKE_WAREHOUSE'),
+            'user' => getenv('SNOWFLAKE_USER'),
+            'password' => getenv('SNOWFLAKE_PASSWORD'),
+        ]);
+    }
+
+    private function getStagingTablesInSchema(string $schemaName): array
+    {
+        return $this->connection->fetchAll(sprintf(
+            "SHOW TABLES LIKE %s IN SCHEMA %s",
+            "'" . addslashes(TableHelper::STAGING_TABLE_PREFIX) . "%'",
+            $this->connection->quoteIdentifier($schemaName)
+        ));
     }
 }
