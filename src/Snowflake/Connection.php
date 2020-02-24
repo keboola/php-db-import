@@ -172,7 +172,7 @@ class Connection
     public function query(string $sql, array $bind = []): void
     {
         try {
-            $stmt = odbc_prepare($this->connection, $sql);
+            $stmt = $this->doOdbcPrepare($this->connection, $sql);
             odbc_execute($stmt, $this->repairBinding($bind));
             odbc_free_result($stmt);
         } catch (\Throwable $e) {
@@ -183,7 +183,7 @@ class Connection
     public function fetchAll(string $sql, array $bind = []): array
     {
         try {
-            $stmt = odbc_prepare($this->connection, $sql);
+            $stmt = $this->doOdbcPrepare($this->connection, $sql);
             odbc_execute($stmt, $this->repairBinding($bind));
             $rows = [];
             while ($row = odbc_fetch_array($stmt)) {
@@ -199,7 +199,7 @@ class Connection
     public function fetch(string $sql, array $bind, callable $callback): void
     {
         try {
-            $stmt = odbc_prepare($this->connection, $sql);
+            $stmt = $this->doOdbcPrepare($this->connection, $sql);
             odbc_execute($stmt, $this->repairBinding($bind));
             while ($row = odbc_fetch_array($stmt)) {
                 $callback($row);
@@ -231,5 +231,10 @@ class Connection
         if (is_resource($this->connection)) {
             odbc_close($this->connection);
         }
+    }
+
+    private function doOdbcPrepare($connectionId, string $queryString)
+    {
+        return odbc_prepare($connectionId, $queryString);
     }
 }
