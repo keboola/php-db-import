@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Keboola\Db\Import\Snowflake;
 
 use Keboola\Db\Import\Exception;
+use Retry\Policy\CallableRetryPolicy;
+use Retry\RetryProxy;
+use Throwable;
 
 class Connection
 {
@@ -12,6 +15,9 @@ class Connection
      * @var resource odbc handle
      */
     private $connection;
+
+    /** @var RetryProxy */
+    private $retryProxy;
 
     /**
      * The connection constructor accepts the following options:
@@ -233,8 +239,35 @@ class Connection
         }
     }
 
+    /**
+     * @param resource $connectionId
+     * @return false|resource
+     */
     private function doOdbcPrepare($connectionId, string $queryString)
     {
-        return odbc_prepare($connectionId, $queryString);
+        return $this->getRetryProxy()->call(
+            function () use ($queryString, $connectionId) {
+                return odbc_prepare($connectionId, $queryString);
+            }
+        );
+    }
+
+    private function getRetryProxy(): RetryProxy
+    {
+        if (!$this->retryProxy) {
+            $proxy = new RetryProxy(
+                new CallableRetryPolicy(
+                    function ($e) {
+                        /** @var Throwable $e PHP5 compatiblity */
+                        return strpos(
+                            $e->getMessage(),
+                            'Result not found, SQL state 02000 in SQLPrepare'
+                        ) !== false;
+                    }
+                )
+            );
+            $this->retryProxy = $proxy;
+        }
+        return $this->retryProxy;
     }
 }
