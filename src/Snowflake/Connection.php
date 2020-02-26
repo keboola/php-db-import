@@ -179,8 +179,8 @@ class Connection
     {
         try {
             $stmt = $this->doOdbcPrepare($this->connection, $sql);
-            odbc_execute($stmt, $this->repairBinding($bind));
-            odbc_free_result($stmt);
+//            odbc_execute($stmt, $this->repairBinding($bind));
+//            odbc_free_result($stmt);
         } catch (\Throwable $e) {
             throw (new ExceptionHandler())->createException($e);
         }
@@ -190,8 +190,9 @@ class Connection
     {
         try {
             $stmt = $this->doOdbcPrepare($this->connection, $sql);
-            odbc_execute($stmt, $this->repairBinding($bind));
+//            odbc_execute($stmt, $this->repairBinding($bind));
             $rows = [];
+            return $rows;
             while ($row = odbc_fetch_array($stmt)) {
                 $rows[] = $row;
             }
@@ -206,7 +207,9 @@ class Connection
     {
         try {
             $stmt = $this->doOdbcPrepare($this->connection, $sql);
-            odbc_execute($stmt, $this->repairBinding($bind));
+//            odbc_execute($stmt, $this->repairBinding($bind));
+            $callback([]);
+            return;
             while ($row = odbc_fetch_array($stmt)) {
                 $callback($row);
             }
