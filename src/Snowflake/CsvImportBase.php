@@ -27,9 +27,10 @@ abstract class CsvImportBase extends ImportBase
         string $s3key,
         string $s3secret,
         string $s3region,
-        string $schemaName
+        string $schemaName,
+        bool $skipColumnsCheck = false
     ) {
-        parent::__construct($connection, $schemaName);
+        parent::__construct($connection, $schemaName, $skipColumnsCheck);
         $this->s3key = $s3key;
         $this->s3secret = $s3secret;
         $this->s3region = $s3region;

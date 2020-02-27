@@ -41,10 +41,17 @@ abstract class ImportBase implements ImportInterface
 
     public const TIMESTAMP_COLUMN_NAME = '_timestamp';
 
-    public function __construct(Connection $connection, string $schemaName)
-    {
+    /** @var bool */
+    private $skipColumnsCheck;
+
+    public function __construct(
+        Connection $connection,
+        string $schemaName,
+        bool $skipColumnsCheck = false
+    ) {
         $this->connection = $connection;
         $this->schemaName = $schemaName;
+        $this->skipColumnsCheck = $skipColumnsCheck;
     }
 
     public function import(string $tableName, array $columns, array $sourceData, array $options = []): Result
@@ -105,14 +112,16 @@ abstract class ImportBase implements ImportInterface
             );
         }
 
-        $tableColumns = $this->connection->getTableColumns($this->schemaName, $tableName);
+        if (!$this->skipColumnsCheck) {
+            $tableColumns = $this->connection->getTableColumns($this->schemaName, $tableName);
 
-        $moreColumns = array_diff($columnsToImport, $tableColumns);
-        if (!empty($moreColumns)) {
-            throw new Exception(
-                'Columns doest not match. Non existing columns: ' . implode(', ', $moreColumns),
-                Exception::COLUMNS_COUNT_NOT_MATCH
-            );
+            $moreColumns = array_diff($columnsToImport, $tableColumns);
+            if (!empty($moreColumns)) {
+                throw new Exception(
+                    'Columns doest not match. Non existing columns: ' . implode(', ', $moreColumns),
+                    Exception::COLUMNS_COUNT_NOT_MATCH
+                );
+            }
         }
     }
 
