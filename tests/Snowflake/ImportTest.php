@@ -365,6 +365,29 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    public function testMoreColumnsShouldNotThrowExceptionWhenCheckDisabled(): void
+    {
+        $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
+        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+
+        $import = $this->getImport('csv', true);
+        $import->setIgnoreLines(1);
+        // should throw DB exception, not
+        try {
+            $import->import('out.csv_2Cols', ['first', 'second'], [$importFile]);
+        } catch (\Keboola\Db\Import\Exception $e) {
+            $this->assertContains(
+                'odbc_execute(): SQL error: Number of columns in file (12) does not match that of the corresponding table (2)',
+                $e->getMessage()
+            );
+            $this->assertNotEquals(
+                Exception::COLUMNS_COUNT_NOT_MATCH,
+                $e->getCode(),
+                'Should not be the handled error, but DB error instead'
+            );
+        }
+    }
+
     public function testCopyInvalidParamsShouldThrowException(): void
     {
         $import = $this->getImport('copy');
@@ -546,8 +569,10 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     }
 
 
-    private function getImport(string $type = 'csv'): \Keboola\Db\Import\ImportInterface
-    {
+    private function getImport(
+        string $type = 'csv',
+        bool $skipColumnsCheck = false
+    ): \Keboola\Db\Import\ImportInterface {
         switch ($type) {
             case 'csv':
                 return new \Keboola\Db\Import\Snowflake\CsvImport(
@@ -555,7 +580,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     getenv('AWS_ACCESS_KEY_ID'),
                     getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
-                    $this->destSchemaName
+                    $this->destSchemaName,
+                    $skipColumnsCheck
                 );
             case 'manifest':
                 return new \Keboola\Db\Import\Snowflake\CsvManifestImport(
@@ -563,12 +589,14 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     getenv('AWS_ACCESS_KEY_ID'),
                     getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
-                    $this->destSchemaName
+                    $this->destSchemaName,
+                    $skipColumnsCheck
                 );
             case 'copy':
                 return new \Keboola\Db\Import\Snowflake\CopyImport(
                     $this->connection,
-                    $this->destSchemaName
+                    $this->destSchemaName,
+                    $skipColumnsCheck
                 );
             default:
                 throw new \Exception("Import type $type not found");
