@@ -103,6 +103,11 @@ class Connection
         $this->disconnect();
     }
 
+    public function quote(string $value): string
+    {
+        return "'" . addslashes($value) . "'";
+    }
+
     public function quoteIdentifier(string $value): string
     {
         $q = '"';
