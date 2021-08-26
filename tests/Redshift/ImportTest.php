@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\DbImportTest\Redshift;
 
-use Keboola\Csv\CsvFile;
+use Keboola\Db\Import\Helper\CsvFile;
 use Keboola\Db\Import\Exception;
 
 class ImportTest extends \PHPUnit_Framework_TestCase
@@ -418,8 +418,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function testInvalidManifestImport(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/../_data/csv-import/tw_accounts.csv");
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/02_tw_accounts.csv.invalid.manifest");
+        $initialFile = new \Keboola\Db\Import\Helper\CsvFile(__DIR__ . "/../_data/csv-import/tw_accounts.csv");
+        $importFile = new \Keboola\Db\Import\Helper\CsvFile("s3://{$s3bucket}/02_tw_accounts.csv.invalid.manifest");
 
         $import = $this->getImport('manifest');
         $import->setIgnoreLines(1);
@@ -622,7 +622,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     {
 
         $expectedEscaping = [];
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/escaping/standard-with-enclosures.csv');
+        $file = new \Keboola\Db\Import\Helper\CsvFile(__DIR__ . '/../_data/csv-import/escaping/standard-with-enclosures.csv');
         foreach ($file as $row) {
             $expectedEscaping[] = $row;
         }
@@ -631,14 +631,14 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
 
         $expectedAccounts = [];
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.csv');
+        $file = new \Keboola\Db\Import\Helper\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.csv');
         foreach ($file as $row) {
             $expectedAccounts[] = $row;
         }
         $accountsHeader = array_shift($expectedAccounts); // remove header
         $expectedAccounts = array_values($expectedAccounts);
 
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv');
+        $file = new \Keboola\Db\Import\Helper\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv');
         $accountChangedColumnsOrderHeader = $file->getHeader();
 
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
