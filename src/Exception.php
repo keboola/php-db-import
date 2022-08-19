@@ -18,4 +18,5 @@ class Exception extends \Exception
     public const INVALID_CSV_PARAMS = 10;
     public const ROW_SIZE_TOO_LARGE = 11;
     public const QUERY_TIMEOUT = 12;
+    public const VALUE_CONVERSION = 13;
 }
