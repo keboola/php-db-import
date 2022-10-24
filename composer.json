@@ -44,5 +44,8 @@
             "@composer validate --strict",
             "@build"
         ]
+    },
+    "config": {
+        "lock": false
     }
 }
