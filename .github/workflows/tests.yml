@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  push:
+    branches-ignore:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - '7.1'
+          - '7.2'
+          - '7.3'
+          - '7.4'
+          - '8.0'
+          - '8.1'
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Build & Run tests
+        run: |
+          docker-compose build --build-arg PHP_VERSION=${{ matrix.php-version }} tests
+          docker network create connection_api-tests
+          docker-compose run --rm tests php -v
+          docker-compose run --rm tests composer ci
+      -
+        name: List images
+        run: docker images
