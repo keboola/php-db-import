@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import;
 
-use Keboola\Csv\CsvFile;
+use Keboola\Db\Import\Helper\CsvFile;
 use Tracy\Debugger;
 
 abstract class RedshiftBaseCsv extends RedshiftBase

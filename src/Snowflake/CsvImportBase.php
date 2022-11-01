@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import\Snowflake;
 
-use Keboola\Csv\CsvFile;
 use Keboola\Db\Import\Exception;
+use Keboola\Db\Import\Helper\CsvFile;
 use Tracy\Debugger;
 use Aws\Exception\AwsException;
 
