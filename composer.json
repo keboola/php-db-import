@@ -30,15 +30,13 @@
         "tests-load-s3": "php ./tests/loadS3.php",
         "tests-redshift": "phpunit tests/Redshift",
         "tests-redshift-legacy": "export REDSHIFT_LEGACY_IMPORT=1 && phpunit tests/Redshift",
-        "tests-snowflake": "phpunit tests/Snowflake",
         "build": [
             "@composer install",
             "@phpcs",
             "@phpstan",
             "@tests-load-s3",
             "@tests-redshift",
-            "@tests-redshift-legacy",
-            "@tests-snowflake"
+            "@tests-redshift-legacy"
         ],
         "ci": [
             "@composer validate --strict",
