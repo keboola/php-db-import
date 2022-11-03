@@ -1,5 +1,4 @@
 # Keboola Database table importer 
-[![Build Status](https://travis-ci.org/keboola/php-db-import.svg?branch=master)](https://travis-ci.org/keboola/php-db-import)
 
 Handling of large bulk data into database tables.
 
