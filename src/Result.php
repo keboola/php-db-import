@@ -7,7 +7,7 @@ namespace Keboola\Db\Import;
 class Result
 {
     /** @var array  */
-    private $results;
+    private array $results;
 
     public function __construct(array $results)
     {
@@ -35,7 +35,6 @@ class Result
     }
 
     /**
-     * @param string $keyName
      * @param mixed|null $default
      * @return mixed|null
      */
