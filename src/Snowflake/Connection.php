@@ -8,6 +8,8 @@ use Keboola\Db\Import\Exception;
 
 class Connection
 {
+    private const SNOWFLAKE_APPLICATION = 'Keboola_Connection';
+
     /**
      * @var resource odbc handle
      */
@@ -68,6 +70,9 @@ class Connection
         if (isset($options['warehouse'])) {
             $dsn .= ";Warehouse=" . $this->quoteIdentifier($options['warehouse']);
         }
+
+        $dsn .= ';application=' . $this->quoteIdentifier(self::SNOWFLAKE_APPLICATION);
+
         $dsn .= ';CLIENT_SESSION_KEEP_ALIVE=TRUE';
 
         $attemptNumber = 0;
