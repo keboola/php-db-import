@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import;
 
+use Throwable;
 use Tracy\Debugger;
 
 class CopyImportRedshift extends RedshiftBase
@@ -24,30 +25,30 @@ class CopyImportRedshift extends RedshiftBase
             strtolower($sourceData['schemaName'])
         );
 
-        $sql = "INSERT INTO " . $this->tableNameEscaped($stagingTempTableName) . " (" . implode(
+        $sql = 'INSERT INTO ' . $this->tableNameEscaped($stagingTempTableName) . ' (' . implode(
             ', ',
             array_map(function ($column) {
                 return $this->quoteIdentifier($column);
             }, $columns)
-        ) . ") ";
+        ) . ') ';
 
-        $sql .= "SELECT " . implode(',', array_map(function ($column) use ($sourceColumnTypes, $options) {
+        $sql .= 'SELECT ' . implode(',', array_map(function ($column) use ($sourceColumnTypes, $options) {
             if ($sourceColumnTypes[$column]['DATA_TYPE'] === 'bool') {
                 return sprintf('DECODE(%s, true, 1, 0) ', $this->quoteIdentifier($column));
             } else {
-                if (isset($options["convertEmptyValuesToNull"]) && in_array($column, $options["convertEmptyValuesToNull"])) {
+                if (isset($options['convertEmptyValuesToNull']) && in_array($column, $options['convertEmptyValuesToNull'])) {
                     return "NULLIF(CAST({$this->quoteIdentifier($column)} as varchar), '') ";
                 } else {
                     return "COALESCE(CAST({$this->quoteIdentifier($column)} as varchar), '') ";
                 }
             }
-        }, $columns)) . " FROM " . $this->nameWithSchemaEscaped($sourceData['tableName'], $sourceData['schemaName']);
+        }, $columns)) . ' FROM ' . $this->nameWithSchemaEscaped($sourceData['tableName'], $sourceData['schemaName']);
 
         try {
             Debugger::timer('copyToStaging');
             $this->query($sql);
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if (strpos($e->getMessage(), 'Datatype mismatch') !== false) {
                 throw new Exception($e->getMessage(), Exception::DATA_TYPE_MISMATCH, $e);
             }

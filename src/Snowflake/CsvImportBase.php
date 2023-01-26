@@ -4,23 +4,22 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import\Snowflake;
 
+use Aws\Exception\AwsException;
+use Aws\S3\S3Client;
 use Keboola\Csv\CsvFile;
 use Keboola\Db\Import\Exception;
+use Throwable;
 use Tracy\Debugger;
-use Aws\Exception\AwsException;
 
 abstract class CsvImportBase extends ImportBase
 {
     private const SLICED_FILES_CHUNK_SIZE = 1000;
 
-    /** @var string */
-    protected $s3key;
+    protected string $s3key;
 
-    /** @var string */
-    protected $s3secret;
+    protected string $s3secret;
 
-    /** @var string */
-    protected $s3region;
+    protected string $s3region;
 
     public function __construct(
         Connection $connection,
@@ -55,7 +54,7 @@ abstract class CsvImportBase extends ImportBase
                 $this->importTableFromSingleFile($tableName, $csvFile);
             }
             $this->addTimer($timerName, Debugger::timer($timerName));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $stringCode = Exception::INVALID_SOURCE_DATA;
             if (strpos($e->getMessage(), 'was not found') !== false) {
                 $stringCode = Exception::MANDATORY_FILE_NOT_FOUND;
@@ -114,10 +113,10 @@ abstract class CsvImportBase extends ImportBase
     private function generateSingleFileCopyCommand(string $tableName, string $s3path, array $csvOptions): string
     {
         return sprintf(
-            "COPY INTO %s FROM %s 
+            'COPY INTO %s FROM %s 
                     CREDENTIALS = (AWS_KEY_ID = %s AWS_SECRET_KEY = %s)
                     REGION = %s
-                    FILE_FORMAT = (TYPE=CSV %s)",
+                    FILE_FORMAT = (TYPE=CSV %s)',
             $this->nameWithSchemaEscaped($tableName),
             $this->quote($s3path),
             $this->quote($this->s3key),
@@ -134,11 +133,11 @@ abstract class CsvImportBase extends ImportBase
     {
         $s3Prefix = sprintf('s3://%s', $s3Bucket);
         return sprintf(
-            "COPY INTO %s FROM %s 
+            'COPY INTO %s FROM %s 
                 CREDENTIALS = (AWS_KEY_ID = %s AWS_SECRET_KEY = %s)
                 REGION = %s
                 FILE_FORMAT = (TYPE=CSV %s)
-                FILES = (%s)",
+                FILES = (%s)',
             $this->nameWithSchemaEscaped($tableName),
             $this->quote($s3Prefix),
             $this->quote($this->s3key),
@@ -170,10 +169,10 @@ abstract class CsvImportBase extends ImportBase
         }
 
         if ($csvFile->getEnclosure()) {
-            $csvOptions[] = sprintf("FIELD_OPTIONALLY_ENCLOSED_BY = %s", $this->quote($csvFile->getEnclosure()));
-            $csvOptions[] = "ESCAPE_UNENCLOSED_FIELD = NONE";
+            $csvOptions[] = sprintf('FIELD_OPTIONALLY_ENCLOSED_BY = %s', $this->quote($csvFile->getEnclosure()));
+            $csvOptions[] = 'ESCAPE_UNENCLOSED_FIELD = NONE';
         } elseif ($csvFile->getEscapedBy()) {
-            $csvOptions[] = sprintf("ESCAPE_UNENCLOSED_FIELD = %s", $this->quote($csvFile->getEscapedBy()));
+            $csvOptions[] = sprintf('ESCAPE_UNENCLOSED_FIELD = %s', $this->quote($csvFile->getEscapedBy()));
         }
 
         return $csvOptions;
@@ -187,7 +186,7 @@ abstract class CsvImportBase extends ImportBase
 
     private function getFilesToDownloadFromManifest(string $bucket, string $path): array
     {
-        $s3Client = new \Aws\S3\S3Client([
+        $s3Client = new S3Client([
             'credentials' => [
                 'key' => $this->s3key,
                 'secret' => $this->s3secret,

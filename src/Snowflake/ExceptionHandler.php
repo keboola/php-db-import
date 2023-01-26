@@ -6,11 +6,12 @@ namespace Keboola\Db\Import\Snowflake;
 
 use Keboola\Db\Import;
 use Keboola\Db\Import\MessageTransformation;
+use Throwable;
 
 class ExceptionHandler
 {
     /** @var Import\MessageTransformation[] */
-    private $messageTransformations = [];
+    private array $messageTransformations = [];
 
 
     public function __construct()
@@ -36,7 +37,7 @@ class ExceptionHandler
     /**
      * @return \Throwable|Import\Exception
      */
-    public function createException(\Throwable $exception): \Throwable
+    public function createException(Throwable $exception): Throwable
     {
         foreach ($this->messageTransformations as $messageTransformation) {
             if (preg_match(

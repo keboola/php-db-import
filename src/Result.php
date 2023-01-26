@@ -7,7 +7,7 @@ namespace Keboola\Db\Import;
 class Result
 {
     /** @var array  */
-    private $results;
+    private array $results;
 
     public function __construct(array $results)
     {
@@ -34,12 +34,7 @@ class Result
         return (array) $this->getKeyValue('timers', []);
     }
 
-    /**
-     * @param string $keyName
-     * @param mixed|null $default
-     * @return mixed|null
-     */
-    public function getKeyValue(string $keyName, $default = null)
+    public function getKeyValue(string $keyName, mixed $default = null): mixed
     {
         return isset($this->results[$keyName]) ? $this->results[$keyName] : $default;
     }

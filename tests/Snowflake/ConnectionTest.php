@@ -6,8 +6,9 @@ namespace Keboola\DbImportTest\Snowflake;
 
 use Keboola\Db\Import;
 use Keboola\Db\Import\Snowflake\Connection;
+use PHPUnit_Framework_TestCase;
 
-class ConnectionTest extends \PHPUnit_Framework_TestCase
+class ConnectionTest extends PHPUnit_Framework_TestCase
 {
     public function testConnectionWithoutDbAndWarehouse(): void
     {
@@ -78,7 +79,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
             sprintf(
                 'CREATE TABLE "%s"."%s" ("col1" varchar(%d));',
                 $destSchemaName,
-                "TEST",
+                'TEST',
                 $size
             )
         );
@@ -90,7 +91,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
             sprintf(
                 'INSERT INTO "%s"."%s" VALUES(\'%s\');',
                 $destSchemaName,
-                "TEST",
+                'TEST',
                 implode('', array_fill(0, $size + 1, 'x'))
             )
         );
@@ -99,7 +100,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
     public function testQueryTimeoutLimit(): void
     {
         $connection = $this->createConnection();
-        $connection->query("ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 3");
+        $connection->query('ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 3');
 
         try {
             $connection->fetchAll('CALL system$wait(5)');
@@ -141,7 +142,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
             '
         );
 
-        $this->assertEquals('{"runId":"myRunId"}', $queries[0]["QUERY_TAG"]);
+        $this->assertEquals('{"runId":"myRunId"}', $queries[0]['QUERY_TAG']);
     }
 
     private function prepareSchema(Connection $connection, string $schemaName): void

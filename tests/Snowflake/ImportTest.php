@@ -4,23 +4,25 @@ declare(strict_types=1);
 
 namespace Keboola\DbImportTest\Snowflake;
 
+use DateTime;
+use DateTimeZone;
 use Keboola\Csv\CsvFile;
 use Keboola\Db\Import\Exception;
 use Keboola\Db\Import\Helper\TableHelper;
+use Keboola\Db\Import\ImportInterface;
 use Keboola\Db\Import\Snowflake\Connection;
+use Keboola\Db\Import\Snowflake\CopyImport;
+use Keboola\Db\Import\Snowflake\CsvImport;
+use Keboola\Db\Import\Snowflake\CsvManifestImport;
+use PHPUnit_Framework_TestCase;
 
-class ImportTest extends \PHPUnit_Framework_TestCase
+class ImportTest extends PHPUnit_Framework_TestCase
 {
-    /**
-     * @var Connection
-     */
-    private $connection;
+    private Connection $connection;
 
-    /** @var string  */
-    private $destSchemaName = 'in.c-tests';
+    private string $destSchemaName = 'in.c-tests';
 
-    /** @var string  */
-    private $sourceSchemaName = 'some.tests';
+    private string $sourceSchemaName = 'some.tests';
 
     private const AWS_S3_BUCKET_ENV = 'AWS_S3_BUCKET';
 
@@ -58,9 +60,9 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         };
 
         $this->connection->fetch(sprintf(
-            "SELECT * FROM %s.%s",
+            'SELECT * FROM %s.%s',
             $this->connection->quoteIdentifier($this->destSchemaName),
-            $this->connection->quoteIdentifier("bigData")
+            $this->connection->quoteIdentifier('bigData')
         ), [], $callback);
 
         $this->assertEquals($generateRowsCount, $results['count']);
@@ -70,8 +72,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     {
         $this->connection->query('CREATE TABLE "' . $this->destSchemaName . '"."Test" (col1 varchar, col2 varchar)');
 
-        $table = $this->connection->describeTable($this->destSchemaName, "Test");
-        $this->assertEquals("Test", $table['name']);
+        $table = $this->connection->describeTable($this->destSchemaName, 'Test');
+        $this->assertEquals('Test', $table['name']);
         $this->assertArrayHasKey('rows', $table);
         $this->assertArrayHasKey('bytes', $table);
     }
@@ -88,8 +90,6 @@ class ImportTest extends \PHPUnit_Framework_TestCase
      * @param array $sourceData
      * @param array $columns
      * @param array $expected
-     * @param string $tableName
-     * @param string $type
      * @param array $importOptions
      * @throws Exception
      */
@@ -106,7 +106,6 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             $import->setIgnoreLines(1);
         }
         $import->import($tableName, $columns, $sourceData, $importOptions);
-
 
         $tableColumns = $this->connection->getTableColumns($this->destSchemaName, $tableName);
 
@@ -129,11 +128,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider incrementalImportData
-     * @param CsvFile $initialImportFile
-     * @param CsvFile $incrementFile
      * @param array $columns
      * @param array $expected
-     * @param string $tableName
      * @param array $importOptions
      * @throws Exception
      */
@@ -168,7 +164,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $tableColumns = array_filter($tableColumns, function ($column) {
             return $column !== '_timestamp';
         });
-        
+
         $importedData = $this->fetchAll($this->destSchemaName, $tableName, $tableColumns);
 
         $this->assertArrayEqualsSorted($expected, $importedData, '0');
@@ -212,7 +208,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function fullImportData(): array
     {
         $expectedEscaping = [];
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/escaping/standard-with-enclosures.csv');
+        $file = new CsvFile(__DIR__ . '/../_data/csv-import/escaping/standard-with-enclosures.csv');
         foreach ($file as $row) {
             $expectedEscaping[] = $row;
         }
@@ -220,17 +216,17 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         $expectedEscaping = array_values($expectedEscaping);
 
         $expectedAccounts = [];
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.csv');
+        $file = new CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.csv');
         foreach ($file as $row) {
             $expectedAccounts[] = $row;
         }
         $accountsHeader = array_shift($expectedAccounts); // remove header
         $expectedAccounts = array_values($expectedAccounts);
 
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv');
+        $file = new CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.changedColumnsOrder.csv');
         $accountChangedColumnsOrderHeader = $file->getHeader();
 
-        $file = new \Keboola\Csv\CsvFile(__DIR__ . '/../_data/csv-import/lemma.csv');
+        $file = new CsvFile(__DIR__ . '/../_data/csv-import/lemma.csv');
         $expectedLemma = [];
         foreach ($file as $row) {
             $expectedLemma[] = $row;
@@ -282,7 +278,6 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             // reserved words
             [[new CsvFile("s3://{$s3bucket}/reserved-words.csv")], ['column', 'table'], [['table', 'column']], 'table', 'csv'],
 
-
             // import table with _timestamp columns - used by snapshots
             [
                 [new CsvFile("s3://{$s3bucket}/with-ts.csv")],
@@ -309,7 +304,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function testInvalidCsvImport(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+        $importFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
 
         $import = $this->getImport();
         $import->setIgnoreLines(1);
@@ -324,7 +319,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function testImportShouldNotFailOnColumnNameRowNumber(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/column-name-row-number.csv");
+        $importFile = new CsvFile("s3://{$s3bucket}/column-name-row-number.csv");
 
         $import = $this->getImport();
         $import->setIncremental(false);
@@ -334,8 +329,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function testInvalidManifestImport(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $initialFile = new \Keboola\Csv\CsvFile(__DIR__ . "/../_data/csv-import/tw_accounts.csv");
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/02_tw_accounts.csv.invalid.manifest");
+        $initialFile = new CsvFile(__DIR__ . '/../_data/csv-import/tw_accounts.csv');
+        $importFile = new CsvFile("s3://{$s3bucket}/02_tw_accounts.csv.invalid.manifest");
 
         $import = $this->getImport('manifest');
         $import->setIgnoreLines(1);
@@ -343,15 +338,15 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         try {
             $import->import('accounts-3', $initialFile->getHeader(), [$importFile]);
             $this->fail('Manifest should not be uploaded');
-        } catch (\Keboola\Db\Import\Exception $e) {
-            $this->assertEquals(\Keboola\Db\Import\Exception::MANDATORY_FILE_NOT_FOUND, $e->getCode());
+        } catch (Exception $e) {
+            $this->assertEquals(Exception::MANDATORY_FILE_NOT_FOUND, $e->getCode());
         }
     }
 
     public function testMoreColumnsShouldThrowException(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+        $importFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
 
         $import = $this->getImport();
         $import->setIgnoreLines(1);
@@ -368,14 +363,14 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     public function testMoreColumnsShouldNotThrowExceptionWhenCheckDisabled(): void
     {
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
-        $importFile = new \Keboola\Csv\CsvFile("s3://{$s3bucket}/tw_accounts.csv");
+        $importFile = new CsvFile("s3://{$s3bucket}/tw_accounts.csv");
 
         $import = $this->getImport('csv', true);
         $import->setIgnoreLines(1);
         // should throw DB exception, not
         try {
             $import->import('out.csv_2Cols', ['first', 'second'], [$importFile]);
-        } catch (\Keboola\Db\Import\Exception $e) {
+        } catch (Exception $e) {
             $this->assertContains(
                 'odbc_execute(): SQL error: Number of columns in file (12) does not match that of the corresponding table (2)',
                 $e->getMessage()
@@ -395,8 +390,8 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         try {
             $import->import('out.csv_2Cols', ['col1', 'col2'], []);
             $this->fail('exception should be thrown');
-        } catch (\Keboola\Db\Import\Exception $e) {
-            $this->assertEquals(\Keboola\Db\Import\Exception::INVALID_SOURCE_DATA, $e->getCode());
+        } catch (Exception $e) {
+            $this->assertEquals(Exception::INVALID_SOURCE_DATA, $e->getCode());
         }
     }
 
@@ -414,15 +409,15 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 ]
             );
             $this->fail('exception should be thrown');
-        } catch (\Keboola\Db\Import\Exception $e) {
-            $this->assertEquals(\Keboola\Db\Import\Exception::COLUMNS_COUNT_NOT_MATCH, $e->getCode());
+        } catch (Exception $e) {
+            $this->assertEquals(Exception::COLUMNS_COUNT_NOT_MATCH, $e->getCode());
         }
     }
 
 
     private function initData(): void
     {
-        $currentDate = new \DateTime('now', new \DateTimeZone('UTC'));
+        $currentDate = new DateTime('now', new DateTimeZone('UTC'));
         $now = $currentDate->format('Y-m-d H:i:s');
 
         foreach ([$this->sourceSchemaName, $this->destSchemaName] as $schema) {
@@ -454,7 +449,6 @@ class ImportTest extends \PHPUnit_Framework_TestCase
           "col1" VARCHAR NOT NULL DEFAULT \'\',
           "col2" VARCHAR NOT NULL DEFAULT \'\'
         );', $this->sourceSchemaName));
-
 
         $this->connection->query(sprintf('INSERT INTO "%s"."out.csv_2Cols" VALUES
                 (\'a\', \'b\'), (\'c\', \'d\');
@@ -572,10 +566,10 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     private function getImport(
         string $type = 'csv',
         bool $skipColumnsCheck = false
-    ): \Keboola\Db\Import\ImportInterface {
+    ): ImportInterface {
         switch ($type) {
             case 'csv':
-                return new \Keboola\Db\Import\Snowflake\CsvImport(
+                return new CsvImport(
                     $this->connection,
                     getenv('AWS_ACCESS_KEY_ID'),
                     getenv('AWS_SECRET_ACCESS_KEY'),
@@ -584,7 +578,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     $skipColumnsCheck
                 );
             case 'manifest':
-                return new \Keboola\Db\Import\Snowflake\CsvManifestImport(
+                return new CsvManifestImport(
                     $this->connection,
                     getenv('AWS_ACCESS_KEY_ID'),
                     getenv('AWS_SECRET_ACCESS_KEY'),
@@ -593,7 +587,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                     $skipColumnsCheck
                 );
             case 'copy':
-                return new \Keboola\Db\Import\Snowflake\CopyImport(
+                return new CopyImport(
                     $this->connection,
                     $this->destSchemaName,
                     $skipColumnsCheck
@@ -618,15 +612,15 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 new CsvFile("s3://{$s3bucket}/nullify.csv"),
             ],
             [
-                "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"],
+                'useTimestamp' => false,
+                'convertEmptyValuesToNull' => ['name', 'price'],
             ]
         );
 
-        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
+        $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify" ORDER BY "id" ASC');
         $this->assertCount(3, $importedData);
-        $this->assertTrue(null === $importedData[1]["name"]);
-        $this->assertTrue(null === $importedData[2]["price"]);
+        $this->assertTrue($importedData[1]['name'] === null);
+        $this->assertTrue($importedData[2]['price'] === null);
     }
 
 
@@ -647,16 +641,16 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 new CsvFile("s3://{$s3bucket}/nullify.csv"),
             ],
             [
-                "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"],
+                'useTimestamp' => false,
+                'convertEmptyValuesToNull' => ['name', 'price'],
             ]
         );
 
-        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
+        $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify" ORDER BY "id" ASC');
         $this->assertCount(4, $importedData);
-        $this->assertTrue(null === $importedData[1]["name"]);
-        $this->assertTrue(null === $importedData[2]["price"]);
-        $this->assertTrue(null === $importedData[3]["name"]);
+        $this->assertTrue($importedData[1]['name'] === null);
+        $this->assertTrue($importedData[2]['price'] === null);
+        $this->assertTrue($importedData[3]['name'] === null);
     }
 
     public function testNullifyCopy(): void
@@ -673,20 +667,20 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             'nullify',
             ['id', 'name', 'price'],
             [
-                "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName,
+                'tableName' => 'nullify_src',
+                'schemaName' => $this->destSchemaName,
             ],
             [
-                "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"],
+                'useTimestamp' => false,
+                'convertEmptyValuesToNull' => ['name', 'price'],
             ]
         );
 
-        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
+        $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify" ORDER BY "id" ASC');
         $this->assertCount(2, $importedData);
-        $this->assertTrue(null === $importedData[0]["name"]);
-        $this->assertTrue(null === $importedData[0]["price"]);
-        $this->assertTrue(null === $importedData[1]["name"]);
+        $this->assertTrue($importedData[0]['name'] === null);
+        $this->assertTrue($importedData[0]['price'] === null);
+        $this->assertTrue($importedData[1]['name'] === null);
     }
 
     public function testNullifyCopyIncremental(): void
@@ -705,21 +699,21 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             'nullify',
             ['id', 'name', 'price'],
             [
-                "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName,
+                'tableName' => 'nullify_src',
+                'schemaName' => $this->destSchemaName,
             ],
             [
-                "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"],
+                'useTimestamp' => false,
+                'convertEmptyValuesToNull' => ['name', 'price'],
             ]
         );
 
-        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
+        $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify" ORDER BY "id" ASC');
         $this->assertCount(3, $importedData);
-        $this->assertTrue(null === $importedData[0]["name"]);
-        $this->assertTrue(null === $importedData[0]["price"]);
-        $this->assertTrue(null === $importedData[1]["name"]);
-        $this->assertTrue(null === $importedData[2]["name"]);
+        $this->assertTrue($importedData[0]['name'] === null);
+        $this->assertTrue($importedData[0]['price'] === null);
+        $this->assertTrue($importedData[1]['name'] === null);
+        $this->assertTrue($importedData[2]['name'] === null);
     }
 
     public function testNullifyCopyIncrementalWithPk(): void
@@ -738,16 +732,16 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             'nullify',
             ['id', 'name', 'price'],
             [
-                "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName,
+                'tableName' => 'nullify_src',
+                'schemaName' => $this->destSchemaName,
             ],
             [
-                "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"],
+                'useTimestamp' => false,
+                'convertEmptyValuesToNull' => ['name', 'price'],
             ]
         );
 
-        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\"");
+        $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify"');
 
         $expectedData = [
             [
@@ -787,16 +781,16 @@ class ImportTest extends \PHPUnit_Framework_TestCase
             'nullify',
             ['id', 'name', 'price'],
             [
-                "tableName" => "nullify_src",
-                "schemaName" => $this->destSchemaName,
+                'tableName' => 'nullify_src',
+                'schemaName' => $this->destSchemaName,
             ],
             [
-                "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"],
+                'useTimestamp' => false,
+                'convertEmptyValuesToNull' => ['name', 'price'],
             ]
         );
 
-        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\"");
+        $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify"');
 
         $expectedData = [
             [
@@ -837,15 +831,15 @@ class ImportTest extends \PHPUnit_Framework_TestCase
                 new CsvFile("s3://{$s3bucket}/nullify.csv"),
             ],
             [
-                "useTimestamp" => false,
-                "convertEmptyValuesToNull" => ["name", "price"],
+                'useTimestamp' => false,
+                'convertEmptyValuesToNull' => ['name', 'price'],
             ]
         );
 
-        $importedData = $this->connection->fetchAll("SELECT \"id\", \"name\", \"price\" FROM \"nullify\" ORDER BY \"id\" ASC");
+        $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify" ORDER BY "id" ASC');
         $this->assertCount(3, $importedData);
-        $this->assertTrue(null === $importedData[1]["name"]);
-        $this->assertTrue(null === $importedData[2]["price"]);
+        $this->assertTrue($importedData[1]['name'] === null);
+        $this->assertTrue($importedData[2]['price'] === null);
 
         $this->assertCount(1, $this->getStagingTablesInSchema($this->destSchemaName));
 
@@ -864,7 +858,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }, $columns);
 
         $sql = sprintf(
-            "SELECT %s FROM \"%s\".\"%s\"",
+            'SELECT %s FROM "%s"."%s"',
             implode(', ', $columnsSql),
             $schemaName,
             $tableName
@@ -877,10 +871,10 @@ class ImportTest extends \PHPUnit_Framework_TestCase
         }, $this->connection->fetchAll($sql));
     }
 
-    public function assertArrayEqualsSorted(array $expected, array $actual, string $sortKey, string $message = ""): void
+    public function assertArrayEqualsSorted(array $expected, array $actual, string $sortKey, string $message = ''): void
     {
         $comparsion = function ($attrLeft, $attrRight) use ($sortKey) {
-            if ($attrLeft[$sortKey] == $attrRight[$sortKey]) {
+            if ($attrLeft[$sortKey] === $attrRight[$sortKey]) {
                 return 0;
             }
             return $attrLeft[$sortKey] < $attrRight[$sortKey] ? -1 : 1;
@@ -905,7 +899,7 @@ class ImportTest extends \PHPUnit_Framework_TestCase
     private function getStagingTablesInSchema(string $schemaName): array
     {
         return $this->connection->fetchAll(sprintf(
-            "SHOW TABLES LIKE %s IN SCHEMA %s",
+            'SHOW TABLES LIKE %s IN SCHEMA %s',
             "'" . addslashes(TableHelper::STAGING_TABLE_PREFIX) . "%'",
             $this->connection->quoteIdentifier($schemaName)
         ));

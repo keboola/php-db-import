@@ -4,45 +4,40 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import\Snowflake;
 
+use DateTime;
+use DateTimeZone;
+use Keboola\Db\Import\Exception;
 use Keboola\Db\Import\Helper\TableHelper;
 use Keboola\Db\Import\ImportInterface;
-use Keboola\Db\Import\Exception;
-use Tracy\Debugger;
 use Keboola\Db\Import\Result;
+use Throwable;
+use Tracy\Debugger;
 
 abstract class ImportBase implements ImportInterface
 {
 
-    /**
-     * @var Connection
-     */
-    protected $connection;
+    protected Connection $connection;
 
-    /** @var string */
-    protected $schemaName;
+    protected string $schemaName;
 
     /** @var array  */
-    protected $warnings = [];
+    protected array $warnings = [];
 
-    /** @var int  */
-    protected $importedRowsCount = 0;
-
-    /** @var array  */
-    private $timers = [];
+    protected int $importedRowsCount = 0;
 
     /** @var array  */
-    private $importedColumns = [];
+    private array $timers = [];
 
-    /** @var int  */
-    private $ignoreLines = 0;
+    /** @var array  */
+    private array $importedColumns = [];
 
-    /** @var bool  */
-    private $incremental = false;
+    private int $ignoreLines = 0;
+
+    private bool $incremental = false;
 
     public const TIMESTAMP_COLUMN_NAME = '_timestamp';
 
-    /** @var bool */
-    private $skipColumnsCheck;
+    private bool $skipColumnsCheck;
 
     public function __construct(
         Connection $connection,
@@ -68,7 +63,7 @@ abstract class ImportBase implements ImportInterface
                     $tableName,
                     $columns,
                     isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                    isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
+                    isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : []
                 );
             } else {
                 Debugger::timer('dedup');
@@ -83,7 +78,7 @@ abstract class ImportBase implements ImportInterface
                     $tableName,
                     $columns,
                     isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                    isset($options["convertEmptyValuesToNull"]) ? $options["convertEmptyValuesToNull"] : []
+                    isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : []
                 );
             }
 
@@ -95,7 +90,7 @@ abstract class ImportBase implements ImportInterface
                 'importedRowsCount' => $this->importedRowsCount,
                 'importedColumns' => $this->importedColumns,
             ]);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->dropTable($stagingTableName);
             throw $e;
         }
@@ -105,7 +100,7 @@ abstract class ImportBase implements ImportInterface
 
     private function validateColumns(string $tableName, array $columnsToImport): void
     {
-        if (count($columnsToImport) == 0) {
+        if (count($columnsToImport) === 0) {
             throw new Exception(
                 'No columns found in CSV file.',
                 Exception::NO_COLUMNS
@@ -183,7 +178,7 @@ abstract class ImportBase implements ImportInterface
 
         if (!empty($primaryKey)) {
             // Update target table
-            $sql = "UPDATE " . $targetTableNameWithSchema . " AS \"dest\" SET ";
+            $sql = 'UPDATE ' . $targetTableNameWithSchema . ' AS "dest" SET ';
 
             $columnsSet = [];
             foreach ($columns as $columnName) {
@@ -205,10 +200,10 @@ abstract class ImportBase implements ImportInterface
 
             $sql .= implode(', ', $columnsSet);
             if ($useTimestamp) {
-                $sql .= ", " . $this->quoteIdentifier(self::TIMESTAMP_COLUMN_NAME) . " = '{$nowFormatted}' ";
+                $sql .= ', ' . $this->quoteIdentifier(self::TIMESTAMP_COLUMN_NAME) . " = '{$nowFormatted}' ";
             }
-            $sql .= " FROM " . $stagingTableNameWithSchema . ' AS "src" ';
-            $sql .= " WHERE ";
+            $sql .= ' FROM ' . $stagingTableNameWithSchema . ' AS "src" ';
+            $sql .= ' WHERE ';
 
             $pkWhereSql = [];
             foreach ($primaryKey as $pkColumn) {
@@ -219,7 +214,7 @@ abstract class ImportBase implements ImportInterface
                 );
             }
 
-            $sql .= implode(' AND ', $pkWhereSql) . " ";
+            $sql .= implode(' AND ', $pkWhereSql) . ' ';
 
             // update only changed rows - mysql TIMESTAMP ON UPDATE behaviour simulation
             $columnsComparsionSql = array_map(function ($columnName) {
@@ -229,16 +224,16 @@ abstract class ImportBase implements ImportInterface
                     $this->quoteIdentifier($columnName)
                 );
             }, $columns);
-            $sql .= " AND (" . implode(' OR ', $columnsComparsionSql) . ") ";
+            $sql .= ' AND (' . implode(' OR ', $columnsComparsionSql) . ') ';
 
             Debugger::timer('updateTargetTable');
             $this->connection->query($sql);
             $this->addTimer('updateTargetTable', Debugger::timer('updateTargetTable'));
 
             // Delete updated rows from staging table
-            $sql = "DELETE FROM " . $stagingTableNameWithSchema . ' "src" ';
-            $sql .= "USING " . $targetTableNameWithSchema . ' AS "dest" ';
-            $sql .= "WHERE " . implode(' AND ', $pkWhereSql);
+            $sql = 'DELETE FROM ' . $stagingTableNameWithSchema . ' "src" ';
+            $sql .= 'USING ' . $targetTableNameWithSchema . ' AS "dest" ';
+            $sql .= 'WHERE ' . implode(' AND ', $pkWhereSql);
 
             Debugger::timer('deleteUpdatedRowsFromStaging');
             $this->connection->query($sql);
@@ -252,9 +247,9 @@ abstract class ImportBase implements ImportInterface
 
         // Insert from staging to target table
         $insColumns = ($useTimestamp) ? array_merge($columns, [self::TIMESTAMP_COLUMN_NAME]) : $columns;
-        $sql = "INSERT INTO " . $targetTableNameWithSchema . ' (' . implode(', ', array_map(function ($column) {
+        $sql = 'INSERT INTO ' . $targetTableNameWithSchema . ' (' . implode(', ', array_map(function ($column) {
             return $this->quoteIdentifier($column);
-        }, $insColumns)) . ")";
+        }, $insColumns)) . ')';
 
         $columnsSetSql = [];
 
@@ -273,11 +268,11 @@ abstract class ImportBase implements ImportInterface
             }
         }
 
-        $sql .= " SELECT " . implode(',', $columnsSetSql);
+        $sql .= ' SELECT ' . implode(',', $columnsSetSql);
         if ($useTimestamp) {
             $sql .= ", '{$nowFormatted}' ";
         }
-        $sql .= " FROM " . $stagingTableNameWithSchema . ' AS "src"';
+        $sql .= ' FROM ' . $stagingTableNameWithSchema . ' AS "src"';
         Debugger::timer('insertIntoTargetFromStaging');
 
         $this->connection->query($sql);
@@ -296,7 +291,7 @@ abstract class ImportBase implements ImportInterface
 
     private function dropTable(string $tableName): void
     {
-        $this->connection->query("DROP TABLE " . $this->nameWithSchemaEscaped($tableName));
+        $this->connection->query('DROP TABLE ' . $this->nameWithSchemaEscaped($tableName));
     }
 
     protected function nameWithSchemaEscaped(string $tableName, ?string $schemaName = null): string
@@ -321,15 +316,15 @@ abstract class ImportBase implements ImportInterface
             return $this->quoteIdentifier($column);
         }, $primaryKey));
 
-        $sql = "SELECT ";
+        $sql = 'SELECT ';
 
-        $sql .= implode(",", array_map(function ($column) {
-            return "a." . $this->quoteIdentifier($column);
+        $sql .= implode(',', array_map(function ($column) {
+            return 'a.' . $this->quoteIdentifier($column);
         }, $columns));
 
         $sql .= sprintf(
-            " FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS \"_row_number_\" FROM %s)",
-            implode(",", array_map(function ($column) {
+            ' FROM (SELECT %s, ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s) AS "_row_number_" FROM %s)',
+            implode(',', array_map(function ($column) {
                 return $this->quoteIdentifier($column);
             }, $columns)),
             $pkSql,
@@ -337,7 +332,7 @@ abstract class ImportBase implements ImportInterface
             $this->nameWithSchemaEscaped($tableName)
         );
 
-        $sql .= " AS a WHERE a.\"_row_number_\" = 1";
+        $sql .= ' AS a WHERE a."_row_number_" = 1';
         $columnsSql = implode(', ', array_map(function ($column) {
             return $this->quoteIdentifier($column);
         }, $columns));
@@ -367,7 +362,7 @@ abstract class ImportBase implements ImportInterface
 
     private function getNowFormatted(): string
     {
-        $currentDate = new \DateTime('now', new \DateTimeZone('UTC'));
+        $currentDate = new DateTime('now', new DateTimeZone('UTC'));
         return $currentDate->format('Y-m-d H:i:s');
     }
 
