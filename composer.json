@@ -3,13 +3,13 @@
     "description": "Handling of large bulk data into database tables.",
     "license": "MIT",
     "require": {
-        "PHP": "^7.1|^8",
+        "PHP": "^7.4|^8",
         "keboola/csv": "^1.1",
         "tracy/tracy": "^2.3",
         "aws/aws-sdk-php": "^3.11"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.0",
+        "phpunit/phpunit": "^9.5",
         "keboola/coding-standard": "^14.0",
         "phpstan/phpstan": "^1.9"
     },
@@ -32,17 +32,20 @@
         "tests-redshift-legacy": "export REDSHIFT_LEGACY_IMPORT=1 && phpunit tests/Redshift",
         "tests-snowflake": "phpunit tests/Snowflake",
         "build": [
+            "@composer validate --strict",
             "@composer install",
             "@phpcs",
-            "@phpstan",
+            "@phpstan"
+        ],
+        "e2e": [
             "@tests-load-s3",
             "@tests-redshift",
             "@tests-redshift-legacy",
             "@tests-snowflake"
         ],
         "ci": [
-            "@composer validate --strict",
-            "@build"
+            "@build",
+            "@e2e"
         ]
     },
     "config": {

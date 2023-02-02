@@ -1,4 +1,6 @@
-FROM php:8.1-cli-buster
+ARG PHP_VERSION=8.1
+
+FROM php:${PHP_VERSION:-8.1}-cli-buster
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV COMPOSER_ALLOW_SUPERUSER 1
