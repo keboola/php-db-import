@@ -14,9 +14,9 @@ use Keboola\Db\Import\Snowflake\Connection;
 use Keboola\Db\Import\Snowflake\CopyImport;
 use Keboola\Db\Import\Snowflake\CsvImport;
 use Keboola\Db\Import\Snowflake\CsvManifestImport;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
-class ImportTest extends PHPUnit_Framework_TestCase
+class ImportTest extends \PHPUnit\Framework\TestCase
 {
     private Connection $connection;
 
@@ -355,8 +355,8 @@ class ImportTest extends PHPUnit_Framework_TestCase
             $this->fail('File should not be imported');
         } catch (Exception $e) {
             $this->assertEquals(Exception::COLUMNS_COUNT_NOT_MATCH, $e->getCode());
-            $this->assertContains('first', $e->getMessage());
-            $this->assertContains('second', $e->getMessage());
+            $this->assertStringContainsString('first', $e->getMessage());
+            $this->assertStringContainsString('second', $e->getMessage());
         }
     }
 
@@ -371,7 +371,7 @@ class ImportTest extends PHPUnit_Framework_TestCase
         try {
             $import->import('out.csv_2Cols', ['first', 'second'], [$importFile]);
         } catch (Exception $e) {
-            $this->assertContains(
+            $this->assertStringContainsString(
                 'odbc_execute(): SQL error: Number of columns in file (12) does not match that of the corresponding table (2)',
                 $e->getMessage()
             );

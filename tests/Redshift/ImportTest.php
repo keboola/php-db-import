@@ -13,9 +13,9 @@ use Keboola\Db\Import\CsvManifestImportRedshift;
 use Keboola\Db\Import\Exception;
 use Keboola\Db\Import\ImportInterface;
 use PDO;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
-class ImportTest extends PHPUnit_Framework_TestCase
+class ImportTest extends \PHPUnit\Framework\TestCase
 {
     protected PDO $connection;
 

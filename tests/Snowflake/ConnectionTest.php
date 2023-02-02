@@ -6,9 +6,9 @@ namespace Keboola\DbImportTest\Snowflake;
 
 use Keboola\Db\Import;
 use Keboola\Db\Import\Snowflake\Connection;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 
-class ConnectionTest extends PHPUnit_Framework_TestCase
+class ConnectionTest extends \PHPUnit\Framework\TestCase
 {
     public function testConnectionWithoutDbAndWarehouse(): void
     {
@@ -85,7 +85,7 @@ class ConnectionTest extends PHPUnit_Framework_TestCase
         );
 
         $this->expectException(Import\Exception::class);
-        $this->expectExceptionMessageRegExp('/cannot be inserted because it\'s bigger than column size/');
+        $this->expectExceptionMessageMatches('/cannot be inserted because it\'s bigger than column size/');
         $this->expectExceptionCode(Import\Exception::ROW_SIZE_TOO_LARGE);
         $connection->query(
             sprintf(
