@@ -34,7 +34,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
 
     protected function tearDown(): void
     {
-        $this->connection = null;
+        unset($this->connection);
     }
 
     /**
@@ -318,6 +318,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
 
     public function testImportShouldNotFailOnColumnNameRowNumber(): void
     {
+        $this->doesNotPerformAssertions();
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
         $importFile = new CsvFile("s3://{$s3bucket}/column-name-row-number.csv");
 

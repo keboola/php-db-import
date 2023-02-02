@@ -39,6 +39,7 @@ class ConnectionTest extends \PHPUnit\Framework\TestCase
 
     public function testConnectionWithDefaultDbAndWarehouse(): void
     {
+        $this->doesNotPerformAssertions();
         $connection = $this->createConnection();
         $destSchemaName = 'test';
         $this->prepareSchema($connection, $destSchemaName);
@@ -106,7 +107,7 @@ class ConnectionTest extends \PHPUnit\Framework\TestCase
             $connection->fetchAll('CALL system$wait(5)');
         } catch (Import\Exception $e) {
             $this->assertSame(Import\Exception::class, get_class($e));
-            $this->assertRegExp('~timeout~', $e->getMessage());
+            $this->assertMatchesRegularExpression('~timeout~', $e->getMessage());
             $this->assertSame(Import\Exception::QUERY_TIMEOUT, $e->getCode());
         } finally {
             $connection->query('ALTER SESSION UNSET STATEMENT_TIMEOUT_IN_SECONDS');

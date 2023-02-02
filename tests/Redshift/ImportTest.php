@@ -259,6 +259,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
 
     public function testImportShouldNotFailOnColumnNameRowNumber(): void
     {
+        $this->doesNotPerformAssertions();
         $s3bucket = getenv(self::AWS_S3_BUCKET_ENV);
 
         $import = $this->getImport('csv');
