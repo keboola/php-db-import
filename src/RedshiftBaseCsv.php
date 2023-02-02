@@ -23,10 +23,9 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         string $s3key,
         string $s3secret,
         string $s3region,
-        string $schemaName,
-        bool $legacyFullImport = false
+        string $schemaName
     ) {
-        parent::__construct($connection, $schemaName, $legacyFullImport);
+        parent::__construct($connection, $schemaName);
         $this->s3key = $s3key;
         $this->s3secret = $s3secret;
         $this->s3region = $s3region;

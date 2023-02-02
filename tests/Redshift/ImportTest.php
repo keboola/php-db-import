@@ -25,11 +25,6 @@ class ImportTest extends \PHPUnit\Framework\TestCase
 
     private const AWS_S3_BUCKET_ENV = 'AWS_S3_BUCKET';
 
-    public static function setUpBeforeClass(): void
-    {
-        echo sprintf("\nLegacy mode: %s\n", (bool) getenv('REDSHIFT_LEGACY_IMPORT') ? 'ON' : 'OFF');
-    }
-
     public function setUp(): void
     {
         $this->connection = $pdo = new PDO(
@@ -240,7 +235,6 @@ class ImportTest extends \PHPUnit\Framework\TestCase
         }
 
         $result = $import->import($tableName, $columns, $sourceData, $importOptions);
-        $this->assertEquals((bool) getenv('REDSHIFT_LEGACY_IMPORT'), $result->getKeyValue('legacyFullImport'));
 
         $tableColumns = $this->describeTable(strtolower($tableName), strtolower($this->destSchemaName));
 
@@ -740,8 +734,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                     getenv('AWS_ACCESS_KEY_ID'),
                     getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
-                    $this->destSchemaName,
-                    (bool) getenv('REDSHIFT_LEGACY_IMPORT')
+                    $this->destSchemaName
                 );
                 break;
             case 'csv':
@@ -750,14 +743,12 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                     getenv('AWS_ACCESS_KEY_ID'),
                     getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
-                    $this->destSchemaName,
-                    (bool) getenv('REDSHIFT_LEGACY_IMPORT')
+                    $this->destSchemaName
                 );
             case 'copy':
                 return new CopyImportRedshift(
                     $this->connection,
                     $this->destSchemaName,
-                    (bool) getenv('REDSHIFT_LEGACY_IMPORT')
                 );
                 break;
             default:

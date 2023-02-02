@@ -34,13 +34,10 @@ abstract class RedshiftBase implements ImportInterface
 
     private string $schemaName;
 
-    private bool $legacyFullImport = false;
-
-    public function __construct(PDO $connection, string $schemaName, bool $legacyFullImport = false)
+    public function __construct(PDO $connection, string $schemaName)
     {
         $this->connection = $connection;
         $this->schemaName = $schemaName;
-        $this->legacyFullImport = $legacyFullImport;
     }
 
     /**
@@ -72,24 +69,14 @@ abstract class RedshiftBase implements ImportInterface
             Debugger::timer('dedup');
             $this->dedup($stagingTableName, $columns, $primaryKey);
             $this->addTimer('dedup', Debugger::timer('dedup'));
-            if ($this->legacyFullImport) {
-                $this->insertAllIntoTargetTableLegacy(
-                    $stagingTableName,
-                    $tableName,
-                    $columns,
-                    isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                    isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : []
-                );
-            } else {
-                $this->insertAllIntoTargetTable(
-                    $stagingTableName,
-                    $tableName,
-                    $primaryKey,
-                    $columns,
-                    isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                    isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : []
-                );
-            }
+            $this->insertAllIntoTargetTable(
+                $stagingTableName,
+                $tableName,
+                $primaryKey,
+                $columns,
+                isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
+                isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : []
+            );
         }
         $this->dropTempTable($stagingTableName);
         $this->importedColumns = $columns;
@@ -98,7 +85,6 @@ abstract class RedshiftBase implements ImportInterface
             'timers' => $this->timers,
             'importedRowsCount' => $this->importedRowsCount,
             'importedColumns' => $this->importedColumns,
-            'legacyFullImport' => $this->legacyFullImport,
         ]);
     }
 
@@ -172,45 +158,6 @@ abstract class RedshiftBase implements ImportInterface
             $this->connection->rollBack();
             throw $e;
         }
-    }
-
-    private function insertAllIntoTargetTableLegacy(
-        string $stagingTempTableName,
-        string $targetTableName,
-        array $columns,
-        bool $useTimestamp = true,
-        array $convertEmptyValuesToNull = []
-    ): void {
-        $this->connection->beginTransaction();
-
-        $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
-        $stagingTableNameEscaped = $this->tableNameEscaped($stagingTempTableName);
-
-        $this->query('TRUNCATE TABLE ' . $targetTableNameWithSchema);
-
-        $columnsSql = implode(', ', array_map(function ($column) {
-            return $this->quoteIdentifier($column);
-        }, $columns));
-
-        $columnsSelectSql = implode(', ', array_map(function ($column) use ($convertEmptyValuesToNull) {
-            if (in_array($column, $convertEmptyValuesToNull)) {
-                return "CASE {$this->quoteIdentifier($column)}::VARCHAR WHEN '' THEN NULL ELSE {$this->quoteIdentifier($column)} END";
-            }
-            return $this->quoteIdentifier($column);
-        }, $columns));
-
-        $now = $this->getNowFormatted();
-        if (in_array('_timestamp', $columns) || $useTimestamp === false) {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql) (SELECT $columnsSelectSql FROM $stagingTableNameEscaped)";
-        } else {
-            $sql = "INSERT INTO {$targetTableNameWithSchema} ($columnsSql, _timestamp) (SELECT $columnsSelectSql, '{$now}' FROM $stagingTableNameEscaped)";
-        }
-
-        Debugger::timer('copyFromStagingToTarget');
-        $this->query($sql);
-        $this->addTimer('copyFromStagingToTarget', Debugger::timer('copyFromStagingToTarget'));
-
-        $this->connection->commit();
     }
 
     /**
