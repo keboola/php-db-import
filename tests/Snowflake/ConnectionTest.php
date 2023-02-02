@@ -7,9 +7,12 @@ namespace Keboola\DbImportTest\Snowflake;
 use Keboola\Db\Import;
 use Keboola\Db\Import\Snowflake\Connection;
 use PHPUnit\Framework\TestCase;
+use PHPUnitRetry\RetryTrait;
 
 class ConnectionTest extends \PHPUnit\Framework\TestCase
 {
+    use RetryTrait;
+
     public function testConnectionWithoutDbAndWarehouse(): void
     {
         $connection = new Connection([

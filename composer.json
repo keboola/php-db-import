@@ -11,7 +11,8 @@
     "require-dev": {
         "phpunit/phpunit": "^9.5",
         "keboola/coding-standard": "^14.0",
-        "phpstan/phpstan": "^1.9"
+        "phpstan/phpstan": "^1.9",
+        "keboola/phpunit-retry-annotations": "*"
     },
     "autoload": {
         "psr-4": {

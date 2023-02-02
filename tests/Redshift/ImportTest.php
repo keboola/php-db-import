@@ -14,9 +14,11 @@ use Keboola\Db\Import\Exception;
 use Keboola\Db\Import\ImportInterface;
 use PDO;
 use PHPUnit\Framework\TestCase;
+use PHPUnitRetry\RetryTrait;
 
 class ImportTest extends \PHPUnit\Framework\TestCase
 {
+    use RetryTrait;
     protected PDO $connection;
 
     private string $destSchemaName = 'in.c-tests';
@@ -818,7 +820,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                     $defaultValue = $matches[1];
                 }
             }
-            list($primary, $primaryPosition, $identity) = [false, null, false];
+            [$primary, $primaryPosition, $identity] = [false, null, false];
             if ($row[$contype] === 'p') {
                 $primary = true;
                 $primaryPosition = array_search($row[$attnum], explode(',', $row[$conkey])) + 1;

@@ -15,9 +15,11 @@ use Keboola\Db\Import\Snowflake\CopyImport;
 use Keboola\Db\Import\Snowflake\CsvImport;
 use Keboola\Db\Import\Snowflake\CsvManifestImport;
 use PHPUnit\Framework\TestCase;
+use PHPUnitRetry\RetryTrait;
 
 class ImportTest extends \PHPUnit\Framework\TestCase
 {
+    use RetryTrait;
     private Connection $connection;
 
     private string $destSchemaName = 'in.c-tests';
