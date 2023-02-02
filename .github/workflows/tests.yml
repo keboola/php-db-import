@@ -28,6 +28,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.allowFail }}
     strategy:
       fail-fast: false
       matrix:
@@ -35,6 +36,13 @@ jobs:
           - '7.4'
           - '8.0'
           - '8.1'
+        allowFail: [false]
+        include:
+          - php-version: '7.4'
+            allowFail: true
+        exclude:
+          - php-version: '7.4'
+            allowFail: false
     steps:
       -
         name: Checkout
