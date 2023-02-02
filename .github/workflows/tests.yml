@@ -45,7 +45,7 @@ jobs:
           docker-compose run --rm tests php -v
           docker-compose run --rm tests composer build
   test_e2e:
-    needs: [build]
+    needs: [build,test_e2e_74]
     concurrency: tests
     runs-on: ubuntu-latest
     steps:
@@ -59,3 +59,17 @@ jobs:
           docker-compose run --rm tests php -v
           docker-compose run --rm tests composer ci
 
+  test_e2e_74:
+    needs: [build]
+    concurrency: tests
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Build & Run tests
+        run: |
+          docker-compose build --build-arg PHP_VERSION=7.4 tests
+          docker-compose run --rm tests php -v
+          docker-compose run --rm tests composer ci
