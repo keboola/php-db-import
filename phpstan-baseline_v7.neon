@@ -161,16 +161,6 @@ parameters:
 			path: src/RedshiftBase.php
 
 		-
-			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:insertAllIntoTargetTableLegacy\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/RedshiftBase.php
-
-		-
-			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:insertAllIntoTargetTableLegacy\\(\\) has parameter \\$convertEmptyValuesToNull with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/RedshiftBase.php
-
-		-
 			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:insertOrUpdateTargetTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/RedshiftBase.php

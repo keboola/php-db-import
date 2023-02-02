@@ -2,9 +2,28 @@
 <ruleset name="Project">
     <rule ref="vendor/keboola/coding-standard/src/ruleset.xml" >
         <exclude name="Generic.Files.LineLength.MaxExceeded"/>
-        <exclude name="SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingTraversableTypeHintSpecification"/>
         <exclude name="SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingTraversableTypeHintSpecification"/>
         <exclude name="SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingTraversableTypeHintSpecification"/>
         <exclude name="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly.ReferenceViaFullyQualifiedName"/>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint">
+        <exclude name="SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingNativeTypeHint.MissingTraversableReturnTypeHintSpecification"/>
+        <properties>
+            <property name="enableUnionTypeHint" type="bool" value="false" />
+            <property name="enableMixedTypeHint" type="bool" value="false" />
+            <property name="enableIntersectionTypeHint" type="bool" value="false" />
+            <property name="enableStandaloneNullTrueFalseTypeHints" type="bool" value="false" />
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint">
+        <exclude name="SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint.MissingTraversableReturnTypeHintSpecification"/>
+        <properties>
+            <property name="enableStaticTypeHint" type="bool" value="false" />
+            <property name="enableMixedTypeHint" type="bool" value="false" />
+            <property name="enableUnionTypeHint" type="bool" value="false" />
+            <property name="enableIntersectionTypeHint" type="bool" value="false" />
+            <property name="enableNeverTypeHint" type="bool" value="false" />
+            <property name="enableStandaloneNullTrueFalseTypeHints" type="bool" value="false" />
+        </properties>
     </rule>
 </ruleset>
