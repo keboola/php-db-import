@@ -1,0 +1,61 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  SNOWFLAKE_HOST: keboolaconnectiondev.us-east-1.snowflakecomputing.com
+  SNOWFLAKE_PORT: 443
+  SNOWFLAKE_USER: GH_ACTIONS_LEGACY_CSV_IMPORT
+  SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+  SNOWFLAKE_DATABASE: GH_ACTIONS_LEGACY_CSV_IMPORT
+  SNOWFLAKE_WAREHOUSE: DEV
+  REDSHIFT_HOST: testing.cx4py8yq28xb.us-east-1.redshift.amazonaws.com
+  REDSHIFT_USER: gh_actions_csv_import
+  REDSHIFT_PORT: 5439
+  REDSHIFT_DATABASE: gh_actions_csv_import
+  REDSHIFT_PASSWORD: ${{ secrets.REDSHIFT_PASSWORD }}
+  AWS_ACCESS_KEY_ID: AKIASFZVQM6IOV6HO4Z3
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_S3_BUCKET: ci-legacy-csv-db-import-s3filesbucket-tzqr1qrp4b92
+  AWS_REGION: us-east-1
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version:
+          - '7.4'
+          - '8.0'
+          - '8.1'
+          - '8.2'
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Build & Run tests
+        run: |
+          docker-compose build --build-arg PHP_VERSION=${{ matrix.php-version }} tests
+          docker-compose run --rm tests php -v
+          docker-compose run --rm tests composer build
+  test_e2e:
+    needs: [build]
+    concurrency: tests
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Build & Run tests
+        run: |
+          docker-compose build --build-arg PHP_VERSION=8.1 tests
+          docker-compose run --rm tests php -v
+          docker-compose run --rm tests composer ci

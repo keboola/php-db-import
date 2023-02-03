@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Aws\S3\S3Client;
+use Aws\S3\Transfer;
+
 /**
  * Loads test fixtures into S3
  */
@@ -14,7 +17,7 @@ $basedir = dirname(__DIR__);
 
 require_once $basedir . '/vendor/autoload.php';
 
-$client =  new \Aws\S3\S3Client([
+$client =  new S3Client([
     'region' => getenv('AWS_REGION'),
     'version' => '2006-03-01',
 ]);
@@ -57,7 +60,7 @@ for ($i = 0; $i <= 1500; $i++) {
         "\"a\",\"b\"\n"
     );
     $largeManifest['entries'][] = [
-        'url' => sprintf("s3://%s/manifests/2cols-large/%s", $bucket, $sliceName),
+        'url' => sprintf('s3://%s/manifests/2cols-large/%s', $bucket, $sliceName),
         'mandatory' => true,
     ];
 }
@@ -67,7 +70,7 @@ file_put_contents(
 );
 
 // Create a transfer object.
-$manager = new \Aws\S3\Transfer($client, $source, $dest, [
+$manager = new Transfer($client, $source, $dest, [
     'debug' => true,
 ]);
 
@@ -81,11 +84,11 @@ $manager->transfer();
 $manifest = [
     'entries' => [
         [
-            'url' => sprintf("s3://%s/manifests/accounts/tw_accounts.csv0000_part_00", $bucket),
+            'url' => sprintf('s3://%s/manifests/accounts/tw_accounts.csv0000_part_00', $bucket),
             'mandatory' => true,
         ],
         [
-            'url' => sprintf("s3://%s/manifests/accounts/tw_accounts.csv0001_part_00", $bucket),
+            'url' => sprintf('s3://%s/manifests/accounts/tw_accounts.csv0001_part_00', $bucket),
             'mandatory' => true,
         ],
     ],
@@ -101,11 +104,11 @@ $client->putObject([
 $manifest = [
     'entries' => [
         [
-            'url' => sprintf("s3://%s/manifests/accounts-gzip/tw_accounts.csv.gz0000_part_00.gz", $bucket),
+            'url' => sprintf('s3://%s/manifests/accounts-gzip/tw_accounts.csv.gz0000_part_00.gz', $bucket),
             'mandatory' => true,
         ],
         [
-            'url' => sprintf("s3://%s/manifests/accounts-gzip/tw_accounts.csv.gz0001_part_00.gz", $bucket),
+            'url' => sprintf('s3://%s/manifests/accounts-gzip/tw_accounts.csv.gz0001_part_00.gz', $bucket),
             'mandatory' => true,
         ],
     ],
@@ -122,7 +125,7 @@ $client->putObject([
 $manifest = [
     'entries' => [
         [
-            'url' => sprintf("s3://%s/not-exists.csv", $bucket),
+            'url' => sprintf('s3://%s/not-exists.csv', $bucket),
             'mandatory' => true,
         ],
     ],

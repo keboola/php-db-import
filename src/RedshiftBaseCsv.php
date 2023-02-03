@@ -4,38 +4,35 @@ declare(strict_types=1);
 
 namespace Keboola\Db\Import;
 
+use Aws\S3\S3Client;
 use Keboola\Csv\CsvFile;
+use PDO;
+use Throwable;
 use Tracy\Debugger;
 
 abstract class RedshiftBaseCsv extends RedshiftBase
 {
-    /** @var string */
-    private $s3key;
+    private string $s3key;
 
-    /** @var string */
-    private $s3secret;
+    private string $s3secret;
 
-    /** @var string */
-    private $s3region;
+    private string $s3region;
 
     public function __construct(
-        \PDO $connection,
+        PDO $connection,
         string $s3key,
         string $s3secret,
         string $s3region,
-        string $schemaName,
-        bool $legacyFullImport = false
+        string $schemaName
     ) {
-        parent::__construct($connection, $schemaName, $legacyFullImport);
+        parent::__construct($connection, $schemaName);
         $this->s3key = $s3key;
         $this->s3secret = $s3secret;
         $this->s3region = $s3region;
     }
 
     /**
-     * @param string $tempTableName
      * @param array $columns
-     * @param CsvFile $csvFile
      * @param array $options
      *  - isManifest
      *  - copyOptions
@@ -73,8 +70,8 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 
             $this->query($this->generateCopyCommand($tempTableName, $columns, $csvFile, $copyOptions));
             $this->addTimer('copyToStaging', Debugger::timer('copyToStaging'));
-        } catch (\Throwable $e) {
-            $result = $this->connection->query("SELECT * FROM stl_load_errors WHERE query = pg_last_query_id();")->fetchAll();
+        } catch (Throwable $e) {
+            $result = $this->connection->query('SELECT * FROM stl_load_errors WHERE query = pg_last_query_id();')->fetchAll();
             if (!count($result)) {
                 throw $e;
             }
@@ -83,7 +80,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             foreach ($result as $row) {
                 $messages[] = "Line $row[line_number] - $row[err_reason]";
             }
-            $message = "Load error: " . implode("\n", $messages);
+            $message = 'Load error: ' . implode("\n", $messages);
 
             throw new Exception($message, Exception::INVALID_SOURCE_DATA, $e);
         }
@@ -108,27 +105,27 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 
         if ($csvFile->getEscapedBy()) {
             // raw format
-            if ($csvFile->getEscapedBy() != '\\') {
+            if ($csvFile->getEscapedBy() !== '\\') {
                 throw new Exception('Only backshlash can be used as escape character');
             }
-            $command .= " ESCAPE ";
+            $command .= ' ESCAPE ';
         } else {
-            $command .= " CSV ";
+            $command .= ' CSV ';
         }
 
         if (!empty($options['isGzipped'])) {
-            $command .= " GZIP ";
+            $command .= ' GZIP ';
         }
 
         if (!empty($options['isManifest'])) {
-            $command .= " MANIFEST ";
+            $command .= ' MANIFEST ';
         }
 
-        $command .= " IGNOREHEADER " . $this->getIgnoreLines();
+        $command .= ' IGNOREHEADER ' . $this->getIgnoreLines();
 
         // custom options
         if (!empty($options['copyOptions'])) {
-            $command .= " " . implode(" ", $options['copyOptions']);
+            $command .= ' ' . implode(' ', $options['copyOptions']);
         }
 
         return $command;
@@ -141,7 +138,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
 
     private function downloadManifest(string $path): array
     {
-        $s3Client = new \Aws\S3\S3Client([
+        $s3Client = new S3Client([
             'credentials' => [
                 'key' => $this->s3key,
                 'secret' => $this->s3secret,

@@ -3,15 +3,16 @@
     "description": "Handling of large bulk data into database tables.",
     "license": "MIT",
     "require": {
-        "PHP": "^7.1",
+        "PHP": "^7.4|^8",
         "keboola/csv": "^1.1",
         "tracy/tracy": "^2.3",
         "aws/aws-sdk-php": "^3.11"
     },
     "require-dev": {
-        "keboola/coding-standard": "^2.0",
-        "phpstan/phpstan-shim": "^0.9.2",
-        "phpunit/phpunit": "^5.0"
+        "phpunit/phpunit": "^9.5",
+        "keboola/coding-standard": "^14.0",
+        "phpstan/phpstan": "^1.9",
+        "keboola/phpunit-retry-annotations": "*"
     },
     "autoload": {
         "psr-4": {
@@ -29,23 +30,29 @@
         "phpstan": "phpstan analyse ./src ./tests --level=max --no-progress -c phpstan.neon",
         "tests-load-s3": "php ./tests/loadS3.php",
         "tests-redshift": "phpunit tests/Redshift",
-        "tests-redshift-legacy": "export REDSHIFT_LEGACY_IMPORT=1 && phpunit tests/Redshift",
         "tests-snowflake": "phpunit tests/Snowflake",
+        "tests-unit": "phpunit tests/Helper",
         "build": [
+            "@composer validate --strict",
             "@composer install",
             "@phpcs",
             "@phpstan",
+            "@tests-unit"
+        ],
+        "e2e": [
             "@tests-load-s3",
             "@tests-redshift",
-            "@tests-redshift-legacy",
             "@tests-snowflake"
         ],
         "ci": [
-            "@composer validate --strict",
-            "@build"
+            "@build",
+            "@e2e"
         ]
     },
     "config": {
-        "lock": false
+        "lock": false,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }

@@ -6,9 +6,13 @@ namespace Keboola\DbImportTest\Snowflake;
 
 use Keboola\Db\Import;
 use Keboola\Db\Import\Snowflake\Connection;
+use PHPUnit\Framework\TestCase;
+use PHPUnitRetry\RetryTrait;
 
-class ConnectionTest extends \PHPUnit_Framework_TestCase
+class ConnectionTest extends \PHPUnit\Framework\TestCase
 {
+//    use RetryTrait;
+
     public function testConnectionWithoutDbAndWarehouse(): void
     {
         $connection = new Connection([
@@ -38,6 +42,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
 
     public function testConnectionWithDefaultDbAndWarehouse(): void
     {
+        $this->doesNotPerformAssertions();
         $connection = $this->createConnection();
         $destSchemaName = 'test';
         $this->prepareSchema($connection, $destSchemaName);
@@ -78,19 +83,19 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
             sprintf(
                 'CREATE TABLE "%s"."%s" ("col1" varchar(%d));',
                 $destSchemaName,
-                "TEST",
+                'TEST',
                 $size
             )
         );
 
         $this->expectException(Import\Exception::class);
-        $this->expectExceptionMessageRegExp('/cannot be inserted because it\'s bigger than column size/');
+        $this->expectExceptionMessageMatches('/cannot be inserted because it\'s bigger than column size/');
         $this->expectExceptionCode(Import\Exception::ROW_SIZE_TOO_LARGE);
         $connection->query(
             sprintf(
                 'INSERT INTO "%s"."%s" VALUES(\'%s\');',
                 $destSchemaName,
-                "TEST",
+                'TEST',
                 implode('', array_fill(0, $size + 1, 'x'))
             )
         );
@@ -99,13 +104,13 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
     public function testQueryTimeoutLimit(): void
     {
         $connection = $this->createConnection();
-        $connection->query("ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 3");
+        $connection->query('ALTER SESSION SET STATEMENT_TIMEOUT_IN_SECONDS = 3');
 
         try {
             $connection->fetchAll('CALL system$wait(5)');
         } catch (Import\Exception $e) {
             $this->assertSame(Import\Exception::class, get_class($e));
-            $this->assertRegExp('~timeout~', $e->getMessage());
+            $this->assertMatchesRegularExpression('~timeout~', $e->getMessage());
             $this->assertSame(Import\Exception::QUERY_TIMEOUT, $e->getCode());
         } finally {
             $connection->query('ALTER SESSION UNSET STATEMENT_TIMEOUT_IN_SECONDS');
@@ -141,7 +146,7 @@ class ConnectionTest extends \PHPUnit_Framework_TestCase
             '
         );
 
-        $this->assertEquals('{"runId":"myRunId"}', $queries[0]["QUERY_TAG"]);
+        $this->assertEquals('{"runId":"myRunId"}', $queries[0]['QUERY_TAG']);
     }
 
     private function prepareSchema(Connection $connection, string $schemaName): void

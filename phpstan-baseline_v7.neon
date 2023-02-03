@@ -1,0 +1,801 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\CopyImportRedshift\\:\\:importDataToStagingTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/CopyImportRedshift.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\CopyImportRedshift\\:\\:importDataToStagingTable\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/CopyImportRedshift.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\CopyImportRedshift\\:\\:importDataToStagingTable\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/CopyImportRedshift.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\CsvImportRedshift\\:\\:importDataToStagingTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/CsvImportRedshift.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\CsvImportRedshift\\:\\:importDataToStagingTable\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/CsvImportRedshift.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\CsvImportRedshift\\:\\:importDataToStagingTable\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/CsvImportRedshift.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\CsvManifestImportRedshift\\:\\:importDataToStagingTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/CsvManifestImportRedshift.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\CsvManifestImportRedshift\\:\\:importDataToStagingTable\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/CsvManifestImportRedshift.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\CsvManifestImportRedshift\\:\\:importDataToStagingTable\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/CsvManifestImportRedshift.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\ImportInterface\\:\\:import\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/ImportInterface.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\ImportInterface\\:\\:import\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/ImportInterface.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\ImportInterface\\:\\:import\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/ImportInterface.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\MessageTransformation\\:\\:__construct\\(\\) has parameter \\$argumentIndexes with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/MessageTransformation.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\MessageTransformation\\:\\:getImportException\\(\\) has parameter \\$arguments with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/MessageTransformation.php
+
+		-
+			message: "#^Property Keboola\\\\Db\\\\Import\\\\MessageTransformation\\:\\:\\$argumentIndexes type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/MessageTransformation.php
+
+		-
+			message: "#^Cannot call method fetchAll\\(\\) on PDOStatement\\|false\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:createTableFromSourceTable\\(\\) has parameter \\$primaryKey with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:createTemporaryTableFromDestinationTable\\(\\) has parameter \\$primaryKey with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:dedup\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:dedup\\(\\) has parameter \\$primaryKey with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:describeTable\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:getTableColumns\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:getTablePrimaryKey\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:import\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:import\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:import\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:importDataToStagingTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:importDataToStagingTable\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:importDataToStagingTable\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:insertAllIntoTargetTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:insertAllIntoTargetTable\\(\\) has parameter \\$convertEmptyValuesToNull with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:insertAllIntoTargetTable\\(\\) has parameter \\$primaryKey with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:insertOrUpdateTargetTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:insertOrUpdateTargetTable\\(\\) has parameter \\$convertEmptyValuesToNull with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:insertOrUpdateTargetTable\\(\\) has parameter \\$primaryKey with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:query\\(\\) has parameter \\$bind with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:queryFetchAll\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:queryFetchAll\\(\\) should return array but returns array\\|false\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:validateColumns\\(\\) has parameter \\$columnsToImport with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Property Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:\\$importedColumns type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Property Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:\\$timers type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Property Keboola\\\\Db\\\\Import\\\\RedshiftBase\\:\\:\\$warnings type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBase.php
+
+		-
+			message: "#^Argument of an invalid type array\\|false supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Cannot access offset 'host' on array\\{scheme\\?\\: string, host\\?\\: string, port\\?\\: int\\<0, 65535\\>, user\\?\\: string, pass\\?\\: string, path\\?\\: string, query\\?\\: string, fragment\\?\\: string\\}\\|false\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Cannot access offset 'path' on array\\{scheme\\?\\: string, host\\?\\: string, port\\?\\: int\\<0, 65535\\>, user\\?\\: string, pass\\?\\: string, path\\?\\: string, query\\?\\: string, fragment\\?\\: string\\}\\|false\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Cannot call method fetchAll\\(\\) on PDOStatement\\|false\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Cannot cast mixed to string\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBaseCsv\\:\\:downloadManifest\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBaseCsv\\:\\:downloadManifest\\(\\) should return array but returns mixed\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBaseCsv\\:\\:generateCopyCommand\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBaseCsv\\:\\:generateCopyCommand\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBaseCsv\\:\\:importTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\RedshiftBaseCsv\\:\\:importTable\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Parameter \\#1 \\$var of function count expects array\\|Countable, array\\|false given\\.$#"
+			count: 1
+			path: src/RedshiftBaseCsv.php
+
+		-
+			message: "#^Cannot cast mixed to int\\.$#"
+			count: 1
+			path: src/Result.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Result\\:\\:__construct\\(\\) has parameter \\$results with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Result.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Result\\:\\:getImportedColumns\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Result.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Result\\:\\:getTimers\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Result.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Result\\:\\:getWarnings\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Result.php
+
+		-
+			message: "#^Property Keboola\\\\Db\\\\Import\\\\Result\\:\\:\\$results type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Result.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:__construct\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:describeTable\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:describeTableColumns\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:fetch\\(\\) has parameter \\$bind with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:fetchAll\\(\\) has parameter \\$bind with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:fetchAll\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:getTableColumns\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:getTablePrimaryKey\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:query\\(\\) has parameter \\$bind with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:repairBinding\\(\\) has parameter \\$bind with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:repairBinding\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Parameter \\#1 \\$result of function odbc_fetch_array expects resource, resource\\|false given\\.$#"
+			count: 2
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Parameter \\#1 \\$result_id of function odbc_execute expects resource, resource\\|false given\\.$#"
+			count: 3
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Parameter \\#1 \\$result_id of function odbc_free_result expects resource, resource\\|false given\\.$#"
+			count: 3
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Property Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:\\$connection \\(resource\\) does not accept resource\\|false\\.$#"
+			count: 1
+			path: src/Snowflake/Connection.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CopyImport\\:\\:importDataToStagingTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CopyImport.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CopyImport\\:\\:importDataToStagingTable\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CopyImport.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvImport\\:\\:importDataToStagingTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImport.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvImport\\:\\:importDataToStagingTable\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImport.php
+
+		-
+			message: "#^Cannot access offset 'entries' on mixed\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Cannot access offset 'host' on array\\{scheme\\?\\: string, host\\?\\: string, port\\?\\: int\\<0, 65535\\>, user\\?\\: string, pass\\?\\: string, path\\?\\: string, query\\?\\: string, fragment\\?\\: string\\}\\|false\\.$#"
+			count: 2
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Cannot access offset 'path' on array\\{scheme\\?\\: string, host\\?\\: string, port\\?\\: int\\<0, 65535\\>, user\\?\\: string, pass\\?\\: string, path\\?\\: string, query\\?\\: string, fragment\\?\\: string\\}\\|false\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Cannot access offset 'url' on mixed\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Cannot cast mixed to string\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvImportBase\\:\\:createCopyCommandCsvOptions\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvImportBase\\:\\:generateSingleFileCopyCommand\\(\\) has parameter \\$csvOptions with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvImportBase\\:\\:generateSlicedFileCopyCommand\\(\\) has parameter \\$csvOptions with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvImportBase\\:\\:generateSlicedFileCopyCommand\\(\\) has parameter \\$slicesPaths with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvImportBase\\:\\:getFilesToDownloadFromManifest\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Parameter \\#2 \\$array of function array_map expects array, mixed given\\.$#"
+			count: 1
+			path: src/Snowflake/CsvImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvManifestImport\\:\\:importDataToStagingTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CsvManifestImport.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvManifestImport\\:\\:importDataToStagingTable\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/CsvManifestImport.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:createStagingTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:dedupe\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:dedupe\\(\\) has parameter \\$primaryKey with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:import\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:import\\(\\) has parameter \\$options with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:import\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:importDataToStagingTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:importDataToStagingTable\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:insertAllIntoTargetTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:insertAllIntoTargetTable\\(\\) has parameter \\$convertEmptyValuesToNull with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:insertOrUpdateTargetTable\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:insertOrUpdateTargetTable\\(\\) has parameter \\$convertEmptyValuesToNull with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:validateColumns\\(\\) has parameter \\$columnsToImport with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Property Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:\\$importedColumns type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Property Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:\\$timers type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Property Keboola\\\\Db\\\\Import\\\\Snowflake\\\\ImportBase\\:\\:\\$warnings type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Snowflake/ImportBase.php
+
+		-
+			message: "#^Argument of an invalid type array\\|false supplied for foreach, only iterables are supported\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Cannot access offset 0 on array\\|false\\.$#"
+			count: 8
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Cannot access offset 1 on array\\|false\\.$#"
+			count: 6
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Cannot access offset 2 on array\\|false\\.$#"
+			count: 7
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Cannot access offset 3 on array\\|false\\.$#"
+			count: 2
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Cannot call method fetchAll\\(\\) on PDOStatement\\|false\\.$#"
+			count: 10
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:assertArrayEqualsSorted\\(\\) has parameter \\$actual with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:assertArrayEqualsSorted\\(\\) has parameter \\$expected with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:describeTable\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:tables\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:tablesIncremental\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:testFullImport\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:testFullImport\\(\\) has parameter \\$expected with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:testFullImport\\(\\) has parameter \\$importOptions with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:testFullImport\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:testIncrementalImport\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:testIncrementalImport\\(\\) has parameter \\$expected with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:testIncrementalImport\\(\\) has parameter \\$importOptions with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$actual of method Keboola\\\\DbImportTest\\\\Redshift\\\\ImportTest\\:\\:assertArrayEqualsSorted\\(\\) expects array, array\\|false given\\.$#"
+			count: 2
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$haystack of method PHPUnit\\\\Framework\\\\Assert\\:\\:assertCount\\(\\) expects Countable\\|iterable, array\\|false given\\.$#"
+			count: 7
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$s3key of class Keboola\\\\Db\\\\Import\\\\CsvImportRedshift constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$s3key of class Keboola\\\\Db\\\\Import\\\\CsvManifestImportRedshift constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$username of class PDO constructor expects string\\|null, string\\|false given\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$password of class PDO constructor expects string\\|null, string\\|false given\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$s3secret of class Keboola\\\\Db\\\\Import\\\\CsvImportRedshift constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$s3secret of class Keboola\\\\Db\\\\Import\\\\CsvManifestImportRedshift constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Parameter \\#4 \\$s3region of class Keboola\\\\Db\\\\Import\\\\CsvImportRedshift constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Parameter \\#4 \\$s3region of class Keboola\\\\Db\\\\Import\\\\CsvManifestImportRedshift constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Unreachable statement \\- code above always terminates\\.$#"
+			count: 2
+			path: tests/Redshift/ImportTest.php
+
+		-
+			message: "#^Call to sprintf contains 0 placeholders, 1 value given\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:assertArrayEqualsSorted\\(\\) has parameter \\$actual with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:assertArrayEqualsSorted\\(\\) has parameter \\$expected with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:fetchAll\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:fetchAll\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:fullImportData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:getStagingTablesInSchema\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:incrementalImportData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:testFullImport\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:testFullImport\\(\\) has parameter \\$expected with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:testFullImport\\(\\) has parameter \\$importOptions with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:testFullImport\\(\\) has parameter \\$sourceData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:testIncrementalImport\\(\\) has parameter \\$columns with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:testIncrementalImport\\(\\) has parameter \\$expected with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Method Keboola\\\\DbImportTest\\\\Snowflake\\\\ImportTest\\:\\:testIncrementalImport\\(\\) has parameter \\$importOptions with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$s3key of class Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvImport constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Parameter \\#2 \\$s3key of class Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvManifestImport constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$s3secret of class Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvImport constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Parameter \\#3 \\$s3secret of class Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvManifestImport constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Parameter \\#4 \\$s3region of class Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvImport constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Parameter \\#4 \\$s3region of class Keboola\\\\Db\\\\Import\\\\Snowflake\\\\CsvManifestImport constructor expects string, string\\|false given\\.$#"
+			count: 1
+			path: tests/Snowflake/ImportTest.php
+
+		-
+			message: "#^Cannot access offset 'Key' on mixed\\.$#"
+			count: 1
+			path: tests/loadS3.php
+
+		-
+			message: "#^Parameter \\#2 \\$array of function array_map expects array, mixed given\\.$#"
+			count: 1
+			path: tests/loadS3.php

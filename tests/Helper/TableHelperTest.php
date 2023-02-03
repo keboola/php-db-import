@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace Keboola\DbImportTest\Helper;
 
 use Keboola\Db\Import\Helper\TableHelper;
+use PHPUnit\Framework\TestCase;
 
-class TableHelperTest extends \PHPUnit_Framework_TestCase
+class TableHelperTest extends \PHPUnit\Framework\TestCase
 {
     public function testGenerateStagingTableName(): void
     {

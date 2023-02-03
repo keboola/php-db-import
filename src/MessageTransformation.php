@@ -8,17 +8,14 @@ use Keboola\Db\Import\Exception as ImportException;
 
 class MessageTransformation
 {
-    /** @var string */
-    private $pattern;
+    private string $pattern;
 
-    /** @var string */
-    private $message;
+    private string $message;
 
-    /** @var int */
-    private $errorCode;
+    private int $errorCode;
 
     /** @var array */
-    private $argumentIndexes;
+    private array $argumentIndexes;
 
     public function __construct(string $pattern, string $message, int $errorCode, array $argumentIndexes = [])
     {

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Keboola\DbImportTest;
 
+use Exception;
+use PDO;
+
 class Helpers
 {
     /**
@@ -11,13 +14,13 @@ class Helpers
      * Stolen from Nette https://github.com/nette/nette/blob/master/Nette/Database/Helpers.php
      * @return int  count of commands
      */
-    public static function loadFromFile(\PDO $connection, string $file): int
+    public static function loadFromFile(PDO $connection, string $file): int
     {
         @set_time_limit(0); // intentionally @
 
         $handle = @fopen($file, 'r'); // intentionally @
         if (!$handle) {
-            throw new \Exception("Cannot open file '$file'.");
+            throw new Exception("Cannot open file '$file'.");
         }
 
         $count = 0;
