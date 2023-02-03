@@ -80,3 +80,7 @@ docker-compose run --rm tests
 ```
 
 Redshift and S3 credentials have to be provided.
+
+## License
+
+MIT licensed, see [LICENSE](./LICENSE) file.
