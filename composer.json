@@ -31,11 +31,13 @@
         "tests-load-s3": "php ./tests/loadS3.php",
         "tests-redshift": "phpunit tests/Redshift",
         "tests-snowflake": "phpunit tests/Snowflake",
+        "tests-unit": "phpunit tests/Helper",
         "build": [
             "@composer validate --strict",
             "@composer install",
             "@phpcs",
-            "@phpstan"
+            "@phpstan",
+            "@tests-unit"
         ],
         "e2e": [
             "@tests-load-s3",

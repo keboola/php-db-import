@@ -11,7 +11,7 @@ use PHPUnitRetry\RetryTrait;
 
 class ConnectionTest extends \PHPUnit\Framework\TestCase
 {
-    use RetryTrait;
+//    use RetryTrait;
 
     public function testConnectionWithoutDbAndWarehouse(): void
     {

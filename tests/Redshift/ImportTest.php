@@ -449,8 +449,8 @@ class ImportTest extends \PHPUnit\Framework\TestCase
 
         $importedData = $this->connection->query("SELECT id, name, price FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY id ASC")->fetchAll();
         $this->assertCount(3, $importedData);
-        $this->assertTrue($importedData[1]['name'] === null);
-        $this->assertTrue($importedData[2]['price'] === null);
+        $this->assertNull($importedData[1]['name']);
+        $this->assertNull($importedData[2]['price']);
     }
 
     public function testNullifyCsvIncremental(): void
