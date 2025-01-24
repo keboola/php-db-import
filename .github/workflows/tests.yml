@@ -42,9 +42,9 @@ jobs:
       -
         name: Build & Run tests
         run: |
-          docker-compose build --build-arg PHP_VERSION=${{ matrix.php-version }} tests
-          docker-compose run --rm tests php -v
-          docker-compose run --rm tests composer build
+          docker compose build --build-arg PHP_VERSION=${{ matrix.php-version }} tests
+          docker compose run --rm tests php -v
+          docker compose run --rm tests composer build
   test_e2e:
     needs: [build]
     concurrency: tests
@@ -56,6 +56,6 @@ jobs:
       -
         name: Build & Run tests
         run: |
-          docker-compose build --build-arg PHP_VERSION=8.1 tests
-          docker-compose run --rm tests php -v
-          docker-compose run --rm tests composer ci
+          docker compose build --build-arg PHP_VERSION=8.1 tests
+          docker compose run --rm tests php -v
+          docker compose run --rm tests composer ci
