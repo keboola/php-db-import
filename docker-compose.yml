@@ -3,6 +3,7 @@ version: "3"
 services:
 
   tests: &tests
+    platform: linux/amd64
     build: .
     image: keboola/php-db-import
     volumes:
