@@ -16,6 +16,8 @@ class Connection
      */
     private $connection;
 
+    private ?string $certPath = null;
+
     /**
      * The connection constructor accepts the following options:
      * - host (string, required) - hostname
@@ -33,11 +35,11 @@ class Connection
      */
     public function __construct(array $options)
     {
-        $requiredOptions = [
-            'host',
-            'user',
-            'password',
-        ];
+        $requiredOptions = ['host', 'user'];
+
+        if (empty($options['password']) && empty($options['privKeyFilePath'])) {
+            throw new Exception('Either "password" or "privateKeyString" must be provided.');
+        }
 
         $missingOptions = array_diff($requiredOptions, array_keys($options));
         if (!empty($missingOptions)) {
@@ -76,13 +78,23 @@ class Connection
 
         $dsn .= ';CLIENT_SESSION_KEEP_ALIVE=TRUE';
 
+        if (!empty($options['privKeyFilePath'])) {
+            $authString = '';
+            $this->certPath = $this->prepareCertFileForConnection($options['privKeyFilePath']);
+            $dsn .= ";AUTHENTICATOR=SNOWFLAKE_JWT";
+            $dsn .= ";PRIV_KEY_FILE=" . $this->certPath;
+            $dsn .= ";UID=" . $options['user'];
+        } else {
+            $authString = $options['password'];
+        }
+
         $attemptNumber = 0;
         do {
             if ($attemptNumber > 0) {
                 sleep(pow(2, $attemptNumber));
             }
             try {
-                $this->connection = odbc_connect($dsn, $options['user'], $options['password']);
+                $this->connection = odbc_connect($dsn, $options['user'], $authString);
 
                 if (isset($options['runId'])) {
                     $queryTag = [
@@ -104,9 +116,30 @@ class Connection
         } while ($this->connection === null);
     }
 
+    public function prepareCertFileForConnection(mixed $privateKeyPem)
+    {
+        // 1. Převod privátního klíče na PKCS#8 (pokud už není)
+        $privateKeyResource = openssl_pkey_get_private($privateKeyPem);
+        if (!$privateKeyResource) {
+            throw new Exception('Privátní klíč nie je validný.');
+        }
+
+        $pemPKCS8 = '';
+        openssl_pkey_export($privateKeyResource, $pemPKCS8);
+
+        $certFile = tempnam(sys_get_temp_dir(), 'snowflake_key_' . uniqid()) . '.p8';
+        file_put_contents($certFile, $pemPKCS8);
+
+        return $certFile;
+    }
+
     public function __destruct()
     {
         $this->disconnect();
+
+        if ($this->certPath !== null && file_exists($this->certPath)) {
+            unlink($this->certPath);
+        }
     }
 
     public function quoteIdentifier(string $value): string
