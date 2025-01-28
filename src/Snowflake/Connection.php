@@ -37,8 +37,8 @@ class Connection
     {
         $requiredOptions = ['host', 'user'];
 
-        if (empty($options['password']) && empty($options['privKeyFilePath'])) {
-            throw new Exception('Either "password" or "privateKeyString" must be provided.');
+        if (empty($options['password']) && empty($options['privateKey'])) {
+            throw new Exception('Either "password" or "privateKey" must be provided.');
         }
 
         $missingOptions = array_diff($requiredOptions, array_keys($options));
@@ -78,9 +78,9 @@ class Connection
 
         $dsn .= ';CLIENT_SESSION_KEEP_ALIVE=TRUE';
 
-        if (!empty($options['privKeyFilePath'])) {
+        if (!empty($options['privateKey'])) {
             $authString = '';
-            $this->certPath = $this->prepareCertFileForConnection($options['privKeyFilePath']);
+            $this->certPath = $this->prepareCertFileForConnection($options['privateKey']);
             $dsn .= ";AUTHENTICATOR=SNOWFLAKE_JWT";
             $dsn .= ";PRIV_KEY_FILE=" . $this->certPath;
             $dsn .= ";UID=" . $options['user'];
@@ -118,10 +118,9 @@ class Connection
 
     public function prepareCertFileForConnection(mixed $privateKeyPem)
     {
-        // 1. Převod privátního klíče na PKCS#8 (pokud už není)
         $privateKeyResource = openssl_pkey_get_private($privateKeyPem);
         if (!$privateKeyResource) {
-            throw new Exception('Privátní klíč nie je validný.');
+            throw new Exception('Private key is not valid');
         }
 
         $pemPKCS8 = '';
