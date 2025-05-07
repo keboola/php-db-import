@@ -64,7 +64,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
         $this->connection->fetch(sprintf(
             'SELECT * FROM %s.%s',
             $this->connection->quoteIdentifier($this->destSchemaName),
-            $this->connection->quoteIdentifier('bigData')
+            $this->connection->quoteIdentifier('bigData'),
         ), [], $callback);
 
         $this->assertEquals($generateRowsCount, $results['count']);
@@ -101,7 +101,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
         array $expected,
         string $tableName,
         string $type = 'csv',
-        array $importOptions = ['useTimestamp' => true]
+        array $importOptions = ['useTimestamp' => true],
     ): void {
         $import = $this->getImport($type);
         if ($type !== 'manifest') {
@@ -141,7 +141,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
         array $columns,
         array $expected,
         string $tableName,
-        array $importOptions = ['useTimestamp' => true]
+        array $importOptions = ['useTimestamp' => true],
     ): void {
 
         // initial import
@@ -376,12 +376,12 @@ class ImportTest extends \PHPUnit\Framework\TestCase
         } catch (Exception $e) {
             $this->assertStringContainsString(
                 'odbc_execute(): SQL error: Number of columns in file (12) does not match that of the corresponding table (2)',
-                $e->getMessage()
+                $e->getMessage(),
             );
             $this->assertNotEquals(
                 Exception::COLUMNS_COUNT_NOT_MATCH,
                 $e->getCode(),
-                'Should not be the handled error, but DB error instead'
+                'Should not be the handled error, but DB error instead',
             );
         }
     }
@@ -409,7 +409,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                 [
                     'schemaName' => $this->sourceSchemaName,
                     'tableName' => 'names',
-                ]
+                ],
             );
             $this->fail('exception should be thrown');
         } catch (Exception $e) {
@@ -445,7 +445,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             'INSERT INTO "%s"."out.csv_2Cols" VALUES
                   (\'x\', \'y\', \'%s\');',
             $this->destSchemaName,
-            $now
+            $now,
         ));
 
         $this->connection->query(sprintf('CREATE TABLE "%s"."out.csv_2Cols" (
@@ -474,7 +474,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                 "_timestamp" TIMESTAMP_NTZ,
                 PRIMARY KEY("id")
             )',
-            $this->destSchemaName
+            $this->destSchemaName,
         ));
 
         $this->connection->query(sprintf(
@@ -493,7 +493,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                 "idApp" varchar(65535) NOT NULL,
                 PRIMARY KEY("id")
             )',
-            $this->destSchemaName
+            $this->destSchemaName,
         ));
 
         $this->connection->query(sprintf(
@@ -502,7 +502,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
               "table" varchar(65535) NOT NULL DEFAULT \'\',
               "_timestamp" TIMESTAMP_NTZ
             );',
-            $this->destSchemaName
+            $this->destSchemaName,
         ));
 
         $this->connection->query(sprintf(
@@ -513,7 +513,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
               "boolCol" varchar NOT NULL,
               "_timestamp" TIMESTAMP_NTZ
             );',
-            $this->destSchemaName
+            $this->destSchemaName,
         ));
 
         $this->connection->query(sprintf(
@@ -523,14 +523,14 @@ class ImportTest extends \PHPUnit\Framework\TestCase
               "floatCol" float NOT NULL,
               "boolCol" boolean NOT NULL
             );',
-            $this->sourceSchemaName
+            $this->sourceSchemaName,
         ));
 
         $this->connection->query(sprintf(
             'INSERT INTO "%s"."types" VALUES 
               (\'a\', \'10.5\', \'0.3\', true)
            ;',
-            $this->sourceSchemaName
+            $this->sourceSchemaName,
         ));
 
         $this->connection->query(sprintf(
@@ -538,7 +538,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
               "col1" VARCHAR NOT NULL DEFAULT \'\',
               "col2" VARCHAR NOT NULL DEFAULT \'\'
             );',
-            $this->destSchemaName
+            $this->destSchemaName,
         ));
 
         $this->connection->query(sprintf(
@@ -548,7 +548,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
               "_timestamp" TIMESTAMP_NTZ,
               PRIMARY KEY("id")
             );',
-            $this->destSchemaName
+            $this->destSchemaName,
         ));
 
         $this->connection->query(sprintf(
@@ -561,14 +561,14 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             "_timestamp" TIMESTAMP_NTZ,
             PRIMARY KEY("VisitID","Value","MenuItem")
             );',
-            $this->destSchemaName
+            $this->destSchemaName,
         ));
     }
 
 
     private function getImport(
         string $type = 'csv',
-        bool $skipColumnsCheck = false
+        bool $skipColumnsCheck = false,
     ): ImportInterface {
         switch ($type) {
             case 'csv':
@@ -578,7 +578,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                     getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
                     $this->destSchemaName,
-                    $skipColumnsCheck
+                    $skipColumnsCheck,
                 );
             case 'manifest':
                 return new CsvManifestImport(
@@ -587,13 +587,13 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                     getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
                     $this->destSchemaName,
-                    $skipColumnsCheck
+                    $skipColumnsCheck,
                 );
             case 'copy':
                 return new CopyImport(
                     $this->connection,
                     $this->destSchemaName,
-                    $skipColumnsCheck
+                    $skipColumnsCheck,
                 );
             default:
                 throw new \Exception("Import type $type not found");
@@ -617,7 +617,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify" ORDER BY "id" ASC');
@@ -646,7 +646,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify" ORDER BY "id" ASC');
@@ -676,7 +676,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify" ORDER BY "id" ASC');
@@ -708,7 +708,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify" ORDER BY "id" ASC');
@@ -741,7 +741,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify"');
@@ -790,7 +790,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify"');
@@ -836,7 +836,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->fetchAll('SELECT "id", "name", "price" FROM "nullify" ORDER BY "id" ASC');
@@ -864,7 +864,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             'SELECT %s FROM "%s"."%s"',
             implode(', ', $columnsSql),
             $schemaName,
-            $tableName
+            $tableName,
         );
 
         return array_map(function ($row) {
@@ -904,7 +904,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
         return $this->connection->fetchAll(sprintf(
             'SHOW TABLES LIKE %s IN SCHEMA %s',
             "'" . addslashes(TableHelper::STAGING_TABLE_PREFIX) . "%'",
-            $this->connection->quoteIdentifier($schemaName)
+            $this->connection->quoteIdentifier($schemaName),
         ));
     }
 }

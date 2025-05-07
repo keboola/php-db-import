@@ -27,7 +27,7 @@ abstract class CsvImportBase extends ImportBase
         string $s3secret,
         string $s3region,
         string $schemaName,
-        bool $skipColumnsCheck = false
+        bool $skipColumnsCheck = false,
     ) {
         parent::__construct($connection, $schemaName, $skipColumnsCheck);
         $this->s3key = $s3key;
@@ -41,7 +41,7 @@ abstract class CsvImportBase extends ImportBase
             throw new Exception(
                 'Invalid CSV params. Either enclosure or escapedBy must be specified for Snowflake backend but not both.',
                 Exception::INVALID_CSV_PARAMS,
-                null
+                null,
             );
         }
 
@@ -67,14 +67,14 @@ abstract class CsvImportBase extends ImportBase
     {
         $csvOptions = $this->createCopyCommandCsvOptions(
             $csvFile,
-            $this->getIgnoreLines()
+            $this->getIgnoreLines(),
         );
         $this->executeCopyCommand(
             $this->generateSingleFileCopyCommand(
                 $stableName,
                 $csvFile->getPathname(),
-                $csvOptions
-            )
+                $csvOptions,
+            ),
         );
     }
 
@@ -82,13 +82,13 @@ abstract class CsvImportBase extends ImportBase
     {
         $csvOptions = $this->createCopyCommandCsvOptions(
             $csvFile,
-            $this->getIgnoreLines()
+            $this->getIgnoreLines(),
         );
         $parsedS3Path = parse_url($csvFile->getPathname());
 
         $slicesPaths = $this->getFilesToDownloadFromManifest(
             $parsedS3Path['host'],
-            $parsedS3Path['path']
+            $parsedS3Path['path'],
         );
         foreach (array_chunk($slicesPaths, self::SLICED_FILES_CHUNK_SIZE) as $slicesChunk) {
             $this->executeCopyCommand(
@@ -96,8 +96,8 @@ abstract class CsvImportBase extends ImportBase
                     $tableName,
                     $parsedS3Path['host'],
                     $slicesChunk,
-                    $csvOptions
-                )
+                    $csvOptions,
+                ),
             );
         }
     }
@@ -124,8 +124,8 @@ abstract class CsvImportBase extends ImportBase
             $this->quote($this->s3region),
             implode(
                 ' ',
-                $csvOptions
-            )
+                $csvOptions,
+            ),
         );
     }
 
@@ -145,7 +145,7 @@ abstract class CsvImportBase extends ImportBase
             $this->quote($this->s3region),
             implode(
                 ' ',
-                $csvOptions
+                $csvOptions,
             ),
             implode(
                 ', ',
@@ -153,9 +153,9 @@ abstract class CsvImportBase extends ImportBase
                     function ($file) use ($s3Prefix) {
                         return $this->quote(str_replace($s3Prefix . '/', '', $file));
                     },
-                    $slicesPaths
-                )
-            )
+                    $slicesPaths,
+                ),
+            ),
         );
     }
 

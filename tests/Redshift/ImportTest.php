@@ -36,7 +36,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 PDO::MYSQL_ATTR_LOCAL_INFILE => true,
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            ]
+            ],
         );
         $this->initData();
     }
@@ -228,7 +228,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
         array $expected,
         string $tableName,
         string $type = 'csv',
-        array $importOptions = ['useTimestamp' => true]
+        array $importOptions = ['useTimestamp' => true],
     ): void {
 
         $import = $this->getImport($type);
@@ -274,7 +274,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                 'row_number',
             ],
             [new CsvFile("s3://{$s3bucket}/column-name-row-number.csv")],
-            ['useTimestamp' => false]
+            ['useTimestamp' => false],
         );
     }
 
@@ -291,7 +291,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
         array $columns,
         array $expected,
         string $tableName,
-        array $importOptions = ['useTimestamp' => true]
+        array $importOptions = ['useTimestamp' => true],
     ): void {
         // initial import
         $import = $this->getImport();
@@ -341,7 +341,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                     'ACCEPTANYDATE',
                     'TRUNCATECOLUMNS',
                 ],
-            ]
+            ],
         );
 
         $importedData = $this->connection->query("SELECT valid_from FROM \"{$this->destSchemaName}\".\"dates\"")->fetchAll();
@@ -375,7 +375,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             ",
             implode(',', array_map(function ($number) {
                 return "($number, $number)";
-            }, range(0, 10000)))
+            }, range(0, 10000))),
         ));
 
         $this->connection->query('set statement_timeout to 1;');
@@ -403,7 +403,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                 [
                     'schemaName' => $this->sourceSchemaName,
                     'tableName' => 'names',
-                ]
+                ],
             );
             $this->fail('exception should be thrown');
         } catch (Exception $e) {
@@ -444,7 +444,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->query("SELECT id, name, price FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY id ASC")->fetchAll();
@@ -472,7 +472,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->query("SELECT id, name, price FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY id ASC")->fetchAll();
@@ -503,7 +503,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->query("SELECT id, name, price FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY id ASC")->fetchAll();
@@ -535,7 +535,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->query("SELECT id, name, price FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY id ASC")->fetchAll();
@@ -570,7 +570,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->query("SELECT \"id\", \"name\", \"price\" FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY \"id\" ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -602,7 +602,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
             [
                 'useTimestamp' => false,
                 'convertEmptyValuesToNull' => ['name', 'price'],
-            ]
+            ],
         );
 
         $importedData = $this->connection->query("SELECT \"id\", \"name\", \"price\" FROM \"{$this->destSchemaName}\".\"nullify\" ORDER BY \"id\" ASC")->fetchAll(PDO::FETCH_ASSOC);
@@ -737,7 +737,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                     getenv('AWS_ACCESS_KEY_ID'),
                     getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
-                    $this->destSchemaName
+                    $this->destSchemaName,
                 );
                 break;
             case 'csv':
@@ -746,7 +746,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
                     getenv('AWS_ACCESS_KEY_ID'),
                     getenv('AWS_SECRET_ACCESS_KEY'),
                     getenv('AWS_REGION'),
-                    $this->destSchemaName
+                    $this->destSchemaName,
                 );
             case 'copy':
                 return new CopyImportRedshift(

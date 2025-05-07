@@ -18,8 +18,8 @@ class CsvManifestImportRedshift extends RedshiftBaseCsv
                     [
                         'isManifest' => true,
                     ],
-                    $options
-                )
+                    $options,
+                ),
             );
         }
     }

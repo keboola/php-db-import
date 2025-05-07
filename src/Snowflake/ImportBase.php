@@ -20,15 +20,12 @@ abstract class ImportBase implements ImportInterface
 
     protected string $schemaName;
 
-    /** @var array  */
     protected array $warnings = [];
 
     protected int $importedRowsCount = 0;
 
-    /** @var array  */
     private array $timers = [];
 
-    /** @var array  */
     private array $importedColumns = [];
 
     private int $ignoreLines = 0;
@@ -42,7 +39,7 @@ abstract class ImportBase implements ImportInterface
     public function __construct(
         Connection $connection,
         string $schemaName,
-        bool $skipColumnsCheck = false
+        bool $skipColumnsCheck = false,
     ) {
         $this->connection = $connection;
         $this->schemaName = $schemaName;
@@ -63,14 +60,14 @@ abstract class ImportBase implements ImportInterface
                     $tableName,
                     $columns,
                     isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                    isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : []
+                    isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : [],
                 );
             } else {
                 Debugger::timer('dedup');
                 $this->dedupe(
                     $stagingTableName,
                     $columns,
-                    $this->connection->getTablePrimaryKey($this->schemaName, $tableName)
+                    $this->connection->getTablePrimaryKey($this->schemaName, $tableName),
                 );
                 $this->addTimer('dedup', Debugger::timer('dedup'));
                 $this->insertAllIntoTargetTable(
@@ -78,7 +75,7 @@ abstract class ImportBase implements ImportInterface
                     $tableName,
                     $columns,
                     isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                    isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : []
+                    isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : [],
                 );
             }
 
@@ -103,7 +100,7 @@ abstract class ImportBase implements ImportInterface
         if (count($columnsToImport) === 0) {
             throw new Exception(
                 'No columns found in CSV file.',
-                Exception::NO_COLUMNS
+                Exception::NO_COLUMNS,
             );
         }
 
@@ -114,7 +111,7 @@ abstract class ImportBase implements ImportInterface
             if (!empty($moreColumns)) {
                 throw new Exception(
                     'Columns doest not match. Non existing columns: ' . implode(', ', $moreColumns),
-                    Exception::COLUMNS_COUNT_NOT_MATCH
+                    Exception::COLUMNS_COUNT_NOT_MATCH,
                 );
             }
         }
@@ -138,14 +135,14 @@ abstract class ImportBase implements ImportInterface
                 return sprintf(
                     'IFF(%s = \'\', NULL, %s)',
                     $this->quoteIdentifier($column),
-                    $this->quoteIdentifier($column)
+                    $this->quoteIdentifier($column),
                 );
             }
 
             return sprintf(
                 "COALESCE(%s, '') AS %s",
                 $this->quoteIdentifier($column),
-                $this->quoteIdentifier($column)
+                $this->quoteIdentifier($column),
             );
         }, $columns));
 
@@ -187,13 +184,13 @@ abstract class ImportBase implements ImportInterface
                         '%s = IFF("src".%s = \'\', NULL, "src".%s)',
                         $this->quoteIdentifier($columnName),
                         $this->quoteIdentifier($columnName),
-                        $this->quoteIdentifier($columnName)
+                        $this->quoteIdentifier($columnName),
                     );
                 } else {
                     $columnsSet[] = sprintf(
                         '%s = COALESCE("src".%s, \'\')',
                         $this->quoteIdentifier($columnName),
-                        $this->quoteIdentifier($columnName)
+                        $this->quoteIdentifier($columnName),
                     );
                 }
             }
@@ -210,7 +207,7 @@ abstract class ImportBase implements ImportInterface
                 $pkWhereSql[] = sprintf(
                     '"dest".%s = COALESCE("src".%s, \'\')',
                     $this->quoteIdentifier($pkColumn),
-                    $this->quoteIdentifier($pkColumn)
+                    $this->quoteIdentifier($pkColumn),
                 );
             }
 
@@ -221,7 +218,7 @@ abstract class ImportBase implements ImportInterface
                 return sprintf(
                     'COALESCE(TO_VARCHAR("dest".%s), \'\') != COALESCE("src".%s, \'\')',
                     $this->quoteIdentifier($columnName),
-                    $this->quoteIdentifier($columnName)
+                    $this->quoteIdentifier($columnName),
                 );
             }, $columns);
             $sql .= ' AND (' . implode(' OR ', $columnsComparsionSql) . ') ';
@@ -258,12 +255,12 @@ abstract class ImportBase implements ImportInterface
                 $columnsSetSql[] = sprintf(
                     'IFF("src".%s = \'\', NULL, %s)',
                     $this->quoteIdentifier($columnName),
-                    $this->quoteIdentifier($columnName)
+                    $this->quoteIdentifier($columnName),
                 );
             } else {
                 $columnsSetSql[] = sprintf(
                     'COALESCE("src".%s, \'\')',
-                    $this->quoteIdentifier($columnName)
+                    $this->quoteIdentifier($columnName),
                 );
             }
         }
@@ -285,7 +282,7 @@ abstract class ImportBase implements ImportInterface
     {
         $this->dropTable($targetTableName);
         $this->connection->query(
-            "ALTER TABLE {$this->nameWithSchemaEscaped($sourceTableName)} RENAME TO {$this->nameWithSchemaEscaped($targetTableName)}"
+            "ALTER TABLE {$this->nameWithSchemaEscaped($sourceTableName)} RENAME TO {$this->nameWithSchemaEscaped($targetTableName)}",
         );
     }
 
@@ -302,7 +299,7 @@ abstract class ImportBase implements ImportInterface
         return sprintf(
             '%s.%s',
             $this->connection->quoteIdentifier($schemaName),
-            $this->connection->quoteIdentifier($tableName)
+            $this->connection->quoteIdentifier($tableName),
         );
     }
 
@@ -329,7 +326,7 @@ abstract class ImportBase implements ImportInterface
             }, $columns)),
             $pkSql,
             $pkSql,
-            $this->nameWithSchemaEscaped($tableName)
+            $this->nameWithSchemaEscaped($tableName),
         );
 
         $sql .= ' AS a WHERE a."_row_number_" = 1';
@@ -354,7 +351,7 @@ abstract class ImportBase implements ImportInterface
         $this->connection->query(sprintf(
             'CREATE TEMPORARY TABLE %s (%s)',
             $this->nameWithSchemaEscaped($tempName),
-            implode(', ', $columnsSql)
+            implode(', ', $columnsSql),
         ));
 
         return $tempName;

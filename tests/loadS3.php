@@ -57,7 +57,7 @@ for ($i = 0; $i <= 1500; $i++) {
     $sliceName = sprintf('sliced.csv_%d', $i);
     file_put_contents(
         $source . '/manifests/2cols-large/' . $sliceName,
-        "\"a\",\"b\"\n"
+        "\"a\",\"b\"\n",
     );
     $largeManifest['entries'][] = [
         'url' => sprintf('s3://%s/manifests/2cols-large/%s', $bucket, $sliceName),
@@ -66,7 +66,7 @@ for ($i = 0; $i <= 1500; $i++) {
 }
 file_put_contents(
     $source . '/manifests/2cols-large/sliced.csvmanifest',
-    json_encode($largeManifest)
+    json_encode($largeManifest),
 );
 
 // Create a transfer object.

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\Db\Import\Snowflake;
 
 use Doctrine\DBAL\Connection as DoctrineConnection;

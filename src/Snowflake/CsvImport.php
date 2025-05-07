@@ -12,7 +12,7 @@ class CsvImport extends CsvImportBase
             $this->importTableFromCsv(
                 $stagingTableName,
                 $csvFile,
-                false
+                false,
             );
         }
     }

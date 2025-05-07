@@ -14,7 +14,6 @@ class MessageTransformation
 
     private int $errorCode;
 
-    /** @var array */
     private array $argumentIndexes;
 
     public function __construct(string $pattern, string $message, int $errorCode, array $argumentIndexes = [])

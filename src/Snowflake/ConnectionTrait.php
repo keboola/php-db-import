@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Keboola\Db\Import\Snowflake;
 
 use Keboola\Db\Import\Exception;
@@ -25,7 +27,7 @@ trait ConnectionTrait
         $tables = $this->fetchAll(sprintf(
             'SHOW TABLES LIKE %s IN SCHEMA %s',
             "'" . addslashes($tableName) . "'",
-            $this->quoteIdentifier($schemaName)
+            $this->quoteIdentifier($schemaName),
         ));
 
         foreach ($tables as $table) {
@@ -42,7 +44,7 @@ trait ConnectionTrait
         return $this->fetchAll(sprintf(
             'SHOW COLUMNS IN %s.%s',
             $this->quoteIdentifier($schemaName),
-            $this->quoteIdentifier($tableName)
+            $this->quoteIdentifier($tableName),
         ));
     }
 
@@ -58,7 +60,7 @@ trait ConnectionTrait
         $cols = $this->fetchAll(sprintf(
             'DESC TABLE %s.%s',
             $this->quoteIdentifier($schemaName),
-            $this->quoteIdentifier($tableName)
+            $this->quoteIdentifier($tableName),
         ));
         $pkCols = [];
         foreach ($cols as $col) {

@@ -84,8 +84,8 @@ class ConnectionTest extends \PHPUnit\Framework\TestCase
                 'CREATE TABLE "%s"."%s" ("col1" varchar(%d));',
                 $destSchemaName,
                 'TEST',
-                $size
-            )
+                $size,
+            ),
         );
 
         $this->expectException(Import\Exception::class);
@@ -96,8 +96,8 @@ class ConnectionTest extends \PHPUnit\Framework\TestCase
                 'INSERT INTO "%s"."%s" VALUES(\'%s\');',
                 $destSchemaName,
                 'TEST',
-                implode('', array_fill(0, $size + 1, 'x'))
-            )
+                implode('', array_fill(0, $size + 1, 'x')),
+            ),
         );
     }
 
@@ -143,7 +143,7 @@ class ConnectionTest extends \PHPUnit\Framework\TestCase
                 WHERE QUERY_TEXT = \'CREATE TABLE "' . $destSchemaName . '" ("col1" NUMBER);\' 
                 ORDER BY START_TIME DESC 
                 LIMIT 1
-            '
+            ',
         );
 
         $this->assertEquals('{"runId":"myRunId"}', $queries[0]['QUERY_TAG']);

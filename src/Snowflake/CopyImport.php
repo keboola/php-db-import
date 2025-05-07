@@ -25,7 +25,7 @@ class CopyImport extends ImportBase
             ', ',
             array_map(function ($column) {
                 return $this->quoteIdentifier($column);
-            }, $columns)
+            }, $columns),
         ) . ') ';
 
         $sql .= 'SELECT ' . implode(',', array_map(function ($column) {
@@ -38,7 +38,7 @@ class CopyImport extends ImportBase
             $rows = $this->connection->fetchAll(sprintf(
                 'SELECT COUNT(*) as "count" from %s.%s',
                 $this->connection->quoteIdentifier($this->schemaName),
-                $this->connection->quoteIdentifier($stagingTableName)
+                $this->connection->quoteIdentifier($stagingTableName),
             ));
             $this->importedRowsCount += (int) $rows[0]['count'];
 

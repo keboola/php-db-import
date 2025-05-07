@@ -17,15 +17,12 @@ abstract class RedshiftBase implements ImportInterface
 
     protected PDO $connection;
 
-    /** @var array  */
     protected array $warnings = [];
 
     private int $importedRowsCount = 0;
 
-    /** @var array  */
     private array $timers = [];
 
-    /** @var array  */
     private array $importedColumns = [];
 
     private int $ignoreLines = 0;
@@ -63,7 +60,7 @@ abstract class RedshiftBase implements ImportInterface
                 $primaryKey,
                 $columns,
                 isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : []
+                isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : [],
             );
         } else {
             Debugger::timer('dedup');
@@ -75,7 +72,7 @@ abstract class RedshiftBase implements ImportInterface
                 $primaryKey,
                 $columns,
                 isset($options['useTimestamp']) ? $options['useTimestamp'] : true,
-                isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : []
+                isset($options['convertEmptyValuesToNull']) ? $options['convertEmptyValuesToNull'] : [],
             );
         }
         $this->dropTempTable($stagingTableName);
@@ -95,7 +92,7 @@ abstract class RedshiftBase implements ImportInterface
         if (count($columnsToImport) === 0) {
             throw new Exception(
                 'No columns found in CSV file.',
-                Exception::NO_COLUMNS
+                Exception::NO_COLUMNS,
             );
         }
 
@@ -113,7 +110,7 @@ abstract class RedshiftBase implements ImportInterface
         array $primaryKey,
         array $columns,
         bool $useTimestamp = true,
-        array $convertEmptyValuesToNull = []
+        array $convertEmptyValuesToNull = [],
     ): void {
         // create table same as target table
         $newTargetTableName = $this->createTableFromSourceTable($targetTableName, $primaryKey, $this->schemaName);
@@ -151,7 +148,7 @@ abstract class RedshiftBase implements ImportInterface
             $this->query(sprintf(
                 'ALTER TABLE %s RENAME TO %s',
                 $newTargetTableNameWithSchema,
-                $this->tableNameEscaped($targetTableName)
+                $this->tableNameEscaped($targetTableName),
             ));
             $this->connection->commit();
         } catch (Throwable $e) {
@@ -169,7 +166,7 @@ abstract class RedshiftBase implements ImportInterface
         array $primaryKey,
         array $columns,
         bool $useTimestamp = true,
-        array $convertEmptyValuesToNull = []
+        array $convertEmptyValuesToNull = [],
     ): void {
         $this->connection->beginTransaction();
         $nowFormatted = $this->getNowFormatted();
@@ -187,7 +184,7 @@ abstract class RedshiftBase implements ImportInterface
                     '%s = %s.%s',
                     $this->quoteIdentifier($columnName),
                     $stagingTableNameEscaped,
-                    $this->quoteIdentifier($columnName)
+                    $this->quoteIdentifier($columnName),
                 );
             }
 
@@ -205,7 +202,7 @@ abstract class RedshiftBase implements ImportInterface
                     $targetTableNameWithSchema,
                     $this->quoteIdentifier($pkColumn),
                     $stagingTableNameEscaped,
-                    $this->quoteIdentifier($pkColumn)
+                    $this->quoteIdentifier($pkColumn),
                 );
             }
 
@@ -214,14 +211,14 @@ abstract class RedshiftBase implements ImportInterface
             // update only changed rows - mysql TIMESTAMP ON UPDATE behaviour simulation
             $columnsComparsionSql = array_map(function ($columnName) use (
                 $targetTableNameWithSchema,
-                $stagingTableNameEscaped
+                $stagingTableNameEscaped,
             ) {
                 return sprintf(
                     "COALESCE(CAST(%s.%s as varchar), '') != COALESCE(CAST(%s.%s as varchar), '')",
                     $targetTableNameWithSchema,
                     $this->quoteIdentifier($columnName),
                     $stagingTableNameEscaped,
-                    $this->quoteIdentifier($columnName)
+                    $this->quoteIdentifier($columnName),
                 );
             }, $columns);
             $sql .= ' AND (' . implode(' OR ', $columnsComparsionSql) . ') ';
@@ -261,13 +258,13 @@ abstract class RedshiftBase implements ImportInterface
                     $stagingTableNameEscaped,
                     $this->quoteIdentifier($columnName),
                     $stagingTableNameEscaped,
-                    $this->quoteIdentifier($columnName)
+                    $this->quoteIdentifier($columnName),
                 );
             } else {
                 $columnsSetSql[] = sprintf(
                     '%s.%s',
                     $stagingTableNameEscaped,
-                    $this->quoteIdentifier($columnName)
+                    $this->quoteIdentifier($columnName),
                 );
             }
         }
@@ -329,7 +326,7 @@ abstract class RedshiftBase implements ImportInterface
             }, $columns)),
             $pkSql,
             $pkSql,
-            $this->tableNameEscaped($inputTempTableName)
+            $this->tableNameEscaped($inputTempTableName),
         );
 
         $sql .= ' AS a WHERE a."_row_number_" = 1';
@@ -346,14 +343,14 @@ abstract class RedshiftBase implements ImportInterface
     private function createTemporaryTableFromDestinationTable(
         string $targetTableName,
         array $primaryKey,
-        ?string $schemaName = null
+        ?string $schemaName = null,
     ): string {
         $tempName = TableHelper::generateStagingTableName();
 
         $this->query(sprintf(
             'CREATE TEMPORARY TABLE %s (LIKE %s)',
             $this->tableNameEscaped($tempName),
-            $schemaName ? $this->nameWithSchemaEscaped($targetTableName, $schemaName) : $this->tableNameEscaped($targetTableName)
+            $schemaName ? $this->nameWithSchemaEscaped($targetTableName, $schemaName) : $this->tableNameEscaped($targetTableName),
         ));
 
         // PK is not copied - add it to the table
@@ -367,7 +364,7 @@ abstract class RedshiftBase implements ImportInterface
                 $tableIdentifier,
                 implode(', ', array_map(function ($columnName) {
                     return $this->quoteIdentifier($columnName);
-                }, $primaryKey))
+                }, $primaryKey)),
             ));
         }
 
@@ -381,7 +378,7 @@ abstract class RedshiftBase implements ImportInterface
         $this->query(sprintf(
             'CREATE TABLE %s (LIKE %s)',
             $this->nameWithSchemaEscaped($tempName, $schemaName),
-            $this->nameWithSchemaEscaped($sourceTableName, $schemaName)
+            $this->nameWithSchemaEscaped($sourceTableName, $schemaName),
         ));
 
         // PK is not copied - add it to the table
@@ -395,7 +392,7 @@ abstract class RedshiftBase implements ImportInterface
                 $tableIdentifier,
                 implode(', ', array_map(function ($columnName) {
                     return $this->quoteIdentifier($columnName);
-                }, $primaryKey))
+                }, $primaryKey)),
             ));
         }
 
@@ -423,7 +420,7 @@ abstract class RedshiftBase implements ImportInterface
     {
         return array_map(
             'strtolower',
-            array_keys($this->describeTable(strtolower($tableName), strtolower($this->schemaName)))
+            array_keys($this->describeTable(strtolower($tableName), strtolower($this->schemaName))),
         );
     }
 
