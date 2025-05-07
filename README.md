@@ -44,7 +44,7 @@ AWS_REGION=
 
 Upload test fixtures to S3:
 ```
-docker-compose run php php ./tests/loadS3.php
+docker compose run php php ./tests/loadS3.php
 ```
 
 ### Redshift settings
@@ -76,7 +76,7 @@ GRANT ROLE "KEBOOLA_DB_IMPORT" TO USER "KEBOOLA_DB_IMPORT";
 Run tests with following command.
 
 ```
-docker-compose run --rm tests
+docker compose run --rm tests
 ```
 
 Redshift and S3 credentials have to be provided.
