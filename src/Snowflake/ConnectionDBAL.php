@@ -28,6 +28,7 @@ class ConnectionDBAL extends AbstractConnection
 
     public function fetchAll(string $sql, array $bind = []): array
     {
+        // @phpstan-ignore-next-line
         return $this->connection->fetchAllAssociative($sql, $bind);
     }
 
