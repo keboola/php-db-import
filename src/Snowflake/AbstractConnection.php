@@ -6,8 +6,32 @@ namespace Keboola\Db\Import\Snowflake;
 
 use Keboola\Db\Import\Exception;
 
-trait ConnectionTrait
+abstract class AbstractConnection
 {
+    /**
+     * @param string $sql
+     * @param list<mixed>|array<string, mixed> $bind
+     */
+    abstract public function query(string $sql, array $bind = []): void;
+
+    /**
+     * @param string $sql
+     * @param array<int|string, mixed> $bind
+     * @return list<array<string,mixed>>
+     */
+    abstract public function fetchAll(string $sql, array $bind = []): array;
+
+    /**
+     * @param string $sql
+     * @param list<mixed>|array<string, mixed> $bind
+     * @param callable $callback
+     * @return void
+     * @throws \Doctrine\DBAL\Exception
+     */
+    abstract public function fetch(string $sql, array $bind, callable $callback): void;
+
+    abstract public function disconnect(): void;
+
     public function quoteIdentifier(string $value): string
     {
         $q = '"';
@@ -19,7 +43,7 @@ trait ConnectionTrait
      *  - name
      *  - bytes
      *  - rows
-     * @return array
+     * @return array<mixed>
      * @throws Exception
      */
     public function describeTable(string $schemaName, string $tableName): array
@@ -39,6 +63,11 @@ trait ConnectionTrait
         throw new Exception("Table $tableName not found in schema $schemaName");
     }
 
+    /**
+     * @param string $schemaName
+     * @param string $tableName
+     * @return array<array<string, mixed>>
+     */
     public function describeTableColumns(string $schemaName, string $tableName): array
     {
         return $this->fetchAll(sprintf(
@@ -48,6 +77,9 @@ trait ConnectionTrait
         ));
     }
 
+    /**
+     * @return array<string>
+     */
     public function getTableColumns(string $schemaName, string $tableName): array
     {
         return array_map(function ($column) {
@@ -55,6 +87,10 @@ trait ConnectionTrait
         }, $this->describeTableColumns($schemaName, $tableName));
     }
 
+    /**
+     * Returns primary key columns for the table
+     * @return array<int, string>
+     */
     public function getTablePrimaryKey(string $schemaName, string $tableName): array
     {
         $cols = $this->fetchAll(sprintf(

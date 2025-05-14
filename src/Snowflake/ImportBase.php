@@ -16,7 +16,7 @@ use Tracy\Debugger;
 abstract class ImportBase implements ImportInterface
 {
 
-    protected Connection $connection;
+    protected AbstractConnection $connection;
 
     protected string $schemaName;
 
@@ -37,7 +37,7 @@ abstract class ImportBase implements ImportInterface
     private bool $skipColumnsCheck;
 
     public function __construct(
-        Connection $connection,
+        AbstractConnection $connection,
         string $schemaName,
         bool $skipColumnsCheck = false,
     ) {

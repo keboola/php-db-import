@@ -22,7 +22,7 @@ abstract class CsvImportBase extends ImportBase
     protected string $s3region;
 
     public function __construct(
-        Connection $connection,
+        AbstractConnection $connection,
         string $s3key,
         string $s3secret,
         string $s3region,

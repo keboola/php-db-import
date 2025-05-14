@@ -6,10 +6,8 @@ namespace Keboola\Db\Import\Snowflake;
 
 use Doctrine\DBAL\Connection as DoctrineConnection;
 
-class ConnectionDBAL implements ConnectionInterface
+class ConnectionDBAL extends AbstractConnection
 {
-    use ConnectionTrait;
-
     private DoctrineConnection $connection;
 
     public function __construct(DoctrineConnection $connection)

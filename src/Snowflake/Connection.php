@@ -7,10 +7,8 @@ namespace Keboola\Db\Import\Snowflake;
 use Keboola\Db\Import\Exception;
 use Throwable;
 
-class Connection implements ConnectionInterface
+class Connection extends AbstractConnection
 {
-    use ConnectionTrait;
-
     private const SNOWFLAKE_APPLICATION = 'Keboola_Connection';
 
     /**
