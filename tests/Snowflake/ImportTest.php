@@ -869,7 +869,7 @@ class ImportTest extends \PHPUnit\Framework\TestCase
 
         return array_map(function ($row) {
             return array_map(function ($column) {
-                return base64_decode($column);
+                return base64_decode((string) $column);
             }, array_values($row));
         }, $this->connection->fetchAll($sql));
     }

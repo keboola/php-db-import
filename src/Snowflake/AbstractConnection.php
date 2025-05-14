@@ -17,7 +17,7 @@ abstract class AbstractConnection
     /**
      * @param string $sql
      * @param array<int|string, mixed> $bind
-     * @return list<array<string,mixed>>
+     * @return list<array<string,string|int|null>>
      */
     abstract public function fetchAll(string $sql, array $bind = []): array;
 
@@ -78,18 +78,21 @@ abstract class AbstractConnection
     }
 
     /**
-     * @return array<string>
+     * @return list<string>
      */
     public function getTableColumns(string $schemaName, string $tableName): array
     {
-        return array_map(function ($column) {
+        /** @var list<string> $tableColumns */
+        $tableColumns = array_map(function ($column) {
             return $column['column_name'];
         }, $this->describeTableColumns($schemaName, $tableName));
+
+        return $tableColumns;
     }
 
     /**
      * Returns primary key columns for the table
-     * @return array<int, string>
+     * @return list<string>
      */
     public function getTablePrimaryKey(string $schemaName, string $tableName): array
     {
@@ -98,9 +101,10 @@ abstract class AbstractConnection
             $this->quoteIdentifier($schemaName),
             $this->quoteIdentifier($tableName),
         ));
+        /** @var list<string> $pkCols */
         $pkCols = [];
         foreach ($cols as $col) {
-            if ($col['primary key'] !== 'Y') {
+            if ($col['primary key'] !== 'Y' || !is_string($col['name'])) {
                 continue;
             }
             $pkCols[] = $col['name'];
