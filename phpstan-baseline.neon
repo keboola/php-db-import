@@ -291,46 +291,6 @@ parameters:
 			path: src/Snowflake/Connection.php
 
 		-
-			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:describeTable\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Snowflake/Connection.php
-
-		-
-			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:describeTableColumns\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Snowflake/Connection.php
-
-		-
-			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:fetch\\(\\) has parameter \\$bind with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Snowflake/Connection.php
-
-		-
-			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:fetchAll\\(\\) has parameter \\$bind with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Snowflake/Connection.php
-
-		-
-			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:fetchAll\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Snowflake/Connection.php
-
-		-
-			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:getTableColumns\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Snowflake/Connection.php
-
-		-
-			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:getTablePrimaryKey\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Snowflake/Connection.php
-
-		-
-			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:query\\(\\) has parameter \\$bind with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Snowflake/Connection.php
-
-		-
 			message: "#^Method Keboola\\\\Db\\\\Import\\\\Snowflake\\\\Connection\\:\\:repairBinding\\(\\) has parameter \\$bind with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Snowflake/Connection.php

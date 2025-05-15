@@ -23,7 +23,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
         string $s3key,
         string $s3secret,
         string $s3region,
-        string $schemaName
+        string $schemaName,
     ) {
         parent::__construct($connection, $schemaName);
         $this->s3key = $s3key;
@@ -43,7 +43,7 @@ abstract class RedshiftBaseCsv extends RedshiftBase
             throw new Exception(
                 'Invalid CSV params. Either enclosure or escapedBy must be specified for Redshift backend but not both.',
                 Exception::INVALID_CSV_PARAMS,
-                null
+                null,
             );
         }
 

@@ -21,7 +21,7 @@ class ExceptionHandler
                 "/String \'([^\']*)\' is too long .* SQL state 22000/",
                 "String '%s' cannot be inserted because it's bigger than column size",
                 Import\Exception::ROW_SIZE_TOO_LARGE,
-                [1]
+                [1],
             ),
         ];
 
@@ -30,7 +30,7 @@ class ExceptionHandler
                 '/Statement reached its statement or warehouse timeout of ([0-9]+) second.* SQL state 57014/',
                 'Query reached its timeout %d second(s)',
                 Import\Exception::QUERY_TIMEOUT,
-                [1]
+                [1],
             );
     }
 
@@ -43,7 +43,7 @@ class ExceptionHandler
             if (preg_match(
                 $messageTransformation->getPattern(),
                 $exception->getMessage(),
-                $matches
+                $matches,
             )) {
                 return $messageTransformation->getImportException($matches);
             }

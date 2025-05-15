@@ -22,14 +22,14 @@ class CopyImportRedshift extends RedshiftBase
 
         $sourceColumnTypes = $this->describeTable(
             strtolower($sourceData['tableName']),
-            strtolower($sourceData['schemaName'])
+            strtolower($sourceData['schemaName']),
         );
 
         $sql = 'INSERT INTO ' . $this->tableNameEscaped($stagingTempTableName) . ' (' . implode(
             ', ',
             array_map(function ($column) {
                 return $this->quoteIdentifier($column);
-            }, $columns)
+            }, $columns),
         ) . ') ';
 
         $sql .= 'SELECT ' . implode(',', array_map(function ($column) use ($sourceColumnTypes, $options) {
