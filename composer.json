@@ -7,13 +7,13 @@
         "keboola/csv": "^1.1",
         "tracy/tracy": "^2.3",
         "aws/aws-sdk-php": "^3.11",
-        "doctrine/dbal": "^3.0",
-        "keboola/coding-standard": "^15.0"
+        "doctrine/dbal": "^3.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5",
         "phpstan/phpstan": "^1.9",
-        "keboola/phpunit-retry-annotations": "*"
+        "keboola/phpunit-retry-annotations": "*",
+        "keboola/coding-standard": "^15.2"
     },
     "autoload": {
         "psr-4": {
