@@ -160,6 +160,10 @@ abstract class ImportBase implements ImportInterface
         $this->connection->query('COMMIT');
     }
 
+    protected function getPrimaryKey(string $tableName): array
+    {
+        return $this->connection->getTablePrimaryKey($this->schemaName, $tableName);
+    }
     /**
      * Performs merge operation according to http://docs.aws.amazon.com/redshift/latest/dg/merge-specify-a-column-list.html
      */
@@ -171,7 +175,7 @@ abstract class ImportBase implements ImportInterface
         $targetTableNameWithSchema = $this->nameWithSchemaEscaped($targetTableName);
         $stagingTableNameWithSchema = $this->nameWithSchemaEscaped($stagingTableName);
 
-        $primaryKey = $this->connection->getTablePrimaryKey($this->schemaName, $targetTableName);
+        $primaryKey = $this->getPrimaryKey($targetTableName);
 
         if (!empty($primaryKey)) {
             // Update target table
