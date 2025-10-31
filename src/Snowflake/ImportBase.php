@@ -24,6 +24,8 @@ abstract class ImportBase implements ImportInterface
 
     protected int $importedRowsCount = 0;
 
+    protected array $sourceData;
+
     private array $timers = [];
 
     private array $importedColumns = [];
@@ -55,6 +57,7 @@ abstract class ImportBase implements ImportInterface
             $this->importDataToStagingTable($stagingTableName, $columns, $sourceData);
 
             if ($this->getIncremental()) {
+                $this->sourceData = $sourceData;
                 $this->insertOrUpdateTargetTable(
                     $stagingTableName,
                     $tableName,
