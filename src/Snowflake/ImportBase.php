@@ -24,6 +24,7 @@ abstract class ImportBase implements ImportInterface
 
     protected int $importedRowsCount = 0;
 
+    /** @var array<mixed> */
     protected array $sourceData;
 
     private array $timers = [];
@@ -163,6 +164,9 @@ abstract class ImportBase implements ImportInterface
         $this->connection->query('COMMIT');
     }
 
+    /**
+     * @return string[]
+     */
     protected function getPrimaryKey(string $tableName): array
     {
         return $this->connection->getTablePrimaryKey($this->schemaName, $tableName);
