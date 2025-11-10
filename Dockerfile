@@ -1,6 +1,6 @@
-ARG PHP_VERSION=8.1
+ARG PHP_VERSION=8.2
 
-FROM php:${PHP_VERSION:-8.1}-cli-buster
+FROM php:${PHP_VERSION:-8.2}-cli-trixie
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV COMPOSER_ALLOW_SUPERUSER 1
@@ -8,8 +8,8 @@ ENV COMPOSER_PROCESS_TIMEOUT 3600
 # snowflake - charset settings
 ENV LANG en_US.UTF-8
 
-ARG SNOWFLAKE_ODBC_VERSION=2.25.12
-ARG SNOWFLAKE_GPG_KEY=630D9F3CAB551AF3
+ARG SNOWFLAKE_ODBC_VERSION=3.10.0
+ARG SNOWFLAKE_GPG_KEY_ID=2A3149C82551A34A
 
 RUN apt-get update \
   && apt-get install -y unzip \
@@ -42,20 +42,39 @@ RUN set -ex; \
     docker-php-ext-install odbc; \
     docker-php-source delete
 
-## install snowflake drivers
-COPY ./docker/snowflake/generic.pol /etc/debsig/policies/$SNOWFLAKE_GPG_KEY/generic.pol
-COPY ./docker/snowflake/simba.snowflake.ini /usr/lib/snowflake/odbc/lib/simba.snowflake.ini
+# SNOWFLAKE
+ADD ./docker/snowflake/generic.pol /etc/debsig/policies/$SNOWFLAKE_GPG_KEY_ID/generic.pol
+ADD ./docker/snowflake/simba.snowflake.ini /usr/lib/snowflake/odbc/lib/simba.snowflake.ini
+
+# snowflake - charset settings
+ENV LANG=en_US.UTF-8
 
 RUN mkdir -p ~/.gnupg \
     && chmod 700 ~/.gnupg \
     && echo "disable-ipv6" >> ~/.gnupg/dirmngr.conf \
-    && mkdir -p /usr/share/debsig/keyrings/$SNOWFLAKE_GPG_KEY \
-    && gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys $SNOWFLAKE_GPG_KEY \
-    && gpg --export $SNOWFLAKE_GPG_KEY > /usr/share/debsig/keyrings/$SNOWFLAKE_GPG_KEY/debsig.gpg \
+    && mkdir -p /etc/gnupg \
+    && echo "allow-weak-digest-algos" >> /etc/gnupg/gpg.conf \
+    && mkdir -p /usr/share/debsig/keyrings/$SNOWFLAKE_GPG_KEY_ID \
+    && gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys $SNOWFLAKE_GPG_KEY_ID \
+    && gpg --export $SNOWFLAKE_GPG_KEY_ID > /usr/share/debsig/keyrings/$SNOWFLAKE_GPG_KEY_ID/debsig.gpg \
     && curl https://sfc-repo.snowflakecomputing.com/odbc/linux/$SNOWFLAKE_ODBC_VERSION/snowflake-odbc-$SNOWFLAKE_ODBC_VERSION.x86_64.deb --output /tmp/snowflake-odbc.deb \
     && debsig-verify /tmp/snowflake-odbc.deb \
-    && gpg --batch --delete-key --yes $SNOWFLAKE_GPG_KEY \
-    && dpkg -i /tmp/snowflake-odbc.deb
+    && gpg --batch --delete-key --yes $SNOWFLAKE_GPG_KEY_ID \
+    && dpkg -i /tmp/snowflake-odbc.deb \
+    && rm /tmp/snowflake-odbc.deb
+
+RUN cat <<EOF > /etc/odbcinst.ini
+[ODBC Drivers]
+SnowflakeDSIIDriver=Installed
+
+[SnowflakeDSIIDriver]
+APILevel=1
+ConnectFunctions=YYY
+Description=Snowflake DSII
+Driver=/usr/lib/snowflake/odbc/lib/libSnowflake.so
+DriverODBCVer=$SNOWFLAKE_ODBC_VERSION
+SQLLevel=1
+EOF
 
 RUN cd \
   && curl -sS https://getcomposer.org/installer | php \
